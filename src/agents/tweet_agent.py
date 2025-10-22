@@ -28,11 +28,11 @@ from datetime import datetime
 from pathlib import Path
 from dotenv import load_dotenv
 import openai
-import anthropic
 import traceback
 import math
 from termcolor import colored, cprint
 import sys
+from src.models import model_factory
 
 # Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent.parent
@@ -96,32 +96,17 @@ class TweetAgent:
                 print(f"  - Max Tokens: {AI_MAX_TOKENS}")
         
         load_dotenv()
-        
-        # Get API keys
-        openai_key = os.getenv("OPENAI_KEY")
-        anthropic_key = os.getenv("ANTHROPIC_KEY")
-        
-        if not openai_key:
-            raise ValueError("🚨 OPENAI_KEY not found in environment variables!")
-        if not anthropic_key:
-            raise ValueError("🚨 ANTHROPIC_KEY not found in environment variables!")
-            
-        openai.api_key = openai_key
-        self.client = anthropic.Anthropic(api_key=anthropic_key)
 
-        # Initialize DeepSeek client if needed
+        # Initialize model using model_factory
         if "deepseek" in self.ai_model.lower():
-            deepseek_key = os.getenv("DEEPSEEK_KEY")
-            if deepseek_key:
-                self.deepseek_client = openai.OpenAI(
-                    api_key=deepseek_key,
-                    base_url=DEEPSEEK_BASE_URL
-                )
-            else:
-                self.deepseek_client = None
-                print("⚠️ DEEPSEEK_KEY not found - DeepSeek model will not be available")
+            self.model = model_factory.get_model("deepseek", self.ai_model)
+            print(f"🚀 Using DeepSeek: {self.ai_model}")
         else:
-            self.deepseek_client = None
+            self.model = model_factory.get_model("claude", self.ai_model if self.ai_model != "0" else None)
+            print(f"🎯 Using Claude: {self.ai_model}")
+
+        if not self.model:
+            raise ValueError("Could not initialize AI model!")
         
         # Create tweets directory if it doesn't exist
         self.tweets_dir = Path("/Users/md/Dropbox/dev/github/moon-dev-ai-agents-for-trading/src/data/tweets")
@@ -186,40 +171,15 @@ class TweetAgent:
                 
                 # Prepare the context
                 context = TWEET_PROMPT.format(text=chunk)
-                
-                # Use either DeepSeek or Claude based on model setting
-                if "deepseek" in self.ai_model.lower():
-                    if not self.deepseek_client:
-                        raise ValueError("🚨 DeepSeek client not initialized - check DEEPSEEK_KEY")
-                        
-                    # Make DeepSeek API call
-                    response = self.deepseek_client.chat.completions.create(
-                        model=self.ai_model,
-                        messages=[
-                            {"role": "system", "content": TWEET_PROMPT},
-                            {"role": "user", "content": context}
-                        ],
-                        max_tokens=self.ai_max_tokens,
-                        temperature=self.ai_temperature,
-                        stream=False
-                    )
-                    response_text = response.choices[0].message.content.strip()
-                else:
-                    # Get tweets using Claude
-                    message = self.client.messages.create(
-                        model=self.ai_model,
-                        max_tokens=self.ai_max_tokens,
-                        temperature=self.ai_temperature,
-                        messages=[{
-                            "role": "user",
-                            "content": context
-                        }]
-                    )
-                    # Handle both string and list responses
-                    if isinstance(message.content, list):
-                        response_text = message.content[0].text if message.content else ""
-                    else:
-                        response_text = message.content
+
+                # Use model_factory for generation
+                model_response = self.model.generate_response(
+                    system_prompt=TWEET_PROMPT,
+                    user_content=context,
+                    temperature=self.ai_temperature,
+                    max_tokens=self.ai_max_tokens
+                )
+                response_text = model_response.content
                 
                 # Parse tweets from response and remove any numbering
                 chunk_tweets = []

@@ -41,13 +41,11 @@ or
 RESPECT_LIMIT: <detailed reason for each position>
 """
 
-import anthropic
 import os
 import pandas as pd
 import json
 from termcolor import colored, cprint
 from dotenv import load_dotenv
-import openai
 from src import config
 from src import nice_funcs as n
 from src.data.ohlcv_collector import collect_all_tokens
@@ -56,6 +54,7 @@ import time
 from src.config import *
 from src.agents.base_agent import BaseAgent
 import traceback
+from src.models import model_factory
 
 # Load environment variables
 load_dotenv()
@@ -81,29 +80,17 @@ class RiskAgent(BaseAgent):
                 print(f"  - Max Tokens: {AI_MAX_TOKENS}")
                 
         load_dotenv()
-        
-        # Get API keys
-        openai_key = os.getenv("OPENAI_KEY")
-        anthropic_key = os.getenv("ANTHROPIC_KEY")
-        deepseek_key = os.getenv("DEEPSEEK_KEY")
-        
-        if not openai_key:
-            raise ValueError("🚨 OPENAI_KEY not found in environment variables!")
-        if not anthropic_key:
-            raise ValueError("🚨 ANTHROPIC_KEY not found in environment variables!")
-            
-        # Initialize OpenAI client for DeepSeek
-        if deepseek_key and MODEL_OVERRIDE.lower() == "deepseek-chat":
-            self.deepseek_client = openai.OpenAI(
-                api_key=deepseek_key,
-                base_url=DEEPSEEK_BASE_URL
-            )
-            print("🚀 DeepSeek model initialized!")
+
+        # Initialize model using model_factory
+        if MODEL_OVERRIDE.lower() == "deepseek-chat":
+            self.model = model_factory.get_model("deepseek", "deepseek-chat")
+            print("🚀 Using DeepSeek model!")
         else:
-            self.deepseek_client = None
-            
-        # Initialize Anthropic client
-        self.client = anthropic.Anthropic(api_key=anthropic_key)
+            self.model = model_factory.get_model("claude")
+            print("🎯 Using Claude model!")
+
+        if not self.model:
+            raise ValueError("Could not initialize AI model!")
         
         self.override_active = False
         self.last_override_check = None
@@ -278,34 +265,15 @@ class RiskAgent(BaseAgent):
             )
             
             cprint("🤖 AI Agent analyzing market data...", "white", "on_green")
-            
-            # Use DeepSeek if configured
-            if self.deepseek_client and MODEL_OVERRIDE.lower() == "deepseek-chat":
-                print("🚀 Using DeepSeek for analysis...")
-                response = self.deepseek_client.chat.completions.create(
-                    model="deepseek-chat",
-                    messages=[
-                        {"role": "system", "content": "You are Moon Dev's Risk Management AI. Analyze positions and respond with OVERRIDE or RESPECT_LIMIT."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    max_tokens=self.ai_max_tokens,
-                    temperature=self.ai_temperature,
-                    stream=False
-                )
-                response_text = response.choices[0].message.content.strip()
-            else:
-                # Use Claude as before
-                print("🤖 Using Claude for analysis...")
-                message = self.client.messages.create(
-                    model=self.ai_model,
-                    max_tokens=self.ai_max_tokens,
-                    temperature=self.ai_temperature,
-                    messages=[{
-                        "role": "user",
-                        "content": prompt
-                    }]
-                )
-                response_text = str(message.content)
+
+            # Use model_factory for AI analysis
+            model_response = self.model.generate_response(
+                system_prompt="You are Moon Dev's Risk Management AI. Analyze positions and respond with OVERRIDE or RESPECT_LIMIT.",
+                user_content=prompt,
+                temperature=self.ai_temperature,
+                max_tokens=self.ai_max_tokens
+            )
+            response_text = model_response.content
             
             # Handle TextBlock format if using Claude
             if 'TextBlock' in response_text:
@@ -495,33 +463,14 @@ Respond with:
 CLOSE_ALL or HOLD_POSITIONS
 Then explain your reasoning.
 """
-            # Use DeepSeek if configured
-            if self.deepseek_client and MODEL_OVERRIDE.lower() == "deepseek-chat":
-                print("🚀 Using DeepSeek for analysis...")
-                response = self.deepseek_client.chat.completions.create(
-                    model="deepseek-chat",
-                    messages=[
-                        {"role": "system", "content": "You are Moon Dev's Risk Management AI. Analyze the breach and decide whether to close positions."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    max_tokens=self.ai_max_tokens,
-                    temperature=self.ai_temperature,
-                    stream=False
-                )
-                response_text = response.choices[0].message.content.strip()
-            else:
-                # Use Claude as before
-                print("🤖 Using Claude for analysis...")
-                message = self.client.messages.create(
-                    model=self.ai_model,
-                    max_tokens=self.ai_max_tokens,
-                    temperature=self.ai_temperature,
-                    messages=[{
-                        "role": "user",
-                        "content": prompt
-                    }]
-                )
-                response_text = str(message.content)
+            # Use model_factory for AI analysis
+            model_response = self.model.generate_response(
+                system_prompt="You are Moon Dev's Risk Management AI. Analyze the breach and decide whether to close positions.",
+                user_content=prompt,
+                temperature=self.ai_temperature,
+                max_tokens=self.ai_max_tokens
+            )
+            response_text = model_response.content
             
             # Handle TextBlock format if using Claude
             if 'TextBlock' in response_text:
