@@ -6,27 +6,33 @@ It extracts frames from videos, transcribes audio, and provides a compliance rat
 Created with ❤️ by Moon Dev's AI Assistant
 '''
 
-import os
-import sys
-import cv2
-import time
-import json
-import shutil
-import whisper
-import numpy as np
+# Standard library imports
 import base64
+import json
+import os
+import shutil
+import sys
+import threading
+import time
+
+# Third-party imports
+import cv2
+import numpy as np
+import whisper
+
+# Standard library from imports
+from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Union, Any
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+# Third-party from imports
 from termcolor import colored, cprint
 from tqdm import tqdm
-from datetime import datetime
-from typing import Dict, List, Tuple, Optional, Any
-import threading
 
 # Add parent directory to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Import model factory
+# Local from imports
 from src.models import model_factory
 
 # Configuration

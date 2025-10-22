@@ -5,12 +5,17 @@ Shows how to use Exchange Manager for both Solana and HyperLiquid
 Built with love by Moon Dev 🚀
 """
 
-import sys
+# Standard library imports
 import os
-from pathlib import Path
-from termcolor import colored, cprint
-from dotenv import load_dotenv
+import sys
 import time
+
+# Standard library from imports
+from pathlib import Path
+
+# Third-party from imports
+from dotenv import load_dotenv
+from termcolor import colored, cprint
 
 # Add project root to path
 project_root = str(Path(__file__).parent.parent.parent)
@@ -20,9 +25,9 @@ if project_root not in sys.path:
 # Load environment variables
 load_dotenv()
 
-# Import the exchange manager
-from src.exchange_manager import ExchangeManager
+# Local from imports
 from src.config import EXCHANGE, get_active_tokens, max_usd_order_size, slippage
+from src.exchange_manager import ExchangeManager
 
 class UnifiedTradingAgent:
     """

@@ -19,24 +19,31 @@ Strategy:
 Built with love by Moon Dev 🚀
 """
 
+# Standard library imports
+import json
 import os
+import random
 import sys
 import time
-import json
-import random
+
+# Third-party imports
+import pandas as pd
+import requests
+
+# Standard library from imports
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-import pandas as pd
-from termcolor import colored, cprint
+
+# Third-party from imports
 from dotenv import load_dotenv
-import requests
+from termcolor import colored, cprint
 
 # Add project root to path
 project_root = str(Path(__file__).parent.parent.parent)
 if project_root not in sys.path:
     sys.path.append(project_root)
 
-# Import Moon Dev modules
+# Local from imports
 from src.config import EXCHANGE, MONITORED_TOKENS
 from src import nice_funcs as n
 from src.models.model_factory import model_factory

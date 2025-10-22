@@ -5,10 +5,17 @@ This agent is a simple LLM where you can ask back and forth questions based off 
 Set up a knowledge base in the data folder called million_agent. 
 """
 
-import os
-from pathlib import Path
+# Standard library imports
 import glob
+import os
+
+# Standard library from imports
+from pathlib import Path
+
+# Third-party from imports
 from termcolor import cprint
+
+# Local from imports
 from src.models import model_factory
 
 # Constants
