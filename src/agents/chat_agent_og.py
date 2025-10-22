@@ -747,11 +747,12 @@ class ChatAgent:
         
     def _announce_model(self):
         """Announce current model with eye-catching formatting"""
-        model_msg = f"🤖 USING MODEL: {MODEL_TYPE.upper()} - {MODEL_NAME} 🤖"
+        model_msg = f"🤖 USING MODEL_PRIORITY: MEDIUM (Auto-Fallback Enabled) 🤖"
         border = "=" * (len(model_msg) + 4)
         cprint(border, 'white', 'on_blue', attrs=['bold'])
         cprint(f"  {model_msg}  ", 'white', 'on_blue', attrs=['bold'])
         cprint(border, 'white', 'on_blue', attrs=['bold'])
+        cprint("  Primary: Claude Haiku 4.5 -> GPT-5 Mini -> Gemini 2.5 Flash", 'cyan')
         
     def _load_knowledge_base(self):
         """Load and return the knowledge base content"""
