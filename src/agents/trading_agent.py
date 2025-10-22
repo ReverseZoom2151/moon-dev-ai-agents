@@ -209,15 +209,22 @@ IMPORTANT: "Do Nothing" means maintain current position (if we have one, keep it
 
 RESPOND WITH ONLY ONE WORD: Buy, Sell, or Do Nothing"""
 
+# Standard library imports
+import json
 import os
 import sys
-import pandas as pd
-import json
-from termcolor import cprint
-from dotenv import load_dotenv
-from datetime import datetime, timedelta
 import time
+
+# Third-party imports
+import pandas as pd
+
+# Standard library from imports
+from datetime import datetime, timedelta
 from pathlib import Path
+
+# Third-party from imports
+from dotenv import load_dotenv
+from termcolor import cprint
 
 # Add project root to path for imports
 project_root = str(Path(__file__).parent.parent.parent)
@@ -226,10 +233,11 @@ if project_root not in sys.path:
 
 # Local imports - trading_agent.py is now fully self-contained!
 # No config.py imports needed - all settings are at the top of this file (lines 55-111)
+# Local from imports
 from src import nice_funcs as n
+from src.agents.swarm_agent import SwarmAgent
 from src.data.ohlcv_collector import collect_all_tokens
 from src.models.model_factory import model_factory
-from src.agents.swarm_agent import SwarmAgent
 
 # Load environment variables
 load_dotenv()

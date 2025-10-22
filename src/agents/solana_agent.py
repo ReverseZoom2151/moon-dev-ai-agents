@@ -3,23 +3,32 @@
 Analyzes token launches and transactions to find the best opportunities!
 '''
 
-import os
-import sys
-from pathlib import Path
-import pandas as pd
-import time
-import requests
+# Standard library imports
 import logging
-from rich.console import Console
-from rich import print as rprint
-from dotenv import load_dotenv
-from termcolor import colored
+import os
 import random
+import sys
+import time
+
+# Third-party imports
+import pandas as pd
+import requests
+
+# Standard library from imports
+from pathlib import Path
+
+# Third-party from imports
+from dotenv import load_dotenv
+from rich import print as rprint
+from rich.console import Console
+from termcolor import colored
+
+# Local from imports
 from src.nice_funcs import (
-    token_overview, 
-    token_security_info,
     token_creation_info,
-    token_price
+    token_overview,
+    token_price,
+    token_security_info
 )
 
 # Add src directory to Python path

@@ -2,10 +2,14 @@
 Simple test backtest to verify backtest_runner.py works
 Uses local data from moon-dev-trading-bots
 """
-from backtesting import Backtest, Strategy
-from backtesting.lib import crossover
+
+# Third-party imports
 import pandas as pd
 import talib
+
+# Third-party from imports
+from backtesting import Backtest, Strategy
+from backtesting.lib import crossover
 
 print("Moon Dev's Simple SMA Strategy Test")
 
