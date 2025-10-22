@@ -19,7 +19,7 @@ from termcolor import cprint
 from dotenv import load_dotenv
 import pandas as pd
 from src.config import *
-from src.models import model_factory
+from src.models.model_priority import model_priority_queue, ModelPriority
 import json
 import threading
 import random
@@ -490,12 +490,10 @@ class ChatAgentAd:
             else:
                 cprint(f"❌ Missing {key}", "red")
         
-        # Initialize model using factory
-        self.model_factory = model_factory
-        self.model = self.model_factory.get_model(MODEL_TYPE, MODEL_NAME)
-        
-        if not self.model:
-            raise ValueError(f"🚨 Could not initialize {MODEL_TYPE} {MODEL_NAME} model! Check API key and model availability.")
+        # Initialize model_priority system
+        self.model_priority = model_priority_queue
+        if not self.model_priority:
+            raise ValueError("Could not initialize model_priority system!")
         
         self._announce_model()
         
@@ -823,12 +821,14 @@ class ChatAgentAd:
                 # 2. Check negativity for ALL non-777 messages
                 negativity_prompt = NEGATIVITY_CHECK_PROMPT.format(message=question)
                 try:
-                    negativity_response = self.model.generate_response(
+                    response_obj, _, _ = self.model_priority.get_model(
+                        priority=ModelPriority.MEDIUM,
                         system_prompt=negativity_prompt,
                         user_content=question,
                         temperature=0.3,
                         max_tokens=5
-                    ).content.strip().lower()
+                    )
+                    negativity_response = response_obj.content.strip().lower() if response_obj else "false"
                     
                     if negativity_response == 'true':
                         self.save_chat_history(user, question, -1)

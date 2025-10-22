@@ -19,7 +19,7 @@ from termcolor import cprint
 from dotenv import load_dotenv
 import pandas as pd
 from src.config import *
-from src.models import model_factory
+from src.models.model_priority import model_priority_queue, ModelPriority
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 import json
@@ -676,12 +676,10 @@ class ChatAgent:
             else:
                 cprint(f"❌ Missing {key}", "red")
         
-        # Initialize model using factory
-        self.model_factory = model_factory
-        self.model = self.model_factory.get_model(MODEL_TYPE, MODEL_NAME)
-        
-        if not self.model:
-            raise ValueError(f"🚨 Could not initialize {MODEL_TYPE} {MODEL_NAME} model! Check API key and model availability.")
+        # Initialize model_priority system
+        self.model_priority = model_priority_queue
+        if not self.model_priority:
+            raise ValueError(f"🚨 Could not initialize model_priority system! Check API keys and model availability.")
         
         self._announce_model()
         
@@ -840,30 +838,39 @@ class ChatAgent:
                 
             # Check for negativity first
             negativity_prompt = NEGATIVITY_CHECK_PROMPT.format(message=question)
-            negativity_response = self.model.generate_response(
+            negativity_response, _, _ = self.model_priority.get_model(
+                priority=ModelPriority.MEDIUM,
                 system_prompt=negativity_prompt,
                 user_content=question,
                 temperature=0.3,
                 max_tokens=10
             )
-            
-            try:
-                negativity_score = float(negativity_response.content.strip())
-                if negativity_score >= NEGATIVITY_THRESHOLD:
-                    return LOVE_SPAM
-            except ValueError:
-                pass
+
+            if not negativity_response:
+                cprint("⚠️ All models failed for negativity check, skipping", "yellow")
+                negativity_score = 0.0
+            else:
+                try:
+                        negativity_score = float(negativity_response.content.strip())
+                except ValueError:
+                    negativity_score = 0.0
+
+            if negativity_score >= NEGATIVITY_THRESHOLD:
+                return LOVE_SPAM
             
             # Special case for "777"
             if question.strip() == "777":
-                verse_response = self.model.generate_response(
+                verse_response, _, _ = self.model_priority.get_model(
+                    priority=ModelPriority.MEDIUM,
                     system_prompt=PROMPT_777,
                     user_content="777",
                     temperature=0.9,
                     max_tokens=MAX_RESPONSE_TOKENS
                 )
-                emojis = self._get_random_lucky_emojis()
-                return f"777 {emojis}\n{verse_response.content.strip()}"
+                if verse_response:
+                    emojis = self._get_random_lucky_emojis()
+                    return f"777 {emojis}\n{verse_response.content.strip()}"
+                return None
             
             # Get knowledge base content
             knowledge_base = self._load_knowledge_base()
@@ -877,14 +884,19 @@ class ChatAgent:
             if len(question.split()) < 5:
                 formatted_prompt = """You are Moon Dev's Live Stream Chat AI Agent. Keep responses short and friendly with emojis."""
             
-            # Get response from model
-            response = self.model.generate_response(
+            # Get response from model_priority
+            response, _, _ = self.model_priority.get_model(
+                priority=ModelPriority.MEDIUM,
                 system_prompt=formatted_prompt,
                 user_content=question,
                 temperature=0.7,
                 max_tokens=MAX_RESPONSE_TOKENS
             )
-            
+
+            if not response:
+                cprint("❌ All models failed for chat response", "red")
+                return None
+
             return response.content.strip()
             
         except Exception as e:
