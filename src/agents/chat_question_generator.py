@@ -6,22 +6,30 @@ This agent analyzes recent chat messages and generates relevant questions
 that could be asked based on the conversation context.
 """
 
+# Standard library imports
+import os
 import sys
+import time
+
+# Third-party imports
+import pandas as pd
+
+# Standard library from imports
+from datetime import datetime, timedelta
 from pathlib import Path
+
+# Third-party from imports
+from dotenv import load_dotenv
+from termcolor import cprint
+
 # Add project root to Python path for imports
 project_root = str(Path(__file__).parent.parent.parent)
 if project_root not in sys.path:
     sys.path.append(project_root)
 
-import os
-import time
-from datetime import datetime, timedelta
-from termcolor import cprint
-from dotenv import load_dotenv
-import pandas as pd
+# Local from imports
 from src.config import *
 from src.models import model_factory
-import threading
 
 # Load environment variables from the project root
 env_path = Path(project_root) / '.env'

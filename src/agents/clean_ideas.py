@@ -7,14 +7,21 @@ and ensuring consistent formatting.
 Created with ❤️ by Moon Dev
 '''
 
-import re
+# Standard library imports
 import csv
-import time
 import random
+import re
 import sys
-from pathlib import Path
+import time
+
+# Third-party imports
 import pandas as pd
-from termcolor import cprint, colored
+
+# Standard library from imports
+from pathlib import Path
+
+# Third-party from imports
+from termcolor import colored, cprint
 
 # Fun emojis for animation
 EMOJIS = ["🚀", "💫", "✨", "🌟", "💎", "🔮", "🌙", "⭐", "🌠", "💰", "📈", "🧠"]
