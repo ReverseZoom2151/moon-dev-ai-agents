@@ -25,8 +25,8 @@ import schedule
 from termcolor import colored, cprint
 
 # Local from imports
-from ..core.config import *
-from ..core.utils import nice_funcs as n
+from src.config import *
+from src import nice_funcs as n
 
 
 ###### ASKING USER WHAT THEY WANNA DO - WILL REMOVE USER SOON AND REPLACE WITH BOT ######
