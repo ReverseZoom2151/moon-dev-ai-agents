@@ -4,7 +4,10 @@ Parent class for all trading agents with unified exchange support
 Supports both single exchange and multi-exchange modes
 """
 
+# Standard library from imports
 from datetime import datetime
+
+# Third-party from imports
 from termcolor import cprint
 
 class BaseAgent:

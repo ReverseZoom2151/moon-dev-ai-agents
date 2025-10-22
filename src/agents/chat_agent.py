@@ -5,32 +5,39 @@ Built with love by Moon Dev 🚀
 This agent monitors Restream chat and answers questions using a knowledge base.
 """
 
+# Standard library imports
+import csv
+import json
+import os
+import random
 import sys
+import threading
+import time
+
+# Third-party imports
+import pandas as pd
+import selenium
+
+# Standard library from imports
+from datetime import datetime
 from pathlib import Path
+
+# Third-party from imports
+from dotenv import load_dotenv
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+from termcolor import cprint
+
+# Local from imports
+from src.config import *
+
 # Add project root to Python path for imports
 project_root = str(Path(__file__).parent.parent.parent)
 if project_root not in sys.path:
     sys.path.append(project_root)
-
-import os
-import time
-from datetime import datetime
-from termcolor import cprint
-from dotenv import load_dotenv
-import pandas as pd
-from src.config import *
-# from src.models import model_factory  # Removed - no AI needed
-import json
-import threading
-import random
-import selenium
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.options import Options
-# Removed sklearn imports - no longer needed
-import csv
 
 # Load environment variables from the project root
 env_path = Path(project_root) / '.env'

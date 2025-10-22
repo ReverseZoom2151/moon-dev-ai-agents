@@ -71,22 +71,31 @@ all of my videos you can use: https://www.dropbox.com/scl/fo/d0rjdyus9q3pok5nbmo
 '''
 
 # Moon Dev's Video Splitter Agent🎬
-import sys
-from pathlib import Path
+# Standard library imports
 import os
-import moviepy.editor as mp
+import random
+import re
+import shutil
+import subprocess
+import sys
 import time
+
+# Third-party imports
+import moviepy.editor as mp
+import openai
+import yt_dlp
+
+# Standard library from imports
+from pathlib import Path
+
+# Third-party from imports
+from moviepy.editor import AudioFileClip, CompositeVideoClip, VideoFileClip
 from termcolor import cprint
 from tqdm import tqdm
-import subprocess
-import shutil
-import random
 from youtube_transcript_api import YouTubeTranscriptApi
-import re
+
+# Local from imports
 from src.models import model_factory
-import yt_dlp
-import openai
-from moviepy.editor import VideoFileClip, AudioFileClip, CompositeVideoClip
 
 # Add project root to Python path for imports
 project_root = str(Path(__file__).parent.parent.parent)

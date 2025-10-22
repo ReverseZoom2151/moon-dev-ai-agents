@@ -68,16 +68,23 @@ Rate Limits:
 Need an API key? for a limited time, bootcamp members get free api keys for claude, openai, helius, birdeye & quant elite gets access to the moon dev api. join here: https://algotradecamp.com
 """
 
+# Standard library imports
+import io
+import json
 import os
+import time
+import traceback
+
+# Third-party imports
+import numpy as np
 import pandas as pd
 import requests
+
+# Standard library from imports
 from datetime import datetime
-import time
 from pathlib import Path
-import numpy as np
-import traceback
-import json
-import io
+
+# Third-party from imports
 from dotenv import load_dotenv
 
 # Load environment variables

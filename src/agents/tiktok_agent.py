@@ -97,23 +97,32 @@ probably grab the link...
 ✅ FIXED: Now detects live videos by checking URL and skips processing them entirely!
 """
 
-import pyautogui
-import time
-from pathlib import Path
-from termcolor import cprint
-from datetime import datetime
-import Quartz
-import sys
-import os
-from Quartz import CoreGraphics as CG
-import AppKit
-import subprocess
-import traceback
-import random
-import webbrowser
-import pandas as pd
+# Standard library imports
 import base64
-from src.models import model_factory  # Import Moon Dev's model factory
+import os
+import random
+import subprocess
+import sys
+import time
+import traceback
+import webbrowser
+
+# Third-party imports
+import AppKit
+import pandas as pd
+import pyautogui
+import Quartz
+
+# Standard library from imports
+from datetime import datetime
+from pathlib import Path
+
+# Third-party from imports
+from Quartz import CoreGraphics as CG
+from termcolor import cprint
+
+# Local from imports
+from src.models import model_factory
 
 # ===== CONFIGURATION (ADJUST THESE FOR YOUR SETUP) =====
 
