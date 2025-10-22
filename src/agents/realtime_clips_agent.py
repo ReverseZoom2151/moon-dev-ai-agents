@@ -130,19 +130,26 @@ Output ONLY the title sentence, nothing else."""
 # END CONFIGURATION
 # ============================================================================
 
-import os
-import sys
-import subprocess
+# Standard library imports
 import json
-from pathlib import Path
-from datetime import datetime
-from termcolor import cprint
+import os
 import re
-import whisper
-import time
+import subprocess
+import sys
 import threading
+import time
 import webbrowser
+
+# Third-party imports
+import whisper
+
+# Standard library from imports
+from datetime import datetime
+from pathlib import Path
 from urllib.parse import quote
+
+# Third-party from imports
+from termcolor import cprint
 
 # Add project root to path for imports
 sys.path.append(str(Path(__file__).parent.parent.parent))

@@ -5,8 +5,30 @@ Built with love by Moon Dev 🚀
 This agent continuously listens to voice, generates titles and thumbnails for livestreams.
 """
 
+# Standard library imports
+import base64
+import os
 import sys
+import tempfile
+import time
+import wave
+
+# Third-party imports
+import openai
+import pyaudio
+import whisper
+
+# Standard library from imports
+from datetime import datetime
 from pathlib import Path
+
+# Third-party from imports
+from dotenv import load_dotenv
+from termcolor import cprint
+
+# Local from imports
+from src.models import model_factory
+
 # Add project root to Python path for imports
 project_root = str(Path(__file__).parent.parent.parent)
 if project_root not in sys.path:
@@ -16,19 +38,6 @@ if project_root not in sys.path:
 env_path = Path(project_root) / '.env'
 if not env_path.exists():
     raise ValueError(f"🚨 .env file not found at {env_path}")
-
-import os
-import time
-from datetime import datetime
-import pyaudio
-import openai
-from termcolor import cprint
-from dotenv import load_dotenv
-import base64
-from src.models import model_factory
-import wave
-import tempfile
-import whisper
 
 # Load .env file explicitly from project root
 load_dotenv(dotenv_path=env_path)

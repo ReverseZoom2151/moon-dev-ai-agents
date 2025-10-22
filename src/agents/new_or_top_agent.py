@@ -91,20 +91,27 @@ Main Agent Code Below
 =================================
 """
 
-import os
-import requests
-import pandas as pd
+# Standard library imports
 import json
-from datetime import datetime
-from pathlib import Path
-from dotenv import load_dotenv
+import os
+import random
+import time
+
+# Third-party imports
 import anthropic
 import openai
-from typing import Dict, List
-import time
-from termcolor import colored, cprint
-import random
+import pandas as pd
+import requests
 import src.config as config
+
+# Standard library from imports
+from datetime import datetime
+from pathlib import Path
+from typing import Dict, List
+
+# Third-party from imports
+from dotenv import load_dotenv
+from termcolor import colored, cprint
 
 # Load environment variables
 load_dotenv()

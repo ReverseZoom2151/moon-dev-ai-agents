@@ -6,25 +6,30 @@ Watches for new Solana token launches and displays them with fun animations!
 - it would be dope to have agents analuzing the launches of each day continously tho, so its like looking at the top 20 to see if they change
 '''
 
+# Standard library imports
+import logging
 import os
+import random
 import sys
+import time
+
+# Third-party imports
+import pandas as pd
+import requests
+
+# Standard library from imports
 from pathlib import Path
+
+# Third-party from imports
+from playsound import playsound
+from rich import print as rprint
+from rich.console import Console
+from termcolor import colored
 
 # Add src directory to Python path
 src_path = str(Path(__file__).parent.parent)
 if src_path not in sys.path:
     sys.path.append(src_path)
-
-import time
-import random
-import requests
-from termcolor import colored
-import pandas as pd
-from pathlib import Path
-import logging
-from rich.console import Console
-from rich import print as rprint
-from playsound import playsound
 
 # Suppress INFO logs
 logging.getLogger().setLevel(logging.WARNING)

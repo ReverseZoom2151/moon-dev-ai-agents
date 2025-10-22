@@ -223,20 +223,27 @@ Agent Two: Fundamental/Macro Analysis Expert 🌍
 """
 
 
-import os
-import requests
-import pandas as pd
+# Standard library imports
 import json
-from typing import Dict, List, Optional, Union
-from datetime import datetime, timedelta
+import os
 import time
+
+# Third-party imports
+import anthropic
+import openai
+import pandas as pd
+import requests
+
+# Standard library from imports
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Dict, List, Optional, Union
+
+# Third-party from imports
 from dotenv import load_dotenv
 from termcolor import colored, cprint
-import anthropic
-from pathlib import Path
-import openai
 
-# Local imports
+# Local from imports
 from src.config import *
 
 # Load environment variables
