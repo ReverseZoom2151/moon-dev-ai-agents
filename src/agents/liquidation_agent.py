@@ -13,9 +13,8 @@ import time
 from datetime import datetime, timedelta
 from termcolor import colored, cprint
 from dotenv import load_dotenv
-import openai
-import anthropic
 from pathlib import Path
+from src.models import model_factory
 from src import nice_funcs as n
 from src import nice_funcs_hl as hl
 from src.agents.api import MoonDevAPI
@@ -115,19 +114,16 @@ class LiquidationAgent(BaseAgent):
         if not anthropic_key:
             raise ValueError("🚨 ANTHROPIC_KEY not found in environment variables!")
             
-        # Initialize OpenAI client for DeepSeek
-        if deepseek_key and MODEL_OVERRIDE.lower() == "deepseek-chat":
-            self.deepseek_client = openai.OpenAI(
-                api_key=deepseek_key,
-                base_url=DEEPSEEK_BASE_URL
-            )
-            print("🚀 DeepSeek model initialized!")
+        # Initialize model using model_factory
+        if MODEL_OVERRIDE.lower() == "deepseek-chat":
+            self.model = model_factory.get_model("deepseek", "deepseek-chat")
+            print("🚀 Using DeepSeek model!")
         else:
-            self.deepseek_client = None
-            
-        # Initialize other clients
-        openai.api_key = openai_key
-        self.client = anthropic.Anthropic(api_key=anthropic_key)
+            self.model = model_factory.get_model("claude")
+            print("🎯 Using Claude model!")
+
+        if not self.model:
+            raise ValueError("Could not initialize AI model!")
         
         self.api = MoonDevAPI()
         
@@ -322,33 +318,15 @@ class LiquidationAgent(BaseAgent):
             
             print(f"\n🤖 Analyzing liquidation spike with AI...")
             
-            # Use DeepSeek if configured
-            if self.deepseek_client and MODEL_OVERRIDE.lower() == "deepseek-chat":
-                print("🚀 Using DeepSeek for analysis...")
-                response = self.deepseek_client.chat.completions.create(
-                    model="deepseek-chat",
-                    messages=[
-                        {"role": "system", "content": "You are a liquidation analyst. You must respond in exactly 3 lines: BUY/SELL/NOTHING, reason, and confidence."},
-                        {"role": "user", "content": context}
-                    ],
-                    max_tokens=self.ai_max_tokens,
-                    temperature=self.ai_temperature,
-                    stream=False
-                )
-                response_text = response.choices[0].message.content.strip()
-            else:
-                # Use Claude as before
-                print("🤖 Using Claude for analysis...")
-                message = self.client.messages.create(
-                    model=self.ai_model,
-                    max_tokens=self.ai_max_tokens,
-                    temperature=self.ai_temperature,
-                    messages=[{
-                        "role": "user",
-                        "content": context
-                    }]
-                )
-                response_text = str(message.content)
+            # Use model_factory for analysis
+            print("🤖 Analyzing liquidations...")
+            model_response = self.model.generate_response(
+                system_prompt="You are a liquidation analyst. You must respond in exactly 3 lines: BUY/SELL/NOTHING, reason, and confidence.",
+                user_content=context,
+                temperature=self.ai_temperature,
+                max_tokens=self.ai_max_tokens
+            )
+            response_text = model_response.content
             
             # Handle response
             if not response_text:
