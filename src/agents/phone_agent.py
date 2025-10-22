@@ -6,30 +6,36 @@ This agent handles real phone calls through Twilio.
 Just run on your VPS and people can call your Twilio number!
 """
 
-import sys
-from pathlib import Path
-import os
-import time
-import json
-import wave
-import tempfile
-from flask import Flask, request
-from twilio.twiml.voice_response import VoiceResponse, Gather
-from twilio.rest import Client
-import openai
-from termcolor import cprint
-from dotenv import load_dotenv
+# Standard library imports
 import asyncio
-import sounddevice as sd
-import numpy as np
-import wave
+import json
+import os
 import queue
-import threading
-import langdetect
-import subprocess
-import pandas as pd
-from datetime import datetime
 import random
+import subprocess
+import sys
+import tempfile
+import threading
+import time
+import wave
+
+# Third-party imports
+import langdetect
+import numpy as np
+import openai
+import pandas as pd
+import sounddevice as sd
+
+# Standard library from imports
+from datetime import datetime
+from pathlib import Path
+
+# Third-party from imports
+from dotenv import load_dotenv
+from flask import Flask, request
+from termcolor import cprint
+from twilio.rest import Client
+from twilio.twiml.voice_response import Gather, VoiceResponse
 
 # Testing mode flag - set to True to test in terminal without Twilio
 TESTING_MODE = True
@@ -41,9 +47,8 @@ if project_root not in sys.path:
 
 # Load environment variables
 if not TESTING_MODE:
-    from dotenv import load_dotenv
     load_dotenv()
-    
+
     # Initialize OpenAI client with correct env var name
     openai.api_key = os.getenv("OPENAI_KEY")
     if not openai.api_key:
