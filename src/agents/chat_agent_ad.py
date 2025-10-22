@@ -57,8 +57,8 @@ AD_VIDEO_PATHS = [
 AD_COUNTDOWN_SECONDS = AD_COUNTDOWN_MINUTES * 60
 
 # Model override settings
-MODEL_TYPE = "claude"  # Using Claude for chat responses ,, groq 
-MODEL_NAME = "claude-3-haiku-20240307"  # Fast, efficient model llama-3.1-8b-instant
+MODEL_TYPE = "claude"  # Using Claude for chat responses ,, groq
+MODEL_NAME = "claude-haiku-4-5-20251001"  # Claude Haiku 4.5 (Oct 2025) - Fast, efficient model
 
 # Configuration - All in one place! 🎯
 RESTREAM_CHECK_INTERVAL = 0.1  # Reduce to 100ms for more responsive chat
