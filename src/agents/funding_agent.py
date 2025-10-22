@@ -32,6 +32,7 @@ from src.agents.base_agent import BaseAgent
 import traceback
 import numpy as np
 import re
+import openai
 
 # Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent.parent
