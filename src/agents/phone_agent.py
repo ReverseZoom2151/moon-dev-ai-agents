@@ -36,6 +36,9 @@ from flask import Flask, request
 from termcolor import cprint
 from twilio.twiml.voice_response import Gather, VoiceResponse
 
+# Local from imports
+from src.models.model_priority import ModelPriority
+
 # Testing mode flag - set to True to test in terminal without Twilio
 TESTING_MODE = True
 
@@ -63,12 +66,14 @@ else:
     app = None
 
 # Model settings
-MODEL_NAME = "gpt-4o"  # OpenAI model for chat
 VOICE_NAME = "echo"  # Options: alloy, echo, fable, onyx, nova, shimmer
 
 # Response settings
 MAX_TOKENS = 50  # Keep responses short and concise
 TEMPERATURE = 0.7
+
+# Initialize model priority system for AI responses
+model_priority = ModelPriority()
 
 # Audio timing settings
 SPEECH_END_PAUSE = 1.0  # Seconds of silence to consider speech ended
@@ -593,17 +598,32 @@ Key guidelines:
                     # Add to conversation history
                     conversation_history.append({"role": "user", "content": transcript})
                     
-                    # Get AI response
+                    # Get AI response using model_priority
                     cprint("\n🤖 AI:", "green")
-                    
-                    response = openai.chat.completions.create(
-                        model=MODEL_NAME,
-                        messages=conversation_history,
+
+                    # Extract system prompt and format conversation
+                    system_prompt = conversation_history[0]["content"]
+                    conversation_context = "\n".join([
+                        f"{msg['role'].upper()}: {msg['content']}"
+                        for msg in conversation_history[1:]
+                    ])
+                    user_message = f"{conversation_context}\nUSER: {transcript}"
+
+                    response, provider, model_used = model_priority.get_model(
+                        priority=ModelPriority.NORMAL,
+                        system_prompt=system_prompt,
+                        user_content=user_message,
                         temperature=TEMPERATURE,
                         max_tokens=MAX_TOKENS
                     )
-                    
-                    full_response = response.choices[0].message.content
+
+                    if not response:
+                        cprint("❌ All models failed - using fallback response", "red")
+                        full_response = "I'm having trouble connecting right now. Please try again!"
+                    else:
+                        full_response = response.content
+                        cprint(f"✅ Used model: {provider}:{model_used}", "cyan")
+
                     cprint(full_response, "green")
                     
                     # Play the response and resume listening near the end
@@ -669,17 +689,22 @@ if not TESTING_MODE:
                 return str(resp)
                 
             cprint(f"\n🎤 User said: {speech_result}", "cyan")
-            
-            # Generate AI response
-            response = openai.chat.completions.create(
-                model=MODEL_NAME,
-                messages=[
-                    {"role": "system", "content": "You are Moon Dev's friendly AI assistant. Keep responses concise and clear for phone calls."},
-                    {"role": "user", "content": speech_result}
-                ]
+
+            # Generate AI response using model_priority
+            response, provider, model_used = model_priority.get_model(
+                priority=ModelPriority.NORMAL,
+                system_prompt="You are Moon Dev's friendly AI assistant. Keep responses concise and clear for phone calls.",
+                user_content=speech_result,
+                temperature=TEMPERATURE,
+                max_tokens=MAX_TOKENS
             )
-            
-            response_text = response.choices[0].message.content
+
+            if not response:
+                response_text = "I'm having trouble connecting. Please try again!"
+            else:
+                response_text = response.content
+                cprint(f"✅ Used model: {provider}:{model_used}", "cyan")
+
             cprint(f"\n🤖 AI response: {response_text}", "green")
             
             # Create response
@@ -733,11 +758,8 @@ async def process_message(message):
             log_unknown_question(message)
             return "I apologize, but I'm not sure about that. Please email moon@algotradecamp.com and we'll get that answered ASAP! 🌙✉️"
         
-        # Get AI response
-        response = openai.chat.completions.create(
-            model=MODEL_NAME,
-            messages=[
-                {"role": "system", "content": f"""You are Moon Dev's friendly AI assistant. Keep responses very short and concise (1-2 sentences max). Add emojis to make responses fun and engaging.
+        # Get AI response using model_priority
+        system_prompt = f"""You are Moon Dev's friendly AI assistant. Keep responses very short and concise (1-2 sentences max). Add emojis to make responses fun and engaging.
 
 Use this knowledge base for Moon Dev specific questions: {KNOWLEDGE_BASE}
 
@@ -751,14 +773,21 @@ Key guidelines:
 - Promote the 777 peace and love philosophy
 - Direct technical questions to the bootcamp
 - Suggest watching YouTube for free learning
-"""},
-                {"role": "user", "content": message}
-            ],
+"""
+
+        response, provider, model_used = model_priority.get_model(
+            priority=ModelPriority.NORMAL,
+            system_prompt=system_prompt,
+            user_content=message,
             temperature=TEMPERATURE,
             max_tokens=MAX_TOKENS
         )
-        
-        return response.choices[0].message.content
+
+        if not response:
+            return "I'm having trouble connecting right now. Please try again! 🙏"
+
+        cprint(f"✅ Used model: {provider}:{model_used}", "cyan")
+        return response.content
         
     except Exception as e:
         cprint(f"❌ Error processing message: {str(e)}", "red")
