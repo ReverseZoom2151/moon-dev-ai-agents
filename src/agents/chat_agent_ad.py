@@ -5,35 +5,43 @@ Built with love by Moon Dev 🚀
 This agent monitors Restream chat and shows ads after a countdown unless enough chats come in.
 """
 
+# Standard library imports
+import csv
+import os
+import random
+import subprocess
 import sys
+import threading
+import time
+
+# Third-party imports
+import numpy as np
+import pandas as pd
+import selenium
+
+# Standard library from imports
+from datetime import datetime
 from pathlib import Path
+
+# Third-party from imports
+from dotenv import load_dotenv
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+from termcolor import cprint
+
 # Add project root to Python path for imports
 project_root = str(Path(__file__).parent.parent.parent)
 if project_root not in sys.path:
     sys.path.append(project_root)
 
-import os
-import time
-from datetime import datetime
-from termcolor import cprint
-from dotenv import load_dotenv
-import pandas as pd
+# Local from imports
 from src.config import *
-from src.models.model_priority import model_priority_queue, ModelPriority
-import json
-import threading
-import random
-import subprocess
-import selenium
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.options import Options
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-import numpy as np
-import csv
+from src.models.model_priority import ModelPriority, model_priority_queue
 
 # Load environment variables from the project root
 env_path = Path(project_root) / '.env'

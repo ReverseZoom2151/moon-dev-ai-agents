@@ -2,25 +2,31 @@
 🌙 Moon Dev's RBI AI v2.0 (Simplified - Using Model Priority with Auto-Fallback)
 """
 
-import subprocess
+# Standard library imports
+import itertools
 import json
 import os
-import time
 import re
+import subprocess
+import sys
+import threading
+import time
+
+# Standard library from imports
 from datetime import datetime
 from pathlib import Path
-from termcolor import cprint
-import threading
-import itertools
-import sys
+
+# Third-party from imports
 from dotenv import load_dotenv
+from termcolor import cprint
 
 # Add project root to path
 project_root = str(Path(__file__).parent.parent.parent)
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-from src.models.model_priority import model_priority_queue, ModelPriority
+# Local from imports
+from src.models.model_priority import ModelPriority, model_priority_queue
 
 # Load environment variables
 load_dotenv()

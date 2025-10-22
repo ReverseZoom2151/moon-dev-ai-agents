@@ -5,16 +5,25 @@ Built with love by Moon Dev 🌙
 Chuck the Chart Agent generates and analyzes trading charts using AI vision capabilities.
 """
 
+# Standard library imports
 import os
-import pandas as pd
-import traceback
 import re
 import time
-import openai
+import traceback
+
+# Third-party imports
 import mplfinance as mpf
+import openai
+import pandas as pd
+
+# Standard library from imports
 from datetime import datetime
 from pathlib import Path
+
+# Third-party from imports
 from dotenv import load_dotenv
+
+# Local from imports
 from src import nice_funcs_hl as hl
 from src.agents.base_agent import BaseAgent
 from src.models.model_priority import ModelPriority

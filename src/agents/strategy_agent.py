@@ -3,14 +3,19 @@
 Handles all strategy-based trading decisions
 """
 
-from src.config import *
-import json
-from termcolor import cprint
-import os
+# Standard library imports
 import importlib
 import inspect
+import json
+import os
 import time
-from src.models.model_priority import model_priority_queue, ModelPriority
+
+# Third-party imports
+from termcolor import cprint
+
+# Local from imports
+from src.config import *
+from src.models.model_priority import ModelPriority, model_priority_queue
 
 # Import exchange manager for unified trading
 try:

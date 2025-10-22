@@ -7,21 +7,28 @@ When it finds rates above our threshold, it analyzes the opportunity using AI.
 Need an API key? for a limited time, bootcamp members get free api keys for claude, openai, helius, birdeye & quant elite gets access to the moon dev api. join here: https://algotradecamp.com
 """
 
+# Standard library imports
 import os
+import re
 import time
 import traceback
+
+# Third-party imports
+import openai
+import pandas as pd
+
+# Standard library from imports
 from datetime import datetime
 from pathlib import Path
-import re
 
-import pandas as pd
+# Third-party from imports
 from dotenv import load_dotenv
-import openai
 
+# Local from imports
 from src.agents.base_agent import BaseAgent
+from src.config import AI_MODEL, AI_TEMPERATURE, AI_MAX_TOKENS
 from src.models.model_priority import ModelPriority
 from src.nice_funcs_hl import get_funding_rates
-from src.config import AI_MODEL, AI_TEMPERATURE, AI_MAX_TOKENS
 
 # Configuration
 CHECK_INTERVAL_MINUTES = 15  # How often to check funding rates

@@ -21,18 +21,27 @@ USE_TEXT_FILE = True   # Whether to use og_tweet_text.txt by default
 # if the above is true, then the below is the file to use
 OG_TWEET_FILE = "/Users/md/Dropbox/dev/github/moon-dev-ai-agents-for-trading/src/data/tweets/og_tweet_text.txt"
 
+# Standard library imports
+import math
 import os
-import pandas as pd
+import sys
 import time
+import traceback
+
+# Third-party imports
+import openai
+import pandas as pd
+
+# Standard library from imports
 from datetime import datetime
 from pathlib import Path
+
+# Third-party from imports
 from dotenv import load_dotenv
-import openai
-import traceback
-import math
-from termcolor import colored, cprint
-import sys
-from src.models.model_priority import model_priority_queue, ModelPriority
+from termcolor import cprint
+
+# Local from imports
+from src.models.model_priority import ModelPriority, model_priority_queue
 
 # Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent.parent

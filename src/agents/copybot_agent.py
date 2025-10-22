@@ -11,18 +11,27 @@ think about list
 Need an API key? for a limited time, bootcamp members get free api keys for claude, openai, helius, birdeye & quant elite gets access to the moon dev api. join here: https://algotradecamp.com
 """
 
+# Standard library imports
 import os
 import sys
-from pathlib import Path
-import pandas as pd
-from termcolor import colored, cprint
-from dotenv import load_dotenv
-from datetime import datetime, timedelta
 import time
-from src.config import *
+
+# Third-party imports
+import pandas as pd
+
+# Standard library from imports
+from datetime import datetime, timedelta
+from pathlib import Path
+
+# Third-party from imports
+from dotenv import load_dotenv
+from termcolor import cprint
+
+# Local from imports
 from src import nice_funcs as n
-from src.data.ohlcv_collector import collect_all_tokens, collect_token_data
-from src.models.model_priority import model_priority_queue, ModelPriority
+from src.config import *
+from src.data.ohlcv_collector import collect_token_data
+from src.models.model_priority import ModelPriority, model_priority_queue
 
 # Data path for current copybot portfolio
 COPYBOT_PORTFOLIO_PATH = '/Users/md/Dropbox/dev/github/solana-copy-trader/csvs/current_portfolio.csv'

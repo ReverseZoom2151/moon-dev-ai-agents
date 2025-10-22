@@ -5,43 +5,45 @@ Built with love by Moon Dev 🚀
 This agent monitors YouTube stream chat and answers questions using a knowledge base.
 """
 
+# Standard library imports
+import csv
+import os
+import random
 import sys
+import threading
+import time
+
+# Third-party imports
+import numpy as np
+import pandas as pd
+import selenium
+
+# Standard library from imports
+from datetime import datetime
 from pathlib import Path
+
+# Third-party from imports
+from dotenv import load_dotenv
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+from PIL import Image
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+from termcolor import cprint
+
 # Add project root to Python path for imports
 project_root = str(Path(__file__).parent.parent.parent)
 if project_root not in sys.path:
     sys.path.append(project_root)
 
-import os
-import time
-from datetime import datetime
-from termcolor import cprint
-from dotenv import load_dotenv
-import pandas as pd
+# Local from imports
 from src.config import *
-from src.models.model_priority import model_priority_queue, ModelPriority
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
-import json
-import threading
-import shutil
-import itertools
-import random
-import selenium
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.options import Options
-import base64
-from PIL import Image
-import io
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-import numpy as np
-import csv
-import websocket  # Add this import for Restream WebSocket
-import requests
+from src.models.model_priority import ModelPriority, model_priority_queue
 
 # Load environment variables from the project root
 env_path = Path(project_root) / '.env'
