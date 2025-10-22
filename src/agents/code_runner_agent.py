@@ -20,22 +20,30 @@ Moves to position, executes code, and captures screenshot
 
 """
 
-import pyautogui
-import time
-from pathlib import Path
-from termcolor import cprint
-from datetime import datetime
-import Quartz
-import sys
-import os
-from Quartz import CoreGraphics as CG
-import AppKit
-import subprocess
+# Standard library imports
 import base64
-from src.models import model_factory  # Import Moon Dev's model factory
-import traceback
-from Cocoa import NSURL
+import os
+import subprocess
+import sys
 import time
+import traceback
+
+# Third-party imports
+import AppKit
+import pyautogui
+import Quartz
+
+# Standard library from imports
+from datetime import datetime
+from pathlib import Path
+
+# Third-party from imports
+from Cocoa import NSURL
+from Quartz import CoreGraphics as CG
+from termcolor import cprint
+
+# Local from imports
+from src.models import model_factory
 
 # Configuration - Moon Dev's target coordinates (DO NOT ADJUST THESE)
 CODE_EDITOR_X = -2686
@@ -550,8 +558,8 @@ def capture_composer_screenshot():
             screenshot_dir.mkdir(parents=True, exist_ok=True)
             
             # Generate unique filename with timestamp and random ID
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             import uuid
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             unique_id = str(uuid.uuid4())[:8]  # Use first 8 chars of UUID
             screenshot_path = screenshot_dir / f"ai_chat_screenshot_{timestamp}_{unique_id}.png"
             cprint(f"📝 Screenshot will be saved to: {screenshot_path}", "cyan")
@@ -685,7 +693,6 @@ def analyze_composer_screenshot(screenshot_path: str) -> bool:
             
         # Read image file as base64
         with open(screenshot_path, "rb") as image_file:
-            import base64
             base64_image = base64.b64encode(image_file.read()).decode('utf-8')
             
         # Create message with image
@@ -721,7 +728,6 @@ def analyze_composer_screenshot(screenshot_path: str) -> bool:
         
     except Exception as e:
         cprint(f"❌ Error analyzing screenshot: {str(e)}", "red")
-        import traceback
         cprint("📋 Full error details:", "red")
         cprint(traceback.format_exc(), "red")
         return False
