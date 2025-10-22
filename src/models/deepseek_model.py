@@ -9,12 +9,32 @@ from .base_model import BaseModel, ModelResponse
 
 class DeepSeekModel(BaseModel):
     """Implementation for DeepSeek's models"""
-    
+
     AVAILABLE_MODELS = {
-        "deepseek-chat": "Fast chat model",
-        "deepseek-coder": "Code-specialized model",
-        "deepseek-reasoner": "Enhanced reasoning model with thinking process",
-        "deepseek-r1": "DeepSeek's first-generation reasoning model"
+        # DeepSeek V3.2-Exp Models (Latest - 2025)
+        "deepseek-chat": {
+            "description": "DeepSeek-V3.2-Exp (Non-thinking Mode) - Fast chat model",
+            "context_length": "128K",
+            "max_output_default": "4K",
+            "max_output_maximum": "8K",
+            "input_price_cache_hit": "$0.028/1M tokens",
+            "input_price_cache_miss": "$0.28/1M tokens",
+            "output_price": "$0.42/1M tokens",
+            "features": ["JSON Output", "Function Calling", "Chat Prefix Completion", "FIM Completion"]
+        },
+        "deepseek-reasoner": {
+            "description": "DeepSeek-V3.2-Exp (Thinking Mode) - Enhanced reasoning model",
+            "context_length": "128K",
+            "max_output_default": "32K",
+            "max_output_maximum": "64K",
+            "input_price_cache_hit": "$0.028/1M tokens",
+            "input_price_cache_miss": "$0.28/1M tokens",
+            "output_price": "$0.42/1M tokens",
+            "features": ["JSON Output", "Chat Prefix Completion"]
+        },
+        # Legacy models
+        "deepseek-coder": "Code-specialized model (legacy)",
+        "deepseek-r1": "DeepSeek's first-generation reasoning model (legacy)"
     }
     
     def __init__(self, api_key: str, model_name: str = "deepseek-chat", base_url: str = "https://api.deepseek.com", **kwargs):

@@ -6,11 +6,11 @@ Handles all strategy-based trading decisions
 from src.config import *
 import json
 from termcolor import cprint
-import anthropic
 import os
 import importlib
 import inspect
 import time
+from src.models import model_factory
 
 # Import exchange manager for unified trading
 try:
@@ -57,7 +57,9 @@ class StrategyAgent:
     def __init__(self):
         """Initialize the Strategy Agent"""
         self.enabled_strategies = []
-        self.client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_KEY"))
+        self.model = model_factory.get_model("claude")
+        if not self.model:
+            raise ValueError("Could not initialize Claude model!")
 
         # Initialize exchange manager if available
         if USE_EXCHANGE_MANAGER:
@@ -98,23 +100,21 @@ class StrategyAgent:
                 
             # Format signals for prompt
             signals_str = json.dumps(signals, indent=2)
-            
-            message = self.client.messages.create(
-                model=AI_MODEL,
-                max_tokens=AI_MAX_TOKENS,
+
+            # Use model_factory for AI analysis
+            prompt = STRATEGY_EVAL_PROMPT.format(
+                strategy_signals=signals_str,
+                market_data=market_data
+            )
+
+            message = self.model.generate_response(
+                system_prompt="",
+                user_content=prompt,
                 temperature=AI_TEMPERATURE,
-                messages=[{
-                    "role": "user",
-                    "content": STRATEGY_EVAL_PROMPT.format(
-                        strategy_signals=signals_str,
-                        market_data=market_data
-                    )
-                }]
+                max_tokens=AI_MAX_TOKENS
             )
             
             response = message.content
-            if isinstance(response, list):
-                response = response[0].text if hasattr(response[0], 'text') else str(response[0])
             
             # Parse response
             lines = response.split('\n')

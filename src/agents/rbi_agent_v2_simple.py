@@ -1,5 +1,5 @@
 """
-🌙 Moon Dev's RBI AI v2.0 (Simplified - Direct DeepSeek)
+🌙 Moon Dev's RBI AI v2.0 (Simplified - Using Model Factory)
 """
 
 import subprocess
@@ -14,8 +14,13 @@ import threading
 import itertools
 import sys
 from dotenv import load_dotenv
-from openai import OpenAI
-from anthropic import Anthropic
+
+# Add project root to path
+project_root = str(Path(__file__).parent.parent.parent)
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+from src.models import model_factory
 
 # Load environment variables
 load_dotenv()
@@ -26,17 +31,6 @@ MAX_DEBUG_ITERATIONS = 3
 EXECUTION_TIMEOUT = 300
 AI_TEMPERATURE = 0.7
 AI_MAX_TOKENS = 4000
-
-# DeepSeek client
-deepseek_client = OpenAI(
-    api_key=os.getenv("DEEPSEEK_KEY"),
-    base_url="https://api.deepseek.com"
-)
-
-# Claude client
-claude_client = Anthropic(
-    api_key=os.getenv("ANTHROPIC_KEY")
-)
 
 # Get today's date
 TODAY_DATE = datetime.now().strftime("%m_%d_%Y")
@@ -105,31 +99,33 @@ FOR THE PYTHON BACKTESTING LIBRARY USE BACKTESTING.PY AND SEND BACK ONLY THE COD
 ONLY SEND BACK CODE, NO OTHER TEXT.
 """
 
-def chat_with_deepseek(system_prompt, user_content, model_name="deepseek-chat"):
-    """Direct DeepSeek API call"""
-    response = deepseek_client.chat.completions.create(
-        model=model_name,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_content}
-        ],
+def chat_with_deepseek(system_prompt, user_content, model_name=None):
+    """Chat with DeepSeek using model_factory"""
+    model = model_factory.get_model("deepseek", model_name)
+    if not model:
+        raise ValueError("Could not initialize DeepSeek model!")
+
+    response = model.generate_response(
+        system_prompt=system_prompt,
+        user_content=user_content,
         temperature=AI_TEMPERATURE,
         max_tokens=AI_MAX_TOKENS
     )
-    return response.choices[0].message.content
+    return response.content
 
-def chat_with_claude(system_prompt, user_content, model_name="claude-3-opus-20240229"):
-    """Direct Claude API call"""
-    response = claude_client.messages.create(
-        model=model_name,
-        max_tokens=AI_MAX_TOKENS,
+def chat_with_claude(system_prompt, user_content, model_name=None):
+    """Chat with Claude using model_factory"""
+    model = model_factory.get_model("claude", model_name)
+    if not model:
+        raise ValueError("Could not initialize Claude model!")
+
+    response = model.generate_response(
+        system_prompt=system_prompt,
+        user_content=user_content,
         temperature=AI_TEMPERATURE,
-        system=system_prompt,
-        messages=[
-            {"role": "user", "content": user_content}
-        ]
+        max_tokens=AI_MAX_TOKENS
     )
-    return response.content[0].text
+    return response.content
 
 def animate_progress(agent_name, stop_event):
     """Fun animation while AI is thinking"""

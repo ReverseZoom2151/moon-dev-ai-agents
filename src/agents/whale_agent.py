@@ -29,7 +29,7 @@ from collections import deque
 from src.agents.base_agent import BaseAgent
 import traceback
 import numpy as np
-import anthropic
+from src.models import model_factory
 
 # Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent.parent
@@ -94,34 +94,22 @@ class WhaleAgent(BaseAgent):
                 print(f"  - Max Tokens: {AI_MAX_TOKENS}")
         
         load_dotenv()
-        
-        # Get API keys
-        openai_key = os.getenv("OPENAI_KEY")
-        anthropic_key = os.getenv("ANTHROPIC_KEY")
-        
-        if not openai_key:
-            raise ValueError("🚨 OPENAI_KEY not found in environment variables!")
-        if not anthropic_key:
-            raise ValueError("🚨 ANTHROPIC_KEY not found in environment variables!")
-            
-        openai.api_key = openai_key
-        self.client = anthropic.Anthropic(api_key=anthropic_key)
 
-        # Initialize DeepSeek client if needed
+        # Initialize OpenAI for TTS if needed
+        openai_key = os.getenv("OPENAI_KEY")
+        if openai_key:
+            openai.api_key = openai_key
+
+        # Initialize model using model_factory
         if "deepseek" in self.ai_model.lower():
-            deepseek_key = os.getenv("DEEPSEEK_KEY")
-            if deepseek_key:
-                self.deepseek_client = openai.OpenAI(
-                    api_key=deepseek_key,
-                    base_url=DEEPSEEK_BASE_URL
-                )
-                print("🚀 Moon Dev's Whale Agent using DeepSeek override!")
-            else:
-                self.deepseek_client = None
-                print("⚠️ DEEPSEEK_KEY not found - DeepSeek model will not be available")
+            self.model = model_factory.get_model("deepseek", self.ai_model)
+            print(f"🚀 Moon Dev's Whale Agent using DeepSeek: {self.ai_model}!")
         else:
-            self.deepseek_client = None
+            self.model = model_factory.get_model("claude", self.ai_model if self.ai_model != "0" else None)
             print(f"🎯 Moon Dev's Whale Agent using Claude model: {self.ai_model}!")
+
+        if not self.model:
+            raise ValueError("Could not initialize AI model!")
         
         # Initialize Moon Dev API with correct base URL
         self.api = MoonDevAPI(base_url="http://api.moondev.com:8000")
@@ -401,41 +389,16 @@ class WhaleAgent(BaseAgent):
                 market_data=market_data_str
             )
             
-            # Use either DeepSeek or Claude based on model setting
-            if "deepseek" in self.ai_model.lower():
-                if not self.deepseek_client:
-                    raise ValueError("🚨 DeepSeek client not initialized - check DEEPSEEK_KEY")
-                    
-                print(f"\n🤖 Analyzing whale movement with DeepSeek model: {self.ai_model}...")
-                # Make DeepSeek API call
-                response = self.deepseek_client.chat.completions.create(
-                    model=self.ai_model,  # Use the actual model from override
-                    messages=[
-                        {"role": "system", "content": WHALE_ANALYSIS_PROMPT},
-                        {"role": "user", "content": context}
-                    ],
-                    max_tokens=self.ai_max_tokens,
-                    temperature=self.ai_temperature,
-                    stream=False
-                )
-                response_text = response.choices[0].message.content.strip()
-            else:
-                print(f"\n🤖 Analyzing whale movement with Claude model: {self.ai_model}...")
-                # Get AI analysis using Claude
-                message = self.client.messages.create(
-                    model=self.ai_model,
-                    max_tokens=self.ai_max_tokens,
-                    temperature=self.ai_temperature,
-                    messages=[{
-                        "role": "user",
-                        "content": context
-                    }]
-                )
-                # Handle both string and list responses
-                if isinstance(message.content, list):
-                    response_text = message.content[0].text if message.content else ""
-                else:
-                    response_text = message.content
+            # Use model_factory for AI analysis
+            print(f"\n🤖 Analyzing whale movement with {self.ai_model}...")
+
+            model_response = self.model.generate_response(
+                system_prompt=WHALE_ANALYSIS_PROMPT,
+                user_content=context,
+                temperature=self.ai_temperature,
+                max_tokens=self.ai_max_tokens
+            )
+            response_text = model_response.content
             
             # Handle response
             if not response_text:
