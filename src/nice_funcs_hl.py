@@ -5,13 +5,18 @@ nice functions from hyper liquid i can use
 Built with love by Moon Dev 🚀
 '''
 
-import pandas as pd
-import requests
-from datetime import datetime, timedelta
-import numpy as np
+# Standard library imports
 import time
-import pandas_ta as ta  # For technical indicators
 import traceback
+
+# Third-party imports
+import numpy as np
+import pandas as pd
+import pandas_ta as ta
+import requests
+
+# Standard library from imports
+from datetime import datetime, timedelta
 
 # Constants
 BATCH_SIZE = 5000  # MAX IS 5000 FOR HYPERLIQUID

@@ -1,5 +1,5 @@
 '''
-🌙 Moon Dev Trading Bot Control Panel 
+🌙 Moon Dev Trading Bot Control Panel
 Controls different trading actions that our AI agents can execute:
 
 0 - close a position (in chunks)
@@ -15,11 +15,18 @@ not done yet
 # 7 - liquidation amount
 '''
 
-from ..core.config import *
-from ..core.utils import nice_funcs as n 
+# Standard library imports
 import time
-from termcolor import colored, cprint
+
+# Third-party imports
 import schedule
+
+# Third-party from imports
+from termcolor import colored, cprint
+
+# Local from imports
+from ..core.config import *
+from ..core.utils import nice_funcs as n
 
 
 ###### ASKING USER WHAT THEY WANNA DO - WILL REMOVE USER SOON AND REPLACE WITH BOT ######

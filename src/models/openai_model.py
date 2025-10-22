@@ -3,9 +3,14 @@
 Built with love by Moon Dev 🚀
 """
 
-from openai import OpenAI
+# Third-party imports
 import requests
+
+# Third-party from imports
+from openai import OpenAI
 from termcolor import cprint
+
+# Local from imports
 from .base_model import BaseModel, ModelResponse
 
 class OpenAIModel(BaseModel):

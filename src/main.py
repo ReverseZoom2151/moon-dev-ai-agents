@@ -3,12 +3,19 @@
 Main entry point for running trading agents
 """
 
+# Standard library imports
 import os
 import sys
-from termcolor import cprint
-from dotenv import load_dotenv
 import time
+
+# Standard library from imports
 from datetime import datetime, timedelta
+
+# Third-party from imports
+from dotenv import load_dotenv
+from termcolor import cprint
+
+# Local from imports
 from config import *
 
 # Add project root to Python path

@@ -2,9 +2,14 @@
 Model Priority System with Automatic Fallback
 Prioritizes OpenAI and Anthropic, falls back to others if unavailable
 """
-from typing import Optional, List, Tuple, Dict
+# Standard library from imports
 from enum import Enum
+from typing import Dict, List, Optional, Tuple
+
+# Third-party from imports
 from termcolor import cprint
+
+# Local from imports
 from .model_factory import model_factory
 
 

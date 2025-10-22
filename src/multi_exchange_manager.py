@@ -3,12 +3,20 @@ Multi-Exchange Manager V2
 Unified interface for trading across multiple exchanges simultaneously
 Supports: Solana, HyperLiquid, Binance, Bitfinex
 """
+
+# Standard library imports
 import os
 import sys
-from typing import Dict, List, Optional, Union
-from termcolor import colored, cprint
-from dotenv import load_dotenv
+
+# Third-party imports
 import pandas as pd
+
+# Standard library from imports
+from typing import Dict, List, Optional, Union
+
+# Third-party from imports
+from dotenv import load_dotenv
+from termcolor import colored, cprint
 
 # Load environment variables
 load_dotenv()

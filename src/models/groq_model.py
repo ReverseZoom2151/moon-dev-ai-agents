@@ -3,10 +3,15 @@
 Built with love by Moon Dev 🚀
 """
 
+# Standard library imports
+import time
+
+# Third-party from imports
 from groq import Groq
 from termcolor import cprint
+
+# Local from imports
 from .base_model import BaseModel, ModelResponse
-import time
 
 class GroqModel(BaseModel):
     """Implementation for Groq's models"""

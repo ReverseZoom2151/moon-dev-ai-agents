@@ -5,20 +5,27 @@ Built with love by Moon Dev 🚀
 This module manages all available AI models and provides a unified interface.
 """
 
+# Standard library imports
 import os
-from typing import Dict, Optional, Type
-from termcolor import cprint
-from dotenv import load_dotenv
+import random
+
+# Standard library from imports
 from pathlib import Path
+from typing import Dict, Optional, Type
+
+# Third-party from imports
+from dotenv import load_dotenv
+from termcolor import cprint
+
+# Local from imports
 from .base_model import BaseModel
 from .claude_model import ClaudeModel
-from .groq_model import GroqModel
-from .openai_model import OpenAIModel
-from .gemini_model import GeminiModel  # Re-enabled with Gemini 2.5 models
 from .deepseek_model import DeepSeekModel
+from .gemini_model import GeminiModel
+from .groq_model import GroqModel
 from .ollama_model import OllamaModel
+from .openai_model import OpenAIModel
 from .xai_model import XAIModel
-import random
 
 class ModelFactory:
     """Factory for creating and managing AI models"""

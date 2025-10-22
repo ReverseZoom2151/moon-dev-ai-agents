@@ -3,8 +3,13 @@
 Built with love by Moon Dev 🚀
 """
 
+# Third-party imports
 import google.generativeai as genai
+
+# Third-party from imports
 from termcolor import cprint
+
+# Local from imports
 from .base_model import BaseModel, ModelResponse
 
 class GeminiModel(BaseModel):

@@ -5,11 +5,16 @@ Built with love by Moon Dev 🚀
 This module defines the base interface for all AI models.
 """
 
-from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Any
-from dataclasses import dataclass
+# Standard library imports
 import random
 import time
+
+# Standard library from imports
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
+
+# Third-party from imports
 from termcolor import cprint
 
 @dataclass

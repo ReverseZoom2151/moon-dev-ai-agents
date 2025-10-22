@@ -4,25 +4,30 @@ Focused functions for HyperLiquid perps trading
 Built with love by Moon Dev 🚀
 """
 
-import os
-import json
-import time
-import requests
-import pandas as pd
+# Standard library imports
 import datetime
-from termcolor import colored
-from eth_account.signers.local import LocalAccount
+import json
+import os
+import time
+import warnings
+
+# Third-party imports
 import eth_account
-from hyperliquid.info import Info
-from hyperliquid.exchange import Exchange
-from hyperliquid.utils import constants
+import pandas as pd
+import requests
+
+# Third-party from imports
 from dotenv import load_dotenv
+from eth_account.signers.local import LocalAccount
+from hyperliquid.exchange import Exchange
+from hyperliquid.info import Info
+from hyperliquid.utils import constants
+from termcolor import colored
 
 # Load environment variables
 load_dotenv()
 
 # Hide all warnings
-import warnings
 warnings.filterwarnings('ignore')
 
 def ask_bid(symbol):

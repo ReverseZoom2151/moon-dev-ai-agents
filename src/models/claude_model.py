@@ -3,8 +3,11 @@
 Built with love by Moon Dev 🚀
 """
 
+# Third-party from imports
 from anthropic import Anthropic
 from termcolor import cprint
+
+# Local from imports
 from .base_model import BaseModel, ModelResponse
 
 class ClaudeModel(BaseModel):

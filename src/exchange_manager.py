@@ -4,12 +4,17 @@ Unified interface for trading on Solana and HyperLiquid
 Built with love by Moon Dev 🚀
 """
 
+# Standard library imports
 import os
 import sys
-from termcolor import colored, cprint
-from dotenv import load_dotenv
-import pandas as pd
 import time
+
+# Third-party imports
+import pandas as pd
+
+# Third-party from imports
+from dotenv import load_dotenv
+from termcolor import colored, cprint
 
 # Load environment variables
 load_dotenv()

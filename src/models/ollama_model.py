@@ -5,9 +5,16 @@ Built with love by Moon Dev 🚀
 This module provides integration with locally running Ollama models.
 """
 
-import requests
+# Standard library imports
 import json
+
+# Third-party imports
+import requests
+
+# Third-party from imports
 from termcolor import cprint
+
+# Local from imports
 from .base_model import BaseModel, ModelResponse
 
 class OllamaModel(BaseModel):

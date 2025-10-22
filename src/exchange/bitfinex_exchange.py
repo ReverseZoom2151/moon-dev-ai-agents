@@ -2,9 +2,17 @@
 Bitfinex Exchange Implementation
 Supports spot and margin trading on Bitfinex
 """
+
+# Standard library imports
 import os
+
+# Third-party imports
 import ccxt
+
+# Standard library from imports
 from typing import Dict, List, Optional
+
+# Local from imports
 from .base_exchange import BaseExchange
 
 

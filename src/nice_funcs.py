@@ -3,24 +3,39 @@
 Built with love by Moon Dev 🚀
 """
 
-from src.config import *
-import requests
-import pandas as pd
-import pprint
-import re as reggie
-import sys
-import os
-import time
-import json
-import numpy as np
-import datetime
-import pandas_ta as ta
-from datetime import datetime, timedelta
-from termcolor import colored, cprint
-import solders
-from dotenv import load_dotenv
-import shutil
+# Standard library imports
 import atexit
+import base64
+import datetime
+import json
+import math
+import os
+import pprint
+import sys
+import time
+
+# Third-party imports
+import numpy as np
+import pandas as pd
+import pandas_ta as ta
+import re as reggie
+import requests
+import shutil
+import solders
+
+# Standard library from imports
+from datetime import datetime, timedelta
+
+# Third-party from imports
+from dotenv import load_dotenv
+from solana.rpc.api import Client
+from solana.rpc.types import TxOpts
+from solders.keypair import Keypair
+from solders.transaction import VersionedTransaction
+from termcolor import colored, cprint
+
+# Local from imports
+from src.config import *
 
 # Load environment variables
 load_dotenv()
@@ -226,15 +241,6 @@ def token_creation_info(address):
         print("Failed to retrieve token creation info:", response.status_code)
 
 def market_buy(token, amount, slippage):
-    import requests
-    import sys
-    import json
-    import base64
-    from solders.keypair import Keypair
-    from solders.transaction import VersionedTransaction
-    from solana.rpc.api import Client
-    from solana.rpc.types import TxOpts
-
     KEY = Keypair.from_base58_string(os.getenv("SOLANA_PRIVATE_KEY"))
     if not KEY:
         raise ValueError("🚨 SOLANA_PRIVATE_KEY not found in environment variables!")
@@ -274,15 +280,6 @@ def market_buy(token, amount, slippage):
 
 
 def market_sell(QUOTE_TOKEN, amount, slippage):
-    import requests
-    import sys
-    import json
-    import base64
-    from solders.keypair import Keypair
-    from solders.transaction import VersionedTransaction
-    from solana.rpc.api import Client
-    from solana.rpc.types import TxOpts
-
     KEY = Keypair.from_base58_string(os.getenv("SOLANA_PRIVATE_KEY"))
     if not KEY:
         raise ValueError("🚨 SOLANA_PRIVATE_KEY not found in environment variables!")
@@ -330,7 +327,6 @@ def get_time_range():
 
     return time_from, time_to
 
-import math
 def round_down(value, decimals):
     factor = 10 ** decimals
     return math.floor(value * factor) / factor
@@ -520,9 +516,6 @@ def get_position(token_mint_address):
 
 
 def get_decimals(token_mint_address):
-    import requests
-    import base64
-    import json
     # Solana Mainnet RPC endpoint
     url = "https://api.mainnet-beta.solana.com/"
     headers = {"Content-Type": "application/json"}
