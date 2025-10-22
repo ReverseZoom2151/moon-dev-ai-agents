@@ -76,7 +76,7 @@ class WhaleAgent(BaseAgent):
     
     def __init__(self):
         """Initialize Dez the Whale Agent"""
-        super().__init__('whale')  # Initialize base agent with type
+        super().__init__('whale', use_model_priority=True)  # Enable model priority with fallback
         
         # Set AI parameters - use config values unless overridden
         self.ai_model = MODEL_OVERRIDE if MODEL_OVERRIDE != "0" else config.AI_MODEL
@@ -100,16 +100,9 @@ class WhaleAgent(BaseAgent):
         if openai_key:
             openai.api_key = openai_key
 
-        # Initialize model using model_factory
-        if "deepseek" in self.ai_model.lower():
-            self.model = model_factory.get_model("deepseek", self.ai_model)
-            print(f"🚀 Moon Dev's Whale Agent using DeepSeek: {self.ai_model}!")
-        else:
-            self.model = model_factory.get_model("claude", self.ai_model if self.ai_model != "0" else None)
-            print(f"🎯 Moon Dev's Whale Agent using Claude model: {self.ai_model}!")
-
-        if not self.model:
-            raise ValueError("Could not initialize AI model!")
+        # Model priority system initialized by BaseAgent
+        if not self.model_priority:
+            raise ValueError("🚨 Model priority system not initialized!")
         
         # Initialize Moon Dev API with correct base URL
         self.api = MoonDevAPI(base_url="http://api.moondev.com:8000")
@@ -389,16 +382,24 @@ class WhaleAgent(BaseAgent):
                 market_data=market_data_str
             )
             
-            # Use model_factory for AI analysis
-            print(f"\n🤖 Analyzing whale movement with {self.ai_model}...")
+            # Use model_priority for AI analysis with automatic fallback
+            print(f"\n🤖 Analyzing whale movement with CRITICAL priority...")
 
-            model_response = self.model.generate_response(
+            from src.models.model_priority import ModelPriority
+            response, provider, model = self.model_priority.get_model(
+                priority=ModelPriority.CRITICAL,  # Whale movements are critical trading signals
                 system_prompt=WHALE_ANALYSIS_PROMPT,
                 user_content=context,
                 temperature=self.ai_temperature,
                 max_tokens=self.ai_max_tokens
             )
-            response_text = model_response.content
+
+            if not response:
+                print("❌ All models failed - skipping this analysis")
+                continue
+
+            response_text = response.content
+            print(f"✅ Used model: {provider}:{model}")
             
             # Handle response
             if not response_text:
