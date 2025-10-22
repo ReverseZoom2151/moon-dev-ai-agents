@@ -4,7 +4,12 @@ Built with love by Moon Dev 🚀
 """
 
 # 🔄 Exchange Selection
-EXCHANGE = 'solana'  # Options: 'solana', 'hyperliquid'
+EXCHANGE = 'solana'  # Options: 'solana', 'hyperliquid', 'binance', 'bitfinex'
+
+# 🌐 Multi-Exchange Mode (NEW)
+USE_MULTI_EXCHANGE = False  # Set to True to enable trading across multiple exchanges simultaneously
+ACTIVE_EXCHANGES = ['solana']  # Options: 'solana', 'hyperliquid', 'binance', 'bitfinex'
+                               # Example: ['solana', 'binance', 'bitfinex'] for multi-exchange trading
 
 # 💰 Trading Configuration
 USDC_ADDRESS = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"  # Never trade or close
@@ -102,6 +107,17 @@ AI_MODEL = "claude-3-haiku-20240307"  # Model Options:
                                      # - claude-3-opus-20240229 (Most powerful Claude model)
 AI_MAX_TOKENS = 1024  # Max tokens for response
 AI_TEMPERATURE = 0.7  # Creativity vs precision (0-1)
+
+# 🎯 Model Priority System (NEW)
+USE_MODEL_PRIORITY = False  # Set to True to enable priority-based model selection with fallback
+OPENAI_ANTHROPIC_ONLY = False  # Set to True to use ONLY OpenAI and Anthropic models (ignores others)
+                               # When True, other providers (Groq, Gemini, etc.) are filtered out
+
+# Priority levels: CRITICAL, HIGH, MEDIUM, LOW
+# CRITICAL: Production trading decisions (OpenAI GPT-4, Claude Opus first)
+# HIGH: Important analysis (OpenAI GPT-4o, Claude Sonnet first)
+# MEDIUM: General tasks (Claude Haiku, GPT-4o-mini, Groq)
+# LOW: Quick tasks (Groq, xAI, DeepSeek, Ollama)
 
 # Trading Strategy Agent Settings - MAY NOT BE USED YET 1/5/25
 ENABLE_STRATEGIES = True  # Set this to True to use strategies
