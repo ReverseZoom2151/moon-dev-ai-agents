@@ -16,23 +16,33 @@ Need an API key? for a limited time, bootcamp members get free api keys for clau
 MODEL_OVERRIDE = "deepseek-chat"  # Set to "deepseek-chat" to use DeepSeek
 DEEPSEEK_BASE_URL = "https://api.deepseek.com"  # Base URL for DeepSeek API
 
+# Standard library imports
 import os
-import pandas as pd
+import re
 import time
+import traceback
+
+# Third-party imports
+import numpy as np
+import openai
+import pandas as pd
+
+# Standard library from imports
+from collections import deque
 from datetime import datetime, timedelta
-from termcolor import colored, cprint
-from dotenv import load_dotenv
 from pathlib import Path
-from src.models import model_factory
+
+# Third-party from imports
+from dotenv import load_dotenv
+from termcolor import colored, cprint
+
+# Local from imports
+from src import config
 from src import nice_funcs as n
 from src import nice_funcs_hl as hl
 from src.agents.api import MoonDevAPI
-from collections import deque
 from src.agents.base_agent import BaseAgent
-import traceback
-import numpy as np
-import re
-import openai
+from src.models import model_factory
 
 # Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent.parent
@@ -57,9 +67,6 @@ SYMBOL_NAMES = {
 }
 
 # AI Settings - Override config.py if set
-# Import defaults from config
-from src import config
-
 # Only set these if you want to override config.py settings
 AI_MODEL = False  # Set to model name to override config.AI_MODEL
 AI_TEMPERATURE = 0  # Set > 0 to override config.AI_TEMPERATURE
