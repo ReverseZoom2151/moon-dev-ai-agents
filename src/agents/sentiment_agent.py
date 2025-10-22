@@ -37,17 +37,20 @@ import time
 
 # Third-party imports
 import httpx
+import numpy as np
+import openai
+import pandas as pd
+import torch
 
 # Standard library from imports
 from datetime import datetime, timedelta
+from pathlib import Path
 from random import randint
 
 # Third-party from imports
 from dotenv import load_dotenv
 from termcolor import cprint
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
-
-# Note: Additional imports (openai, pandas, torch, numpy) are loaded later in the file as needed
 
 # Create data directory if it doesn't exist
 pathlib.Path(DATA_FOLDER).mkdir(parents=True, exist_ok=True)

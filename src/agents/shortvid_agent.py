@@ -9,15 +9,22 @@ future ideas
 
 """
 
+# Standard library imports
+import math
 import os
-from pathlib import Path
-from dotenv import load_dotenv
-import elevenlabs
-import time
-import traceback
 import random
 import subprocess
-import math
+import time
+import traceback
+
+# Third-party imports
+import elevenlabs
+
+# Standard library from imports
+from pathlib import Path
+
+# Third-party from imports
+from dotenv import load_dotenv
 
 # Text Input Settings
 USE_TEXT_FILE = True  # Whether to use input text file by default
