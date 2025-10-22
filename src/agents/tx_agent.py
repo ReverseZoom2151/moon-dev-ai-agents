@@ -3,19 +3,26 @@
 Watches for new Solana transactions and displays them with fun animations!
 '''
 
-import os
-import sys
-from pathlib import Path
-from dotenv import load_dotenv
-import requests
-import pandas as pd
-import time
-import random
-from termcolor import colored
+# Standard library imports
 import logging
-from rich.console import Console
-from rich import print as rprint
+import os
+import random
+import sys
+import time
+
+# Third-party imports
+import pandas as pd
+import requests
+
+# Standard library from imports
+from pathlib import Path
+
+# Third-party from imports
+from dotenv import load_dotenv
 from playsound import playsound
+from rich import print as rprint
+from rich.console import Console
+from termcolor import colored
 
 # Add src directory to Python path
 src_path = str(Path(__file__).parent.parent)

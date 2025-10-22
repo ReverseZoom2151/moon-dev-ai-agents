@@ -14,21 +14,31 @@ Dez the Whale Agent tracks open interest changes across different timeframes and
 MODEL_OVERRIDE = "deepseek-chat"  # Set to "0" to disable override
 DEEPSEEK_BASE_URL = "https://api.deepseek.com"  # Base URL for DeepSeek API
 
+# Standard library imports
 import os
-import pandas as pd
 import time
-from datetime import datetime, timedelta
-from termcolor import colored, cprint
-from dotenv import load_dotenv
-import openai
-from pathlib import Path
-from src import nice_funcs as n
-from src import nice_funcs_hl as hl  # Add import for hyperliquid functions
-from src.agents.api import MoonDevAPI
-from collections import deque
-from src.agents.base_agent import BaseAgent
 import traceback
+
+# Third-party imports
 import numpy as np
+import openai
+import pandas as pd
+
+# Standard library from imports
+from collections import deque
+from datetime import datetime, timedelta
+from pathlib import Path
+
+# Third-party from imports
+from dotenv import load_dotenv
+from termcolor import colored, cprint
+
+# Local from imports
+from src import config
+from src import nice_funcs as n
+from src import nice_funcs_hl as hl
+from src.agents.api import MoonDevAPI
+from src.agents.base_agent import BaseAgent
 from src.models import model_factory
 
 # Get the project root directory
@@ -44,7 +54,6 @@ LOOKBACK_PERIODS = {
 WHALE_THRESHOLD_MULTIPLIER = 1.31 #1.25  # Multiplier for average change to detect whale activity (e.g. 1.25 = 25% above average)
 
 # AI Settings - Override config.py if set
-from src import config
 
 # Only set these if you want to override config.py settings
 AI_MODEL = False  # Set to model name to override config.AI_MODEL

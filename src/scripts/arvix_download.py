@@ -6,16 +6,19 @@
 A tool to search and download papers from arXiv.org
 """
 
+# Standard library imports
+import argparse
+import json
 import os
+import random
 import re
 import time
-import json
-import argparse
-import urllib.request
 import urllib.parse
+import urllib.request
 import xml.etree.ElementTree as ET
+
+# Standard library from imports
 from pathlib import Path
-import random
 
 # ============= CONFIGURATION SETTINGS (EDIT THESE) =============
 # Search topic - change this to whatever you want to search for

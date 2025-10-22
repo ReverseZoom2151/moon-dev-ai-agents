@@ -17,12 +17,17 @@ Output: Creates a single text file with all Python code for AI analysis
 Built with security in mind by Moon Dev 🚀
 """
 
+# Standard library imports
+import fnmatch
 import os
 import sys
-from pathlib import Path
+
+# Standard library from imports
 from datetime import datetime
+from pathlib import Path
+
+# Third-party from imports
 from termcolor import colored, cprint
-import fnmatch
 
 # ============================================
 # 🎯 CONFIGURATION - EDIT THIS SECTION 🎯
