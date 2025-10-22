@@ -41,19 +41,28 @@ or
 RESPECT_LIMIT: <detailed reason for each position>
 """
 
-import os
-import pandas as pd
+# Standard library imports
 import json
-from termcolor import colored, cprint
+import os
+import time
+import traceback
+
+# Third-party imports
+import pandas as pd
+
+# Standard library from imports
+from datetime import datetime, timedelta
+
+# Third-party from imports
 from dotenv import load_dotenv
+from termcolor import colored, cprint
+
+# Local from imports
 from src import config
 from src import nice_funcs as n
-from src.data.ohlcv_collector import collect_all_tokens
-from datetime import datetime, timedelta
-import time
-from src.config import *
 from src.agents.base_agent import BaseAgent
-import traceback
+from src.config import *
+from src.data.ohlcv_collector import collect_all_tokens
 from src.models import model_factory
 
 # Load environment variables
