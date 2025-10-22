@@ -52,7 +52,7 @@ load_dotenv(dotenv_path=env_path)
 
 # Model override settings
 MODEL_TYPE = "claude"  # Using Claude for chat responses
-MODEL_NAME = "claude-3-haiku-20240307"  # Fast, efficient model
+MODEL_NAME = None  # Use default from model_factory (claude-haiku-4-5-20251001)
 
 # Configuration - All in one place! 🎯
 YOUTUBE_CHANNEL_ID = "UCN7D80fY9xMYu5mHhUhXEFw"

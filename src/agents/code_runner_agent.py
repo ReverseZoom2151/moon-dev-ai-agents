@@ -64,7 +64,7 @@ AI_CHAT_SCREENSHOT_PROMPT = "Does this image have more than 5 emojis in it? Retu
 
 # AI Model settings
 MODEL_TYPE = "openai"  # Using OpenAI for image analysis
-MODEL_NAME = "gpt-4o-mini"  # GPT-4 Vision model
+MODEL_NAME = None  # Use default from model_factory (gpt-5-2025-08-07)
 
 # Easily configurable settings
 CLICK_PAUSE = 2.0         # Pause after movement before clicking

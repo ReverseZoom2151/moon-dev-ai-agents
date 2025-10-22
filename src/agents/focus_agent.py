@@ -92,7 +92,7 @@ cprint(f"📝 .env Path: {env_path}", "cyan")
 
 # Model override settings
 MODEL_TYPE = "claude"  # Choose from model types above
-MODEL_NAME = "claude-3-haiku-20240307"  # Choose from models above
+MODEL_NAME = None  # Use default from model_factory (claude-haiku-4-5-20251001)
 
 # Configuration for faster testing
 MIN_INTERVAL_MINUTES = 2  # Less than a second

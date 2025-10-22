@@ -174,7 +174,7 @@ MAX_VIDEOS = 500
 
 # AI Model settings for screenshot analysis
 MODEL_TYPE = "openai"     # Using OpenAI for text analysis
-MODEL_NAME = "gpt-4o-mini"  # GPT-4 model for analysis
+MODEL_NAME = None  # Use default from model_factory (gpt-5-2025-08-07)
 
 # Prompt for AI analysis of screenshots
 ANALYSIS_PROMPT = """The left side of the image is a TikTok video and the right side are the comments. 

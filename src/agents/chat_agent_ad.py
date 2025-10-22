@@ -58,7 +58,7 @@ AD_COUNTDOWN_SECONDS = AD_COUNTDOWN_MINUTES * 60
 
 # Model override settings
 MODEL_TYPE = "claude"  # Using Claude for chat responses ,, groq
-MODEL_NAME = "claude-haiku-4-5-20251001"  # Claude Haiku 4.5 (Oct 2025) - Fast, efficient model
+MODEL_NAME = None  # Use default from model_factory (claude-haiku-4-5-20251001)
 
 # Configuration - All in one place! 🎯
 RESTREAM_CHECK_INTERVAL = 0.1  # Reduce to 100ms for more responsive chat
