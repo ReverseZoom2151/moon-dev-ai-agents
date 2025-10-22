@@ -194,7 +194,7 @@ class FundingAgent(BaseAgent):
 
             if not response:
                 cprint("❌ All models failed - skipping analysis", "red")
-                continue
+                return None
 
             content = response.content
             cprint(f"✅ Used model: {provider}:{model}", "cyan")

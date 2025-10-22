@@ -1,6 +1,3 @@
-Here's the complete implementation of the FibCloudTrend strategy for backtesting.py:
-
-```python
 import pandas as pd
 import talib
 from backtesting import Backtest, Strategy
@@ -22,4 +19,3 @@ data.columns = ['Open', 'High', 'Low', 'Close', 'Volume']
 bt = Backtest(data, TestStrategy, cash=1000000)
 stats = bt.run()
 print(stats)
-```

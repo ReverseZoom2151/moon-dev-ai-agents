@@ -63,7 +63,6 @@ from src import config
 from src import nice_funcs as n
 from src.agents.base_agent import BaseAgent
 from src.config import *
-from src.models import model_factory
 
 # Load environment variables
 load_dotenv()
