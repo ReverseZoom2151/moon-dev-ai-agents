@@ -1,8 +1,15 @@
-from fastapi import FastAPI, HTTPException
-import requests
+# Standard library imports
 import json
 import time
+
+# Third-party imports
+import requests
+
+# Standard library from imports
 from typing import Optional
+
+# Third-party from imports
+from fastapi import FastAPI, HTTPException
 
 app = FastAPI(title="MoonDev's DeepSeek API 🌙")
 

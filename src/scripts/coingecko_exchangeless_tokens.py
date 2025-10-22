@@ -4,16 +4,23 @@ Finds Solana tokens that aren't listed on major exchanges like Binance and Coinb
 Runs every 24 hours to maintain an updated list.
 """
 
-import os
-import requests
-import pandas as pd
+# Standard library imports
 import json
-from typing import Dict, List, Optional
-from datetime import datetime
+import os
 import time
+
+# Third-party imports
+import pandas as pd
+import requests
+
+# Standard library from imports
+from datetime import datetime
 from pathlib import Path
+from typing import Dict, List, Optional
+
+# Third-party from imports
 from dotenv import load_dotenv
-from termcolor import colored, cprint
+from termcolor import cprint
 
 # Load environment variables
 load_dotenv()

@@ -15,11 +15,14 @@ Note:
 This was my first O3 Mini test here and it only took me two different tries in order to get this back to us to work. So O3 Mini is far. 
 """
 
-import pandas as pd
-import numpy as np
-import yfinance as yf
-from backtesting import Backtest, Strategy
+# Third-party imports
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import yfinance as yf
+
+# Third-party from imports
+from backtesting import Backtest, Strategy
 
 def vwap_indicator(high, low, close, volume, window=14):
     """

@@ -5,12 +5,18 @@ Tests the unified exchange interface for both Solana and HyperLiquid
 Built with love by Moon Dev 🚀
 """
 
-import sys
+# Standard library imports
 import os
-from termcolor import colored, cprint
-from colorama import init, Fore, Style
-from dotenv import load_dotenv
+import sys
 import time
+
+# Third-party imports
+import colorama
+
+# Third-party from imports
+from colorama import Fore, Style, init
+from dotenv import load_dotenv
+from termcolor import colored, cprint
 
 # Initialize colorama
 init(autoreset=True)

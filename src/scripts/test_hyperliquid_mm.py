@@ -5,16 +5,24 @@ Full automated test with real orders
 Built with love by Moon Dev 🚀
 """
 
-import sys
+# Standard library imports
 import os
+import sys
 import time
-from termcolor import colored
-from colorama import Fore, Back, Style
-from datetime import datetime
-import eth_account
-from eth_account.signers.local import LocalAccount
-from dotenv import load_dotenv
 import traceback
+
+# Third-party imports
+import colorama
+import eth_account
+
+# Standard library from imports
+from datetime import datetime
+
+# Third-party from imports
+from colorama import Back, Fore, Style
+from dotenv import load_dotenv
+from eth_account.signers.local import LocalAccount
+from termcolor import colored
 
 # Add parent directory to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

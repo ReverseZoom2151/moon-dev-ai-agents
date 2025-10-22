@@ -1,9 +1,12 @@
+# Third-party imports
+import numpy as np
 import pandas as pd
 import yfinance as yf
+
+# Third-party from imports
 from backtesting import Backtest, Strategy
 from backtesting.lib import crossover
 from backtesting.test import SMA
-import numpy as np
 
 class VWAPVolumeStrategy(Strategy):
     # Define the parameters for the strategy

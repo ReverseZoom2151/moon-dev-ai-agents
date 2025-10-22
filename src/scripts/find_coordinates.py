@@ -3,11 +3,18 @@
 A simple tool to find screen coordinates and test cursor movements
 """
 
-import pyautogui
-import time
-from termcolor import cprint
+# Standard library imports
 import json
+import time
+
+# Third-party imports
+import pyautogui
+
+# Standard library from imports
 from pathlib import Path
+
+# Third-party from imports
+from termcolor import cprint
 
 # Disable pyautogui's fail-safe (optional)
 

@@ -5,11 +5,16 @@ And what's cool about it is that you can look at the change of tokens in their l
 it uses the helius rpc so for RPC_ENDPOINT you need to set the helius rpc endpoint. 
 """
 
-import os
+# Standard library imports
 import json
-import requests
-from typing import List, Dict
+import os
 import time
+
+# Third-party imports
+import requests
+
+# Standard library from imports
+from typing import Dict, List
 
 # List of wallets to track - Add your wallet addresses here! 🎯
 WALLETS_TO_TRACK = [

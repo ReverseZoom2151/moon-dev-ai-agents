@@ -3,10 +3,13 @@
 Built with love by Moon Dev 🚀
 """
 
+# Standard library imports
+import os
+
+# Third-party from imports
+from dotenv import load_dotenv
 from openai import OpenAI
 from termcolor import cprint
-import os
-from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()

@@ -5,12 +5,19 @@ All API endpoints with easy toggle functionality
 Created by Moon Dev 🌙
 """
 
-import os
-import requests
+# Standard library imports
 import json
+import os
+
+# Third-party imports
+import requests
+
+# Standard library from imports
 from datetime import datetime
-from dotenv import load_dotenv
 from pathlib import Path
+
+# Third-party from imports
+from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()

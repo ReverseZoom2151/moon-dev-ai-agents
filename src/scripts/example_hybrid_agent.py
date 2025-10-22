@@ -5,12 +5,17 @@ Shows how to use both Solana and HyperLiquid in one agent
 Built with love by Moon Dev 🚀
 """
 
+# Standard library imports
 import os
 import sys
 import time
-from termcolor import cprint
-from dotenv import load_dotenv
+
+# Third-party imports
 import eth_account
+
+# Third-party from imports
+from dotenv import load_dotenv
+from termcolor import cprint
 
 # Add parent directory to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

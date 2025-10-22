@@ -1,7 +1,10 @@
+# Standard library imports
 import curses
+import platform
 import random
 import time
-import platform
+
+# Third-party from imports
 from termcolor import colored
 
 # For Windows, use winsound to beep

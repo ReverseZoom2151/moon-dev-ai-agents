@@ -1,6 +1,9 @@
-import os
-from datetime import datetime
+# Standard library imports
 import glob
+import os
+
+# Standard library from imports
+from datetime import datetime
 
 # Constants
 INPUT_FOLDER = "/Users/md/Dropbox/dev/github/moon-dev-trading-bots/bots"

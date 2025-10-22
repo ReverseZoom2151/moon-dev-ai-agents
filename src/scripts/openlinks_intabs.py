@@ -4,12 +4,15 @@ just place the csv there
 '''
 
 
-import pandas as pd
-import webbrowser
-import time
-import psutil
+# Standard library imports
 import os
 import sys
+import time
+import webbrowser
+
+# Third-party imports
+import pandas as pd
+import psutil
 
 # Configuration Constants
 FILE_PATH = "/Users/md/Dropbox/dev/github/moon-dev-ai-agents-for-trading/src/data/private_data/bigfollow.csv"

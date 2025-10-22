@@ -22,14 +22,19 @@ NOTE: If you get login errors, try:
 - Checking if your account needs verification
 """
 
-from datetime import datetime
-import time
-import requests
-import os
+# Standard library imports
 import asyncio
+import os
+import time
+
+# Third-party imports
+import httpx
+import requests
+
+# Standard library from imports
+from datetime import datetime
 
 # Patch httpx before importing twikit
-import httpx
 original_client = httpx.Client
 
 def patched_client(*args, **kwargs):

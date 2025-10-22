@@ -1,11 +1,14 @@
 '''
-search api 
-computer use api 
+search api
+computer use api
 '''
 
-from openai import OpenAI
+# Standard library imports
 import os
+
+# Third-party from imports
 from dotenv import load_dotenv
+from openai import OpenAI
 
 # Load environment variables
 load_dotenv()
