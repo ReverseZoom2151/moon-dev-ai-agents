@@ -1,5 +1,5 @@
 """
-🌙 Moon Dev's Backtest Execution Runner
+Moon Dev's Backtest Execution Runner
 Proof of concept for running backtests in conda environment
 """
 
@@ -10,9 +10,15 @@ import json
 from datetime import datetime
 from pathlib import Path
 
+# Fix Windows encoding issues with emojis
+if sys.platform == "win32":
+    import codecs
+    sys.stdout = codecs.getwriter("utf-8")(sys.stdout.detach())
+
 # CONFIGURATION - Change this to test different files
-BACKTEST_FILE = "/Users/md/Dropbox/dev/github/moon-dev-ai-agents-for-trading/src/agents/test_backtest_working.py"
-CONDA_ENV = "tflow"  # Your conda environment name
+# Point to one of your actual backtest files
+BACKTEST_FILE = r"C:\Users\adria\Downloads\personal-wall-street\moon-dev-ai-agents\src\agents\test_simple_backtest.py"
+CONDA_ENV = "base"  # Your conda environment name (change if needed)
 
 def run_backtest_in_conda(file_path: str, conda_env: str = "tflow"):
     """
@@ -36,11 +42,22 @@ def run_backtest_in_conda(file_path: str, conda_env: str = "tflow"):
             "success": False
         }
     
-    # Build the command to run in conda environment
-    cmd = [
-        "conda", "run", "-n", conda_env,
-        "python", file_path
-    ]
+    # Build the command to run in conda environment (or regular python if conda not available)
+    # Try conda first, fall back to regular python
+    try:
+        import shutil
+        if shutil.which("conda"):
+            cmd = [
+                "conda", "run", "-n", conda_env,
+                "python", file_path
+            ]
+        else:
+            # Use regular python if conda not available
+            cmd = ["python", file_path]
+            print("⚠️ Conda not found, using system Python")
+    except:
+        cmd = ["python", file_path]
+        print("⚠️ Using system Python")
     
     print(f"🔧 Command: {' '.join(cmd)}")
     print("=" * 60)

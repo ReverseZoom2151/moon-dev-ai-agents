@@ -7,22 +7,18 @@ Chuck the Chart Agent generates and analyzes trading charts using AI vision capa
 
 import os
 import pandas as pd
-import numpy as np
-import mplfinance as mpf
-import matplotlib.pyplot as plt
-from datetime import datetime, timedelta
-from pathlib import Path
+import traceback
+import re
 import time
-from dotenv import load_dotenv
 import anthropic
 import openai
-from src import nice_funcs as n
+import mplfinance as mpf
+from datetime import datetime
+from pathlib import Path
+from dotenv import load_dotenv
 from src import nice_funcs_hl as hl
 from src.agents.base_agent import BaseAgent
-import traceback
-import base64
-from io import BytesIO
-import re
+
 
 # Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent.parent
