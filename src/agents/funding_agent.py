@@ -34,15 +34,13 @@ from pathlib import Path
 
 # Third-party from imports
 from dotenv import load_dotenv
-from termcolor import colored, cprint
+from termcolor import cprint
 
 # Local from imports
 from src import config
-from src import nice_funcs as n
 from src import nice_funcs_hl as hl
 from src.agents.api import MoonDevAPI
 from src.agents.base_agent import BaseAgent
-from src.models import model_factory
 
 # Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent.parent
