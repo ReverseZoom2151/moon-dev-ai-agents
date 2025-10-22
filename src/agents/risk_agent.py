@@ -62,7 +62,7 @@ load_dotenv()
 class RiskAgent(BaseAgent):
     def __init__(self):
         """Initialize Moon Dev's Risk Agent 🛡️"""
-        super().__init__('risk')  # Initialize base agent with type
+        super().__init__('risk', use_model_priority=True)  # Enable model priority with fallback
         
         # Set AI parameters - use config values unless overridden
         self.ai_model = AI_MODEL if AI_MODEL else config.AI_MODEL
@@ -81,16 +81,10 @@ class RiskAgent(BaseAgent):
                 
         load_dotenv()
 
-        # Initialize model using model_factory
-        if MODEL_OVERRIDE.lower() == "deepseek-chat":
-            self.model = model_factory.get_model("deepseek", "deepseek-chat")
-            print("🚀 Using DeepSeek model!")
-        else:
-            self.model = model_factory.get_model("claude")
-            print("🎯 Using Claude model!")
-
-        if not self.model:
-            raise ValueError("Could not initialize AI model!")
+        # Model priority system initialized by BaseAgent
+        if not self.model_priority:
+            raise ValueError("🚨 Model priority system not initialized!")
+        print("🎯 Risk Agent using model priority with automatic fallback")
         
         self.override_active = False
         self.last_override_check = None
@@ -266,14 +260,22 @@ class RiskAgent(BaseAgent):
             
             cprint("🤖 AI Agent analyzing market data...", "white", "on_green")
 
-            # Use model_factory for AI analysis
-            model_response = self.model.generate_response(
+            # Use model_priority for CRITICAL risk decisions
+            from src.models.model_priority import ModelPriority
+            response, provider, model = self.model_priority.get_model(
+                priority=ModelPriority.CRITICAL,  # Risk management is critical
                 system_prompt="You are Moon Dev's Risk Management AI. Analyze positions and respond with OVERRIDE or RESPECT_LIMIT.",
                 user_content=prompt,
                 temperature=self.ai_temperature,
                 max_tokens=self.ai_max_tokens
             )
-            response_text = model_response.content
+
+            if not response:
+                cprint("❌ All models failed - respecting limits by default", "red")
+                return False
+
+            response_text = response.content
+            cprint(f"✅ Used model: {provider}:{model}", "cyan")
             
             # Handle TextBlock format if using Claude
             if 'TextBlock' in response_text:
@@ -463,14 +465,22 @@ Respond with:
 CLOSE_ALL or HOLD_POSITIONS
 Then explain your reasoning.
 """
-            # Use model_factory for AI analysis
-            model_response = self.model.generate_response(
+            # Use model_priority for CRITICAL risk decisions
+            from src.models.model_priority import ModelPriority
+            response, provider, model = self.model_priority.get_model(
+                priority=ModelPriority.CRITICAL,
                 system_prompt="You are Moon Dev's Risk Management AI. Analyze the breach and decide whether to close positions.",
                 user_content=prompt,
                 temperature=self.ai_temperature,
                 max_tokens=self.ai_max_tokens
             )
-            response_text = model_response.content
+
+            if not response:
+                cprint("❌ All models failed - holding positions by default", "red")
+                return
+
+            response_text = response.content
+            cprint(f"✅ Used model: {provider}:{model}", "cyan")
             
             # Handle TextBlock format if using Claude
             if 'TextBlock' in response_text:

@@ -95,7 +95,7 @@ class FundingAgent(BaseAgent):
     
     def __init__(self):
         """Initialize Fran the Funding Agent"""
-        super().__init__('funding')
+        super().__init__('funding', use_model_priority=True)
         
         # Set active model - use override if set, otherwise use config
         self.active_model = MODEL_OVERRIDE if MODEL_OVERRIDE != "0" else config.AI_MODEL
@@ -108,18 +108,10 @@ class FundingAgent(BaseAgent):
             raise ValueError("🚨 OPENAI_KEY not found in environment variables!")
         openai.api_key = openai_key
         
-        # Initialize Anthropic for Claude models
-        anthropic_key = os.getenv("ANTHROPIC_KEY")
-        # Initialize model using model_factory
-        if "deepseek" in self.active_model.lower():
-            self.model = model_factory.get_model("deepseek", self.active_model)
-            cprint(f"🚀 Using DeepSeek: {self.active_model}!", "green")
-        else:
-            self.model = model_factory.get_model("claude", self.active_model if self.active_model != "0" else None)
-            cprint(f"🎯 Using Claude: {self.active_model}!", "green")
-
-        if not self.model:
-            raise ValueError("Could not initialize AI model!")
+        # Model priority system initialized by BaseAgent
+        if not self.model_priority:
+            raise ValueError("🚨 Model priority system not initialized!")
+        cprint("🎯 Funding Agent using model priority with automatic fallback", "cyan")
         
         self.api = MoonDevAPI()
         
@@ -184,15 +176,22 @@ class FundingAgent(BaseAgent):
             
             print(f"\n🤖 Analyzing {symbol} with AI...")
             
-            # Use model_factory for AI analysis
-            cprint(f"🤖 Using model: {self.active_model}", "cyan")
-            model_response = self.model.generate_response(
+            # Use model_priority for CRITICAL funding analysis
+            from src.models.model_priority import ModelPriority
+            response, provider, model = self.model_priority.get_model(
+                priority=ModelPriority.CRITICAL,  # Funding rate analysis is critical for trading
                 system_prompt=FUNDING_ANALYSIS_PROMPT,
                 user_content=context,
                 temperature=AI_TEMPERATURE if AI_TEMPERATURE > 0 else config.AI_TEMPERATURE,
                 max_tokens=AI_MAX_TOKENS if AI_MAX_TOKENS > 0 else config.AI_MAX_TOKENS
             )
-            content = model_response.content
+
+            if not response:
+                cprint("❌ All models failed - skipping analysis", "red")
+                continue
+
+            content = response.content
+            cprint(f"✅ Used model: {provider}:{model}", "cyan")
             
             # Debug: Print raw response
             print("\n🔍 Raw response:")
