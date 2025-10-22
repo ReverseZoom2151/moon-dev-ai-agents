@@ -55,9 +55,13 @@ if not TESTING_MODE:
     openai.api_key = os.getenv("OPENAI_KEY")
     if not openai.api_key:
         raise ValueError("🚨 OPENAI_KEY not found in environment variables!")
+
+    # Load Twilio phone number
+    TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER", "Not configured")
 else:
     # In testing mode, we can set a default model or use environment variables if available
     openai.api_key = os.getenv("OPENAI_KEY", "your-api-key-here")
+    TWILIO_PHONE_NUMBER = "N/A (Testing Mode)"
 
 # Initialize Flask app (only if not testing)
 if not TESTING_MODE:
