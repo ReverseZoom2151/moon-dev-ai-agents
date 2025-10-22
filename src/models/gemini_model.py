@@ -11,22 +11,22 @@ class GeminiModel(BaseModel):
     """Implementation for Google's Gemini models"""
     
     AVAILABLE_MODELS = {
-        # Gemini 2.0 Series (Latest - January 2025)
-        "gemini-2.0-flash-exp": "Gemini 2.0 Flash Experimental - Latest experimental model",
-        "gemini-2.0-flash-thinking-exp": "Gemini 2.0 Flash with extended thinking - Reasoning model",
+        # Gemini 2.5 Series (Latest - 2025)
+        "gemini-2.5-pro": "Gemini 2.5 Pro - Best for complex reasoning and analysis (FREE)",
+        "gemini-2.5-flash": "Gemini 2.5 Flash - Fast and cost-effective (FREE)",
+        "gemini-2.5-flash-lite": "Gemini 2.5 Flash Lite - Ultra-lightweight and fastest (FREE)",
 
-        # Gemini 1.5 Series (Production - Stable)
-        "gemini-1.5-pro": "Gemini 1.5 Pro - Best for complex reasoning",
-        "gemini-1.5-pro-002": "Gemini 1.5 Pro 002 - Latest stable pro model",
-        "gemini-1.5-flash": "Gemini 1.5 Flash - Fast and cost-effective",
-        "gemini-1.5-flash-002": "Gemini 1.5 Flash 002 - Latest stable flash model",
-        "gemini-1.5-flash-8b": "Gemini 1.5 Flash 8B - Ultra-fast lightweight model",
+        # Gemini 2.0 Series (Experimental)
+        "gemini-2.0-flash-exp": "Gemini 2.0 Flash Experimental",
+        "gemini-2.0-flash-thinking-exp": "Gemini 2.0 Flash with extended thinking",
 
-        # Legacy (still available)
-        "gemini-pro": "Gemini Pro - Legacy model (use 1.5-pro instead)"
+        # Gemini 1.5 Series (Legacy - Still Available)
+        "gemini-1.5-pro": "Gemini 1.5 Pro - Legacy",
+        "gemini-1.5-flash": "Gemini 1.5 Flash - Legacy",
+        "gemini-1.5-flash-8b": "Gemini 1.5 Flash 8B - Legacy"
     }
-    
-    def __init__(self, api_key: str, model_name: str = "gemini-1.5-flash", **kwargs):
+
+    def __init__(self, api_key: str, model_name: str = "gemini-2.5-flash", **kwargs):
         self.model_name = model_name
         super().__init__(api_key, **kwargs)
     

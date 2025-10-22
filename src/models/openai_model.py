@@ -12,72 +12,62 @@ class OpenAIModel(BaseModel):
     """Implementation for OpenAI's models"""
     
     AVAILABLE_MODELS = {
-        # GPT-4o Series (Latest - January 2025)
+        # GPT-5 Series (Latest - 2025)
+        "gpt-5-2025-08-07": {
+            "description": "GPT-5 - Most advanced model (Aug 2025)",
+            "input_price": "$5.00/1M tokens",
+            "output_price": "$20.00/1M tokens",
+            "supports_reasoning_effort": False
+        },
+        "gpt-5-pro-2025-10-06": {
+            "description": "GPT-5 Pro - Premium reasoning model (Oct 2025)",
+            "input_price": "$10.00/1M tokens",
+            "output_price": "$40.00/1M tokens",
+            "supports_reasoning_effort": False
+        },
+        "gpt-5-mini-2025-08-07": {
+            "description": "GPT-5 Mini - Fast and efficient (Aug 2025)",
+            "input_price": "$1.00/1M tokens",
+            "output_price": "$4.00/1M tokens",
+            "supports_reasoning_effort": False
+        },
+        "gpt-5-nano-2025-08-07": {
+            "description": "GPT-5 Nano - Ultra-fast lightweight (Aug 2025)",
+            "input_price": "$0.25/1M tokens",
+            "output_price": "$1.00/1M tokens",
+            "supports_reasoning_effort": False
+        },
+
+        # GPT-4o Series (Still available)
         "gpt-4o": {
-            "description": "GPT-4o - Best for complex tasks (Jan 2025)",
+            "description": "GPT-4o - Reliable workhorse (Jan 2025)",
             "input_price": "$2.50/1M tokens",
             "output_price": "$10.00/1M tokens",
             "supports_reasoning_effort": False
         },
         "gpt-4o-mini": {
-            "description": "GPT-4o Mini - Fast and cost-effective (Jan 2025)",
+            "description": "GPT-4o Mini - Fast and cost-effective",
             "input_price": "$0.15/1M tokens",
             "output_price": "$0.60/1M tokens",
             "supports_reasoning_effort": False
         },
 
-        # O1 Series (Reasoning Models - December 2024)
+        # O1 Series (Reasoning Models)
         "o1": {
-            "description": "O1 - Advanced reasoning (Dec 2024)",
+            "description": "O1 - Advanced reasoning",
             "input_price": "$15.00/1M tokens",
             "output_price": "$60.00/1M tokens",
             "supports_reasoning_effort": False
         },
         "o1-mini": {
-            "description": "O1 Mini - Fast reasoning (Dec 2024)",
+            "description": "O1 Mini - Fast reasoning",
             "input_price": "$3.00/1M tokens",
             "output_price": "$12.00/1M tokens",
-            "supports_reasoning_effort": False
-        },
-        "o1-preview": {
-            "description": "O1 Preview - Latest reasoning preview",
-            "input_price": "$15.00/1M tokens",
-            "output_price": "$60.00/1M tokens",
-            "supports_reasoning_effort": False
-        },
-
-        # O3 Series (Future/Unreleased - may not be available yet)
-        "o3-mini": {
-            "description": "O3 Mini - Next-gen reasoning (when available)",
-            "input_price": "$1.10/1M tokens",
-            "output_price": "$4.40/1M tokens",
-            "supports_reasoning_effort": True
-        },
-
-        # Legacy GPT-4 Turbo (Still available)
-        "gpt-4-turbo": {
-            "description": "GPT-4 Turbo - Legacy model",
-            "input_price": "$10.00/1M tokens",
-            "output_price": "$30.00/1M tokens",
-            "supports_reasoning_effort": False
-        },
-        "gpt-4-turbo-preview": {
-            "description": "GPT-4 Turbo Preview - Legacy",
-            "input_price": "$10.00/1M tokens",
-            "output_price": "$30.00/1M tokens",
-            "supports_reasoning_effort": False
-        },
-
-        # GPT-3.5 Turbo (Budget option)
-        "gpt-3.5-turbo": {
-            "description": "GPT-3.5 Turbo - Most affordable",
-            "input_price": "$0.50/1M tokens",
-            "output_price": "$1.50/1M tokens",
             "supports_reasoning_effort": False
         }
     }
     
-    def __init__(self, api_key: str, model_name: str = "gpt-4o", reasoning_effort: str = "medium", **kwargs):
+    def __init__(self, api_key: str, model_name: str = "gpt-5-2025-08-07", reasoning_effort: str = "medium", **kwargs):
         self.model_name = model_name
         self.reasoning_effort = reasoning_effort
         super().__init__(api_key, **kwargs)

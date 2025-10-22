@@ -26,34 +26,35 @@ class ModelPriorityQueue:
         If Claude fails, try xAI Grok as last resort
     """
 
-    # Default priority chains (provider, model_name) - Updated January 2025
+    # Default priority chains (provider, model_name) - Updated October 2025
     DEFAULT_PRIORITY_CHAINS = {
         ModelPriority.CRITICAL: [
-            ("openai", "gpt-4o"),                    # Primary: GPT-4o (Jan 2025)
-            ("claude", "claude-3-5-sonnet-latest"),  # Secondary: Claude Sonnet 3.5
-            ("gemini", "gemini-1.5-pro"),            # Tertiary: Gemini 1.5 Pro
+            ("openai", "gpt-5-2025-08-07"),          # Primary: GPT-5 (Aug 2025)
+            ("claude", "claude-sonnet-4-5-20250929"),# Secondary: Claude Sonnet 4.5 ($3/$15)
+            ("gemini", "gemini-2.5-pro"),            # Tertiary: Gemini 2.5 Pro (FREE)
             ("xai", "grok-2-latest"),                # Backup: Grok 2
         ],
 
         ModelPriority.HIGH: [
-            ("openai", "gpt-4o"),                    # Primary: GPT-4o
-            ("claude", "claude-3-5-sonnet-latest"),  # Secondary: Claude Sonnet 3.5
-            ("gemini", "gemini-1.5-pro"),            # Tertiary: Gemini 1.5 Pro
+            ("openai", "gpt-5-2025-08-07"),          # Primary: GPT-5
+            ("claude", "claude-sonnet-4-5-20250929"),# Secondary: Claude Sonnet 4.5
+            ("gemini", "gemini-2.5-pro"),            # Tertiary: Gemini 2.5 Pro
             ("groq", "llama-3.3-70b-versatile"),     # Backup: Fast Groq
         ],
 
         ModelPriority.MEDIUM: [
-            ("claude", "claude-3-5-haiku-latest"),   # Primary: Fast Claude 3.5
-            ("openai", "gpt-4o-mini"),               # Secondary: GPT-4o Mini
-            ("gemini", "gemini-1.5-flash"),          # Tertiary: Gemini 1.5 Flash
+            ("claude", "claude-haiku-4-5-20251001"), # Primary: Claude Haiku 4.5 ($1/$5)
+            ("openai", "gpt-5-mini-2025-08-07"),     # Secondary: GPT-5 Mini
+            ("gemini", "gemini-2.5-flash"),          # Tertiary: Gemini 2.5 Flash (FREE)
             ("groq", "mixtral-8x7b-32768"),          # Backup: Fast Mixtral
         ],
 
         ModelPriority.LOW: [
             ("groq", "mixtral-8x7b-32768"),          # Primary: Fast and cheap
-            ("gemini", "gemini-1.5-flash-8b"),       # Secondary: Ultra-fast Gemini
-            ("deepseek", "deepseek-reasoner"),       # Tertiary: DeepSeek
-            ("ollama", "llama3.2"),                  # Backup: Local Ollama
+            ("gemini", "gemini-2.5-flash-lite"),     # Secondary: Gemini 2.5 Flash Lite (FREE)
+            ("openai", "gpt-5-nano-2025-08-07"),     # Tertiary: GPT-5 Nano (ultra-fast)
+            ("deepseek", "deepseek-reasoner"),       # Backup 1: DeepSeek
+            ("ollama", "llama3.2"),                  # Backup 2: Local Ollama
         ]
     }
 

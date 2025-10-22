@@ -34,15 +34,15 @@ class ModelFactory:
         "xai": XAIModel  # xAI Grok models
     }
     
-    # Default models for each type (Updated January 2025)
+    # Default models for each type (Updated October 2025)
     DEFAULT_MODELS = {
-        "claude": "claude-3-5-haiku-latest",  # Latest fast Claude 3.5 (Jan 2025)
-        "groq": "mixtral-8x7b-32768",         # Fast Mixtral model
-        "openai": "gpt-4o",                   # GPT-4o (Jan 2025)
-        "gemini": "gemini-1.5-flash",         # Gemini 1.5 Flash (stable, Jan 2025)
-        "deepseek": "deepseek-reasoner",      # Enhanced reasoning model
-        "ollama": "llama3.2",                 # Meta's Llama 3.2
-        "xai": "grok-2-latest"                # xAI's latest Grok
+        "claude": "claude-haiku-4-5-20251001",  # Claude Haiku 4.5 (Oct 2025)
+        "groq": "mixtral-8x7b-32768",           # Fast Mixtral model
+        "openai": "gpt-5-2025-08-07",           # GPT-5 (Aug 2025)
+        "gemini": "gemini-2.5-flash",           # Gemini 2.5 Flash (Oct 2025)
+        "deepseek": "deepseek-reasoner",        # Enhanced reasoning model
+        "ollama": "llama3.2",                   # Meta's Llama 3.2
+        "xai": "grok-2-latest"                  # xAI's latest Grok
     }
     
     def __init__(self):

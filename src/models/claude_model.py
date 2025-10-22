@@ -11,24 +11,26 @@ class ClaudeModel(BaseModel):
     """Implementation for Anthropic's Claude models"""
     
     AVAILABLE_MODELS = {
-        # Claude 3.5 Series (Latest - January 2025)
-        "claude-3-5-sonnet-20250122": "Latest Claude 3.5 Sonnet (Jan 2025) - Best for reasoning",
-        "claude-3-5-sonnet-latest": "Latest Claude 3.5 Sonnet - Auto-updates to newest",
-        "claude-3-5-haiku-20250107": "Latest Claude 3.5 Haiku (Jan 2025) - Fastest",
-        "claude-3-5-haiku-latest": "Latest Claude 3.5 Haiku - Auto-updates to newest",
+        # Claude 4.5 Series (Latest - 2025)
+        "claude-sonnet-4-5-20250929": "Claude Sonnet 4.5 - Smartest model for complex agents and coding ($3/$15 per MTok) - 200K/1M context",
+        "claude-haiku-4-5-20251001": "Claude Haiku 4.5 - Fastest with near-frontier intelligence ($1/$5 per MTok) - 200K context",
 
-        # Claude 3 Series (Legacy - Still Available)
-        "claude-3-opus-20240229": "Claude 3 Opus - Most powerful (Feb 2024)",
-        "claude-3-sonnet-20240229": "Claude 3 Sonnet - Balanced (Feb 2024)",
-        "claude-3-haiku-20240307": "Claude 3 Haiku - Fast (Mar 2024)",
+        # Claude 4.1 Series (Latest - 2025)
+        "claude-opus-4-1-20250805": "Claude Opus 4.1 - Exceptional for specialized reasoning ($15/$75 per MTok) - 200K context",
 
-        # Aliases for backward compatibility
-        "claude-3-opus": "Claude 3 Opus (alias)",
-        "claude-3-sonnet": "Claude 3 Sonnet (alias)",
-        "claude-3-haiku": "Claude 3 Haiku (alias)"
+        # Claude 3.5 Series (Legacy - Still Available)
+        "claude-3-5-sonnet-20250122": "Claude 3.5 Sonnet (Jan 2025)",
+        "claude-3-5-sonnet-latest": "Claude 3.5 Sonnet - Auto-updates",
+        "claude-3-5-haiku-20250107": "Claude 3.5 Haiku (Jan 2025)",
+        "claude-3-5-haiku-latest": "Claude 3.5 Haiku - Auto-updates",
+
+        # Claude 3 Series (Legacy)
+        "claude-3-opus-20240229": "Claude 3 Opus (Feb 2024)",
+        "claude-3-sonnet-20240229": "Claude 3 Sonnet (Feb 2024)",
+        "claude-3-haiku-20240307": "Claude 3 Haiku (Mar 2024)"
     }
-    
-    def __init__(self, api_key: str, model_name: str = "claude-3-haiku", **kwargs):
+
+    def __init__(self, api_key: str, model_name: str = "claude-haiku-4-5-20251001", **kwargs):
         self.model_name = model_name
         super().__init__(api_key, **kwargs)
     
