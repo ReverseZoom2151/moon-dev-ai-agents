@@ -4,8 +4,12 @@ Demonstrates automatic model fallback and priority chains
 
 DEMO MODE - Tests model availability without making API calls
 """
-import sys
+
+# Standard library imports
 import codecs
+import sys
+
+# Standard library from imports
 from pathlib import Path
 
 # Fix Windows UTF-8 encoding for emojis
@@ -16,9 +20,12 @@ project_root = str(Path(__file__).parent)
 if project_root not in sys.path:
     sys.path.append(project_root)
 
+# Third-party from imports
 from termcolor import cprint
-from src.models.model_priority import ModelPriority, model_priority_queue
+
+# Local from imports
 from src.models.model_factory import model_factory
+from src.models.model_priority import ModelPriority, model_priority_queue
 
 def print_header(text):
     """Print a formatted header"""

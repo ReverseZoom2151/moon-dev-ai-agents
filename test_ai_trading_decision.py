@@ -2,8 +2,12 @@
 Test AI Trading Decision with Model Priority
 Demonstrates how to use the priority system for trading decisions
 """
-import sys
+
+# Standard library imports
 import codecs
+import sys
+
+# Standard library from imports
 from pathlib import Path
 
 # Fix Windows UTF-8 encoding
@@ -14,7 +18,10 @@ project_root = str(Path(__file__).parent)
 if project_root not in sys.path:
     sys.path.append(project_root)
 
+# Third-party from imports
 from termcolor import cprint
+
+# Local from imports
 from src.models.model_priority import ModelPriority, model_priority_queue
 
 def test_trading_decision():

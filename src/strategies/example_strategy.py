@@ -3,11 +3,16 @@
 Simple Moving Average Crossover Strategy
 """
 
-from .base_strategy import BaseStrategy
-from src.config import MONITORED_TOKENS
+# Third-party imports
 import pandas as pd
+
+# Third-party from imports
 from termcolor import cprint
+
+# Local from imports
 from src import nice_funcs as n
+from src.config import MONITORED_TOKENS
+from .base_strategy import BaseStrategy
 
 class SimpleMAStrategy(BaseStrategy):
     def __init__(self):

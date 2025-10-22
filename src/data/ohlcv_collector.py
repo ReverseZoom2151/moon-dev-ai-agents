@@ -4,13 +4,22 @@ Collects Open-High-Low-Close-Volume data for specified tokens
 Built with love by Moon Dev 🚀
 """
 
-from src.config import *
-from src import nice_funcs as n
-import pandas as pd
-from datetime import datetime
+# Standard library imports
 import os
-from termcolor import colored, cprint
 import time
+
+# Third-party imports
+import pandas as pd
+
+# Standard library from imports
+from datetime import datetime
+
+# Third-party from imports
+from termcolor import colored, cprint
+
+# Local from imports
+from src import nice_funcs as n
+from src.config import *
 
 def collect_token_data(token, days_back=DAYSBACK_4_DATA, timeframe=DATA_TIMEFRAME):
     """Collect OHLCV data for a single token"""

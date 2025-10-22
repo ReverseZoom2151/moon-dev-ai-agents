@@ -4,8 +4,15 @@ Demonstrates the new multi-exchange functionality
 
 DEMO MODE - No real trades will be executed
 """
-import sys
+
+# Standard library imports
 import codecs
+import sys
+
+# Third-party imports
+import pandas as pd
+
+# Standard library from imports
 from pathlib import Path
 
 # Fix Windows UTF-8 encoding for emojis
@@ -16,9 +23,11 @@ project_root = str(Path(__file__).parent)
 if project_root not in sys.path:
     sys.path.append(project_root)
 
+# Third-party from imports
 from termcolor import cprint
+
+# Local from imports
 from src.multi_exchange_manager import MultiExchangeManager
-import pandas as pd
 
 def print_header(text):
     """Print a formatted header"""
