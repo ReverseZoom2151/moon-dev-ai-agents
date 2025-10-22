@@ -34,7 +34,6 @@ from pathlib import Path
 from dotenv import load_dotenv
 from flask import Flask, request
 from termcolor import cprint
-from twilio.rest import Client
 from twilio.twiml.voice_response import Gather, VoiceResponse
 
 # Testing mode flag - set to True to test in terminal without Twilio
