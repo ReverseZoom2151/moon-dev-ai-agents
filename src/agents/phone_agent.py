@@ -63,7 +63,7 @@ else:
     app = None
 
 # Model settings
-MODEL_NAME = None  # Use default from model_factory (gpt-5-2025-08-07)
+MODEL_NAME = "gpt-4o"  # OpenAI model for chat
 VOICE_NAME = "echo"  # Options: alloy, echo, fable, onyx, nova, shimmer
 
 # Response settings

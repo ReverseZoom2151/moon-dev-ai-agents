@@ -44,6 +44,7 @@ RESPECT_LIMIT: <detailed reason for each position>
 # Standard library imports
 import json
 import os
+import re
 import time
 import traceback
 
@@ -298,7 +299,7 @@ class RiskAgent(BaseAgent):
             
             # Print the AI's reasoning with model info
             cprint("\n🧠 Risk Agent Analysis:", "white", "on_blue")
-            cprint(f"Using model: {'DeepSeek' if self.deepseek_client else 'Claude'}", "white", "on_blue")
+            cprint(f"Using model: {provider}:{model}", "white", "on_blue")
             print(response_text)
             
             if self.override_active:
@@ -498,7 +499,7 @@ Then explain your reasoning.
             
             print("\n🤖 AI Risk Assessment:")
             print("=" * 50)
-            print(f"Using model: {'DeepSeek' if self.deepseek_client else 'Claude'}")
+            cprint(f"Using model: {provider}:{model}", "cyan")
             print(response_text)
             print("=" * 50)
             
