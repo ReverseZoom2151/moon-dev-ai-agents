@@ -1,5 +1,5 @@
 """
-🌙 Moon Dev's RBI AI v2.0 (Simplified - Using Model Factory)
+🌙 Moon Dev's RBI AI v2.0 (Simplified - Using Model Priority with Auto-Fallback)
 """
 
 import subprocess

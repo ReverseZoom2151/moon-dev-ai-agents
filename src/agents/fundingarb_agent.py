@@ -87,7 +87,8 @@ class FundingArbAgent(BaseAgent):
         self.ai_temperature = AI_TEMPERATURE if AI_TEMPERATURE > 0 else 0.5
         self.ai_max_tokens = AI_MAX_TOKENS if AI_MAX_TOKENS > 0 else 150
         
-        print(f"🤖 Using AI Model: {self.ai_model}")
+        print(f"🤖 Using Model Priority System: CRITICAL (Auto-Fallback Enabled)")
+        print(f"   Primary: GPT-5 -> Claude Sonnet 4.5 -> Gemini 2.5 Pro")
         if AI_MODEL or AI_TEMPERATURE > 0 or AI_MAX_TOKENS > 0:
             print("⚠️ Note: Using some override settings instead of defaults")
             if AI_MODEL:

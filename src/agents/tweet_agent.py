@@ -85,7 +85,8 @@ class TweetAgent:
         self.ai_temperature = AI_TEMPERATURE if AI_TEMPERATURE > 0 else config.AI_TEMPERATURE
         self.ai_max_tokens = AI_MAX_TOKENS if AI_MAX_TOKENS > 0 else config.AI_MAX_TOKENS
         
-        print(f"🤖 Using AI Model: {self.ai_model}")
+        print(f"🤖 Using Model Priority System: MEDIUM (Auto-Fallback Enabled)")
+        print(f"   Primary: Claude Haiku 4.5 -> GPT-5 Mini -> Gemini 2.5 Flash")
         if AI_MODEL or AI_TEMPERATURE > 0 or AI_MAX_TOKENS > 0:
             print("⚠️ Note: Using some override settings instead of config.py defaults")
             if AI_MODEL:
