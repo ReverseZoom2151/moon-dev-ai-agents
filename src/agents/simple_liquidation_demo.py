@@ -2,15 +2,22 @@
 Simple demo using Moon Dev API (no other keys needed!)
 Shows liquidation data without requiring BIRDEYE or other APIs
 """
+
+# Standard library imports
 import sys
+
+# Third-party imports
+import pandas as pd
+
+# Standard library from imports
 from pathlib import Path
 
 # Add project root to path
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
+# Local from imports
 from src.agents.api import MoonDevAPI
-import pandas as pd
 
 print("=" * 60)
 print("Moon Dev API Demo - Liquidation Analysis")
