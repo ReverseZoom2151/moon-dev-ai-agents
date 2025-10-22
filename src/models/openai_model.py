@@ -12,75 +12,72 @@ class OpenAIModel(BaseModel):
     """Implementation for OpenAI's models"""
     
     AVAILABLE_MODELS = {
-        "gpt-5": {
-            "description": "Most advanced GPT-5 model with breakthrough capabilities",
-            "input_price": "$0.015/1K tokens",
-            "output_price": "$0.045/1K tokens",
-            "supports_reasoning_effort": False
-        },
-        "gpt-5-mini": {
-            "description": "Efficient GPT-5 mini model with strong performance",
-            "input_price": "$0.007/1K tokens",
-            "output_price": "$0.021/1K tokens",
-            "supports_reasoning_effort": False
-        },
-        "gpt-5-nano": {
-            "description": "Ultra-fast GPT-5 nano model for high-speed tasks",
-            "input_price": "$0.003/1K tokens",
-            "output_price": "$0.009/1K tokens",
-            "supports_reasoning_effort": False
-        },
-        "o3": {
-            "description": "Advanced reasoning model with superior problem-solving capabilities",
-            "input_price": "$1.50/1m tokens",
-            "output_price": "$5.00/1m tokens",
-            "supports_reasoning_effort": True
-        },
-        "o3-mini": {
-            "description": "Fast reasoning model with problem-solving capabilities",
-            "input_price": "$1.10/1m tokens",
-            "output_price": "$4.40/1m tokens",
-            "supports_reasoning_effort": True
-        },
-        "o1": {
-            "description": "Latest O1 model with reasoning capabilities",
-            "input_price": "$0.01/1K tokens",
-            "output_price": "$0.03/1K tokens",
-            "supports_reasoning_effort": False
-        },
-        "o1-mini": {
-            "description": "Smaller O1 model with reasoning capabilities",
-            "input_price": "$0.005/1K tokens",
-            "output_price": "$0.015/1K tokens",
-            "supports_reasoning_effort": False
-        },
+        # GPT-4o Series (Latest - January 2025)
         "gpt-4o": {
-            "description": "Advanced GPT-4 Optimized model",
-            "input_price": "$0.01/1K tokens",
-            "output_price": "$0.03/1K tokens",
+            "description": "GPT-4o - Best for complex tasks (Jan 2025)",
+            "input_price": "$2.50/1M tokens",
+            "output_price": "$10.00/1M tokens",
             "supports_reasoning_effort": False
         },
         "gpt-4o-mini": {
-            "description": "Efficient GPT-4 Optimized mini model",
-            "input_price": "$0.005/1K tokens",
-            "output_price": "$0.015/1K tokens",
+            "description": "GPT-4o Mini - Fast and cost-effective (Jan 2025)",
+            "input_price": "$0.15/1M tokens",
+            "output_price": "$0.60/1M tokens",
             "supports_reasoning_effort": False
         },
-        "gpt-4.1": {
-            "description": "Latest GPT-4.1 model with enhanced capabilities",
-            "input_price": "$0.01/1K tokens",
-            "output_price": "$0.03/1K tokens",
+
+        # O1 Series (Reasoning Models - December 2024)
+        "o1": {
+            "description": "O1 - Advanced reasoning (Dec 2024)",
+            "input_price": "$15.00/1M tokens",
+            "output_price": "$60.00/1M tokens",
+            "supports_reasoning_effort": False
+        },
+        "o1-mini": {
+            "description": "O1 Mini - Fast reasoning (Dec 2024)",
+            "input_price": "$3.00/1M tokens",
+            "output_price": "$12.00/1M tokens",
+            "supports_reasoning_effort": False
+        },
+        "o1-preview": {
+            "description": "O1 Preview - Latest reasoning preview",
+            "input_price": "$15.00/1M tokens",
+            "output_price": "$60.00/1M tokens",
+            "supports_reasoning_effort": False
+        },
+
+        # O3 Series (Future/Unreleased - may not be available yet)
+        "o3-mini": {
+            "description": "O3 Mini - Next-gen reasoning (when available)",
+            "input_price": "$1.10/1M tokens",
+            "output_price": "$4.40/1M tokens",
             "supports_reasoning_effort": True
         },
-        "o4-mini": {
-            "description": "Efficient O4 model with balanced performance",
-            "input_price": "$1.30/1m tokens",
-            "output_price": "$4.70/1m tokens",
-            "supports_reasoning_effort": True
+
+        # Legacy GPT-4 Turbo (Still available)
+        "gpt-4-turbo": {
+            "description": "GPT-4 Turbo - Legacy model",
+            "input_price": "$10.00/1M tokens",
+            "output_price": "$30.00/1M tokens",
+            "supports_reasoning_effort": False
+        },
+        "gpt-4-turbo-preview": {
+            "description": "GPT-4 Turbo Preview - Legacy",
+            "input_price": "$10.00/1M tokens",
+            "output_price": "$30.00/1M tokens",
+            "supports_reasoning_effort": False
+        },
+
+        # GPT-3.5 Turbo (Budget option)
+        "gpt-3.5-turbo": {
+            "description": "GPT-3.5 Turbo - Most affordable",
+            "input_price": "$0.50/1M tokens",
+            "output_price": "$1.50/1M tokens",
+            "supports_reasoning_effort": False
         }
     }
     
-    def __init__(self, api_key: str, model_name: str = "o1-mini", reasoning_effort: str = "medium", **kwargs):
+    def __init__(self, api_key: str, model_name: str = "gpt-4o", reasoning_effort: str = "medium", **kwargs):
         self.model_name = model_name
         self.reasoning_effort = reasoning_effort
         super().__init__(api_key, **kwargs)
@@ -88,12 +85,28 @@ class OpenAIModel(BaseModel):
     def initialize_client(self, **kwargs) -> None:
         """Initialize the OpenAI client"""
         try:
+            # Debug: print what kwargs we received
+            if kwargs:
+                cprint(f"  ├─ DEBUG: Received kwargs: {list(kwargs.keys())}", "yellow")
+
+            # Filter out any unsupported kwargs that might be passed from base_model
+            # OpenAI client only accepts specific parameters, not 'proxies' or other legacy params
+            supported_kwargs = {}
+            openai_supported_params = ['organization', 'base_url', 'timeout', 'max_retries', 'default_headers', 'default_query', 'http_client']
+
+            for key in openai_supported_params:
+                if key in kwargs:
+                    supported_kwargs[key] = kwargs[key]
+
+            # Simple initialization with only api_key
             self.client = OpenAI(api_key=self.api_key)
             cprint(f"✨ Moon Dev's magic initialized OpenAI model: {self.model_name} 🌟", "green")
             if self._supports_reasoning_effort():
                 cprint(f"🧠 Reasoning effort set to: {self.reasoning_effort}", "cyan")
         except Exception as e:
             cprint(f"❌ Failed to initialize OpenAI model: {str(e)}", "red")
+            import traceback
+            cprint(f"  ├─ Traceback:\n{traceback.format_exc()}", "red")
             self.client = None
     
     def _supports_reasoning_effort(self) -> bool:

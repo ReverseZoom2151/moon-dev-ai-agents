@@ -109,9 +109,10 @@ AI_MAX_TOKENS = 1024  # Max tokens for response
 AI_TEMPERATURE = 0.7  # Creativity vs precision (0-1)
 
 # 🎯 Model Priority System (NEW)
-USE_MODEL_PRIORITY = False  # Set to True to enable priority-based model selection with fallback
+USE_MODEL_PRIORITY = True  # Set to True to enable priority-based model selection with fallback
 OPENAI_ANTHROPIC_ONLY = False  # Set to True to use ONLY OpenAI and Anthropic models (ignores others)
                                # When True, other providers (Groq, Gemini, etc.) are filtered out
+                               # CURRENT: Claude + Gemini (OpenAI has compatibility issue)
 
 # Priority levels: CRITICAL, HIGH, MEDIUM, LOW
 # CRITICAL: Production trading decisions (OpenAI GPT-4, Claude Opus first)

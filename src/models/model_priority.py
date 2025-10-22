@@ -26,32 +26,32 @@ class ModelPriorityQueue:
         If Claude fails, try xAI Grok as last resort
     """
 
-    # Default priority chains (provider, model_name)
+    # Default priority chains (provider, model_name) - Updated January 2025
     DEFAULT_PRIORITY_CHAINS = {
         ModelPriority.CRITICAL: [
-            ("openai", "gpt-4o"),                    # Primary: GPT-4 Optimized
-            ("claude", "claude-3-5-sonnet-latest"),  # Secondary: Claude Sonnet
-            ("xai", "grok-2-fast-reasoning"),        # Tertiary: Grok reasoning
-            ("gemini", "gemini-2.5-pro"),            # Backup: Gemini Pro
+            ("openai", "gpt-4o"),                    # Primary: GPT-4o (Jan 2025)
+            ("claude", "claude-3-5-sonnet-latest"),  # Secondary: Claude Sonnet 3.5
+            ("gemini", "gemini-1.5-pro"),            # Tertiary: Gemini 1.5 Pro
+            ("xai", "grok-2-latest"),                # Backup: Grok 2
         ],
 
         ModelPriority.HIGH: [
             ("openai", "gpt-4o"),                    # Primary: GPT-4o
-            ("claude", "claude-3-5-sonnet-latest"),  # Secondary: Claude Sonnet
-            ("gemini", "gemini-2.5-pro"),            # Tertiary: Gemini Pro
+            ("claude", "claude-3-5-sonnet-latest"),  # Secondary: Claude Sonnet 3.5
+            ("gemini", "gemini-1.5-pro"),            # Tertiary: Gemini 1.5 Pro
             ("groq", "llama-3.3-70b-versatile"),     # Backup: Fast Groq
         ],
 
         ModelPriority.MEDIUM: [
-            ("claude", "claude-3-5-haiku-latest"),   # Primary: Fast Claude
-            ("openai", "gpt-4o-mini"),               # Secondary: Mini GPT-4
-            ("groq", "mixtral-8x7b-32768"),          # Tertiary: Fast Mixtral
-            ("gemini", "gemini-2.5-flash"),          # Backup: Fast Gemini
+            ("claude", "claude-3-5-haiku-latest"),   # Primary: Fast Claude 3.5
+            ("openai", "gpt-4o-mini"),               # Secondary: GPT-4o Mini
+            ("gemini", "gemini-1.5-flash"),          # Tertiary: Gemini 1.5 Flash
+            ("groq", "mixtral-8x7b-32768"),          # Backup: Fast Mixtral
         ],
 
         ModelPriority.LOW: [
             ("groq", "mixtral-8x7b-32768"),          # Primary: Fast and cheap
-            ("xai", "grok-4-fast-reasoning"),        # Secondary: xAI fast
+            ("gemini", "gemini-1.5-flash-8b"),       # Secondary: Ultra-fast Gemini
             ("deepseek", "deepseek-reasoner"),       # Tertiary: DeepSeek
             ("ollama", "llama3.2"),                  # Backup: Local Ollama
         ]

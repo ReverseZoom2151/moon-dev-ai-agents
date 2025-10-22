@@ -11,17 +11,21 @@ class ClaudeModel(BaseModel):
     """Implementation for Anthropic's Claude models"""
     
     AVAILABLE_MODELS = {
-        # Claude 4 Series (New Generation)
-        "claude-opus-4-1": "Most powerful Claude 4 model with advanced reasoning",
-        "claude-sonnet-4-5": "Balanced Claude 4.5 model with improved capabilities",
-        "claude-haiku-4-5": "Fast, efficient Claude 4.5 model for rapid responses",
+        # Claude 3.5 Series (Latest - January 2025)
+        "claude-3-5-sonnet-20250122": "Latest Claude 3.5 Sonnet (Jan 2025) - Best for reasoning",
+        "claude-3-5-sonnet-latest": "Latest Claude 3.5 Sonnet - Auto-updates to newest",
+        "claude-3-5-haiku-20250107": "Latest Claude 3.5 Haiku (Jan 2025) - Fastest",
+        "claude-3-5-haiku-latest": "Latest Claude 3.5 Haiku - Auto-updates to newest",
 
-        # Claude 3 Series (Current Stable)
-        "claude-3-5-sonnet-latest": "Latest Claude 3.5 Sonnet with enhanced performance",
-        "claude-3-5-haiku-latest": "Latest Claude 3.5 Haiku - blazing fast",
-        "claude-3-opus": "Most powerful Claude 3 model",
-        "claude-3-sonnet": "Balanced Claude 3 model",
-        "claude-3-haiku": "Fast, efficient Claude 3 model"
+        # Claude 3 Series (Legacy - Still Available)
+        "claude-3-opus-20240229": "Claude 3 Opus - Most powerful (Feb 2024)",
+        "claude-3-sonnet-20240229": "Claude 3 Sonnet - Balanced (Feb 2024)",
+        "claude-3-haiku-20240307": "Claude 3 Haiku - Fast (Mar 2024)",
+
+        # Aliases for backward compatibility
+        "claude-3-opus": "Claude 3 Opus (alias)",
+        "claude-3-sonnet": "Claude 3 Sonnet (alias)",
+        "claude-3-haiku": "Claude 3 Haiku (alias)"
     }
     
     def __init__(self, api_key: str, model_name: str = "claude-3-haiku", **kwargs):
