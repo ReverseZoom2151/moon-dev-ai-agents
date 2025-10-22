@@ -10,7 +10,7 @@ import os
 import importlib
 import inspect
 import time
-from src.models import model_factory
+from src.models.model_priority import model_priority_queue, ModelPriority
 
 # Import exchange manager for unified trading
 try:
@@ -57,9 +57,9 @@ class StrategyAgent:
     def __init__(self):
         """Initialize the Strategy Agent"""
         self.enabled_strategies = []
-        self.model = model_factory.get_model("claude")
-        if not self.model:
-            raise ValueError("Could not initialize Claude model!")
+        self.model_priority = model_priority_queue
+        if not self.model_priority:
+            raise ValueError("Could not initialize model_priority system!")
 
         # Initialize exchange manager if available
         if USE_EXCHANGE_MANAGER:
@@ -101,20 +101,26 @@ class StrategyAgent:
             # Format signals for prompt
             signals_str = json.dumps(signals, indent=2)
 
-            # Use model_factory for AI analysis
+            # Use model_priority for AI analysis
             prompt = STRATEGY_EVAL_PROMPT.format(
                 strategy_signals=signals_str,
                 market_data=market_data
             )
 
-            message = self.model.generate_response(
-                system_prompt="",
+            response_obj, provider, model = self.model_priority.get_model(
+                priority=ModelPriority.HIGH,
+                system_prompt="You are Moon Dev's Strategy Validation Assistant. Evaluate strategy signals and decide which to execute.",
                 user_content=prompt,
                 temperature=AI_TEMPERATURE,
                 max_tokens=AI_MAX_TOKENS
             )
-            
-            response = message.content
+
+            if not response_obj:
+                print("❌ All models failed - cannot evaluate signals")
+                return None
+
+            print(f"✅ Used model: {provider}:{model}")
+            response = response_obj.content
             
             # Parse response
             lines = response.split('\n')

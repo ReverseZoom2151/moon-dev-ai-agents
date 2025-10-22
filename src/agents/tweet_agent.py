@@ -32,7 +32,7 @@ import traceback
 import math
 from termcolor import colored, cprint
 import sys
-from src.models import model_factory
+from src.models.model_priority import model_priority_queue, ModelPriority
 
 # Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent.parent
@@ -97,16 +97,12 @@ class TweetAgent:
         
         load_dotenv()
 
-        # Initialize model using model_factory
-        if "deepseek" in self.ai_model.lower():
-            self.model = model_factory.get_model("deepseek", self.ai_model)
-            print(f"🚀 Using DeepSeek: {self.ai_model}")
-        else:
-            self.model = model_factory.get_model("claude", self.ai_model if self.ai_model != "0" else None)
-            print(f"🎯 Using Claude: {self.ai_model}")
+        # Initialize model_priority system
+        self.model_priority = model_priority_queue
+        if not self.model_priority:
+            raise ValueError("Could not initialize model_priority system!")
 
-        if not self.model:
-            raise ValueError("Could not initialize AI model!")
+        print(f"🎯 Using model_priority system with MEDIUM priority")
         
         # Create tweets directory if it doesn't exist
         self.tweets_dir = Path("/Users/md/Dropbox/dev/github/moon-dev-ai-agents-for-trading/src/data/tweets")
@@ -172,14 +168,21 @@ class TweetAgent:
                 # Prepare the context
                 context = TWEET_PROMPT.format(text=chunk)
 
-                # Use model_factory for generation
-                model_response = self.model.generate_response(
-                    system_prompt=TWEET_PROMPT,
+                # Use model_priority for generation with MEDIUM priority
+                response_obj, provider, model = self.model_priority.get_model(
+                    priority=ModelPriority.MEDIUM,
+                    system_prompt="You are a tweet generator. Create engaging, casual tweets without emojis or hashtags.",
                     user_content=context,
                     temperature=self.ai_temperature,
                     max_tokens=self.ai_max_tokens
                 )
-                response_text = model_response.content
+
+                if not response_obj:
+                    print("❌ All models failed - skipping this chunk")
+                    continue
+
+                print(f"✅ Used model: {provider}:{model}")
+                response_text = response_obj.content
                 
                 # Parse tweets from response and remove any numbering
                 chunk_tweets = []

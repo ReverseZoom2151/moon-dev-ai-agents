@@ -22,7 +22,7 @@ import time
 from src.config import *
 from src import nice_funcs as n
 from src.data.ohlcv_collector import collect_all_tokens, collect_token_data
-from src.models import model_factory
+from src.models.model_priority import model_priority_queue, ModelPriority
 
 # Data path for current copybot portfolio
 COPYBOT_PORTFOLIO_PATH = '/Users/md/Dropbox/dev/github/solana-copy-trader/csvs/current_portfolio.csv'
@@ -70,11 +70,12 @@ class CopyBotAgent:
     def __init__(self):
         """Initialize the CopyBot agent with LLM"""
         load_dotenv()
-        self.model = model_factory.get_model("claude")
-        if not self.model:
-            raise ValueError("Could not initialize Claude model!")
+        self.model_priority = model_priority_queue
+        if not self.model_priority:
+            raise ValueError("Could not initialize model_priority system!")
         self.recommendations_df = pd.DataFrame(columns=['token', 'action', 'confidence', 'reasoning'])
         print("🤖 Moon Dev's CopyBot Agent initialized!")
+        print("🎯 Using model_priority system with MEDIUM priority")
         
     def load_portfolio_data(self):
         """Load current copybot portfolio data"""
@@ -140,16 +141,22 @@ class CopyBotAgent:
             
             print("\n🤖 Sending data to Moon Dev's AI for analysis...")
 
-            # Get LLM analysis using model_factory
-            model_response = self.model.generate_response(
-                system_prompt="",
+            # Get LLM analysis using model_priority with MEDIUM priority
+            response_obj, provider, model = self.model_priority.get_model(
+                priority=ModelPriority.MEDIUM,
+                system_prompt="You are Moon Dev's CopyBot Agent. Analyze portfolio positions and respond with BUY/SELL/NOTHING.",
                 user_content=full_prompt,
                 temperature=AI_TEMPERATURE,
                 max_tokens=AI_MAX_TOKENS
             )
 
+            if not response_obj:
+                print("❌ All models failed - skipping this analysis")
+                return None
+
+            print(f"✅ Used model: {provider}:{model}")
             # Parse response
-            response = model_response.content
+            response = response_obj.content
             
             print("\n🎯 AI Analysis Results:")
             print("=" * 50)

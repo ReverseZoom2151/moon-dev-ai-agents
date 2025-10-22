@@ -10,7 +10,6 @@ import pandas as pd
 import traceback
 import re
 import time
-import anthropic
 import openai
 import mplfinance as mpf
 from datetime import datetime
@@ -18,6 +17,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from src import nice_funcs_hl as hl
 from src.agents.base_agent import BaseAgent
+from src.models.model_priority import ModelPriority
 
 
 # Get the project root directory
@@ -70,7 +70,7 @@ class ChartAnalysisAgent(BaseAgent):
     
     def __init__(self):
         """Initialize Chuck the Chart Agent"""
-        super().__init__('chartanalysis')
+        super().__init__('chartanalysis', use_model_priority=True)
         
         # Set up directories
         self.charts_dir = PROJECT_ROOT / "src" / "data" / "charts"
@@ -87,9 +87,12 @@ class ChartAnalysisAgent(BaseAgent):
         
         if not openai_key or not anthropic_key:
             raise ValueError("🚨 API keys not found in environment variables!")
-            
+
+        # Check model_priority system initialized
+        if not self.model_priority:
+            raise ValueError("🚨 Model priority system not initialized!")
+
         self.openai_client = openai.OpenAI(api_key=openai_key)  # For TTS only
-        self.client = anthropic.Anthropic(api_key=anthropic_key)
         
         # Set AI parameters - use config values unless overridden
         self.ai_model = AI_MODEL if AI_MODEL else config.AI_MODEL
@@ -174,28 +177,28 @@ class ChartAnalysisAgent(BaseAgent):
             )
             
             print(f"\n🤖 Analyzing {symbol} with AI...")
-            
-            # Get AI analysis using instance settings
-            message = self.client.messages.create(
-                model=self.ai_model,
-                max_tokens=self.ai_max_tokens,
+
+            # Get AI analysis using model_priority with MEDIUM priority
+            response, provider, model = self.model_priority.get_model(
+                priority=ModelPriority.MEDIUM,
+                system_prompt="You are a technical chart analyst. Respond in exactly 3 lines: BUY/SELL/NOTHING, reason, confidence.",
+                user_content=context,
                 temperature=self.ai_temperature,
-                messages=[{
-                    "role": "user",
-                    "content": context
-                }]
+                max_tokens=self.ai_max_tokens
             )
-            
-            if not message or not message.content:
-                print("❌ No response from AI")
+
+            if not response:
+                print("❌ All models failed - skipping this analysis")
                 return None
-                
+
+            print(f"✅ Used model: {provider}:{model}")
+
+            # Get the raw content and convert to string
+            content = response.content
+
             # Debug: Print raw response
             print("\n🔍 Raw response:")
-            print(repr(message.content))
-            
-            # Get the raw content and convert to string
-            content = str(message.content)
+            print(repr(content))
             
             # Clean up TextBlock formatting - new format handling
             if 'TextBlock' in content:

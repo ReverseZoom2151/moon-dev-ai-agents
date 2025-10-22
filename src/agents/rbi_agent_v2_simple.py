@@ -20,7 +20,7 @@ project_root = str(Path(__file__).parent.parent.parent)
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-from src.models import model_factory
+from src.models.model_priority import model_priority_queue, ModelPriority
 
 # Load environment variables
 load_dotenv()
@@ -99,32 +99,20 @@ FOR THE PYTHON BACKTESTING LIBRARY USE BACKTESTING.PY AND SEND BACK ONLY THE COD
 ONLY SEND BACK CODE, NO OTHER TEXT.
 """
 
-def chat_with_deepseek(system_prompt, user_content, model_name=None):
-    """Chat with DeepSeek using model_factory"""
-    model = model_factory.get_model("deepseek", model_name)
-    if not model:
-        raise ValueError("Could not initialize DeepSeek model!")
-
-    response = model.generate_response(
+def chat_with_ai(system_prompt, user_content, priority=ModelPriority.HIGH):
+    """Chat with AI using model_priority with automatic fallback"""
+    response, provider, model = model_priority_queue.get_model(
+        priority=priority,
         system_prompt=system_prompt,
         user_content=user_content,
         temperature=AI_TEMPERATURE,
         max_tokens=AI_MAX_TOKENS
     )
-    return response.content
 
-def chat_with_claude(system_prompt, user_content, model_name=None):
-    """Chat with Claude using model_factory"""
-    model = model_factory.get_model("claude", model_name)
-    if not model:
-        raise ValueError("Could not initialize Claude model!")
+    if not response:
+        raise ValueError("❌ All AI models failed!")
 
-    response = model.generate_response(
-        system_prompt=system_prompt,
-        user_content=user_content,
-        temperature=AI_TEMPERATURE,
-        max_tokens=AI_MAX_TOKENS
-    )
+    cprint(f"✅ Used model: {provider}:{model}", "green")
     return response.content
 
 def animate_progress(agent_name, stop_event):
@@ -179,11 +167,11 @@ def research_strategy(content):
     cprint("\n🔍 Starting Research AI...", "cyan")
     
     output = run_with_animation(
-        chat_with_deepseek,
+        chat_with_ai,
         "Research AI",
-        RESEARCH_PROMPT, 
+        RESEARCH_PROMPT,
         content,
-        "deepseek-chat"
+        ModelPriority.HIGH
     )
     
     output = clean_model_output(output, "text")
@@ -211,11 +199,11 @@ def create_backtest(strategy, strategy_name="UnknownStrategy"):
     cprint("\n📊 Starting Backtest AI (Claude Opus)...", "cyan")
     
     output = run_with_animation(
-        chat_with_claude,
+        chat_with_ai,
         "Backtest AI",
         BACKTEST_PROMPT,
         f"Create a backtest for this strategy:\n\n{strategy}",
-        "claude-3-opus-20240229"  # Use Claude Opus for complex coding
+        ModelPriority.HIGH  # Use HIGH priority for complex coding
     )
     
     output = clean_model_output(output, "code")

@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 from termcolor import colored, cprint
 from dotenv import load_dotenv
 from pathlib import Path
-from src.models import model_factory
+from src.models.model_priority import ModelPriority
 from src import nice_funcs as n
 from src import nice_funcs_hl as hl
 from src.agents.api import MoonDevAPI
@@ -85,7 +85,7 @@ class LiquidationAgent(BaseAgent):
     
     def __init__(self):
         """Initialize Luna the Liquidation Agent"""
-        super().__init__('liquidation')
+        super().__init__('liquidation', use_model_priority=True)
         
         # Set AI parameters - use config values unless overridden
         self.ai_model = AI_MODEL if AI_MODEL else config.AI_MODEL
@@ -113,17 +113,10 @@ class LiquidationAgent(BaseAgent):
             raise ValueError("🚨 OPENAI_KEY not found in environment variables!")
         if not anthropic_key:
             raise ValueError("🚨 ANTHROPIC_KEY not found in environment variables!")
-            
-        # Initialize model using model_factory
-        if MODEL_OVERRIDE.lower() == "deepseek-chat":
-            self.model = model_factory.get_model("deepseek", "deepseek-chat")
-            print("🚀 Using DeepSeek model!")
-        else:
-            self.model = model_factory.get_model("claude")
-            print("🎯 Using Claude model!")
 
-        if not self.model:
-            raise ValueError("Could not initialize AI model!")
+        # Check model_priority system initialized
+        if not self.model_priority:
+            raise ValueError("🚨 Model priority system not initialized!")
         
         self.api = MoonDevAPI()
         
@@ -317,16 +310,23 @@ class LiquidationAgent(BaseAgent):
             )
             
             print(f"\n🤖 Analyzing liquidation spike with AI...")
-            
-            # Use model_factory for analysis
+
+            # Use model_priority for analysis with CRITICAL priority
             print("🤖 Analyzing liquidations...")
-            model_response = self.model.generate_response(
+            response, provider, model = self.model_priority.get_model(
+                priority=ModelPriority.CRITICAL,
                 system_prompt="You are a liquidation analyst. You must respond in exactly 3 lines: BUY/SELL/NOTHING, reason, and confidence.",
                 user_content=context,
                 temperature=self.ai_temperature,
                 max_tokens=self.ai_max_tokens
             )
-            response_text = model_response.content
+
+            if not response:
+                print("❌ All models failed - skipping this analysis")
+                return None
+
+            response_text = response.content
+            print(f"✅ Used model: {provider}:{model}")
             
             # Handle response
             if not response_text:
@@ -371,7 +371,7 @@ class LiquidationAgent(BaseAgent):
                 'pct_change': total_pct_change,
                 'pct_change_longs': pct_change_longs,
                 'pct_change_shorts': pct_change_shorts,
-                'model_used': 'deepseek-chat' if self.deepseek_client else self.ai_model
+                'model_used': f'{provider}:{model}'
             }
             
         except Exception as e:
