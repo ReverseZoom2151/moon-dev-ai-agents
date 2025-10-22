@@ -48,6 +48,7 @@ ffmpeg-python==0.2.0
 whisper==1.1.10
 openai-whisper==20231117
 elevenlabs==0.2.24
+moviepy==2.2.1  # Video editing and clip generation
 
 # ========== Document Processing ==========
 PyPDF2==3.0.0
