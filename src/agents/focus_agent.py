@@ -6,38 +6,47 @@ This agent randomly monitors speech samples and provides focus assessments.
 """
 
 # Use local DeepSeek flag
-# available free while moon dev is streaming: https://www.youtube.com/@moondevonyt 
-USE_LOCAL_DEEPSEEK = False  
+# available free while moon dev is streaming: https://www.youtube.com/@moondevonyt
+USE_LOCAL_DEEPSEEK = False
 
+# Standard library imports
+import os
+import re
 import sys
+import tempfile
+import threading
+import time as time_lib
+
+# Third-party imports
+import openai
+import pandas as pd
+import pyaudio
+import requests
+
+# Standard library from imports
+from datetime import datetime, time, timedelta
 from pathlib import Path
+from random import randint, uniform
+
+# Third-party from imports
+from anthropic import Anthropic
+from dotenv import load_dotenv
+from google.cloud import speech_v1p1beta1 as speech
+from termcolor import cprint
+
 # Add project root to Python path for imports
 project_root = str(Path(__file__).parent.parent.parent)
 if project_root not in sys.path:
     sys.path.append(project_root)
 
+# Local from imports
+from src.config import *
+from src.models import model_factory
+
 # Load environment variables from the project root
 env_path = Path(project_root) / '.env'
 if not env_path.exists():
     raise ValueError(f"🚨 .env file not found at {env_path}")
-
-import os
-import time as time_lib
-from datetime import datetime, timedelta, time
-from google.cloud import speech_v1p1beta1 as speech
-import pyaudio
-import openai
-from anthropic import Anthropic
-from termcolor import cprint
-from dotenv import load_dotenv
-from random import randint, uniform
-import threading
-import pandas as pd
-import tempfile
-from src.config import *
-from src.models import model_factory
-import re
-import requests
 
 # Load .env file explicitly from project root
 load_dotenv(dotenv_path=env_path)
