@@ -38,22 +38,30 @@ Example good responses:
 "Identify market regime shifts using a combination of volatility term structure and options skew, trading only when both align."
 """
 
-import os
-import time
+# Standard library imports
 import csv
+import os
 import random
+import shutil
+import sys
+import textwrap
+import threading
+import time
+
+# Third-party imports
+import pandas as pd
+
+# Standard library from imports
 from datetime import datetime
 from pathlib import Path
-from termcolor import cprint, colored
-import pandas as pd
-import sys
-import threading
-import shutil
-import textwrap
+
+# Third-party from imports
+from termcolor import colored, cprint
 
 # Import model factory from RBI agent
-import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Local from imports
 from src.models import model_factory
 
 # Define paths

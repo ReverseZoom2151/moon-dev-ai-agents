@@ -14,24 +14,28 @@ Required Setup:
 3. Everything else is automated!
 """
 
-# Import execution functionality
-import subprocess
+# Standard library imports
+import hashlib
 import json
-from pathlib import Path
-from anthropic import Anthropic
+import os
+import re
+import subprocess
+import sys
+import threading
+import time
+
+# Third-party imports
 import openai
 
-# Core imports only
-import os
-import time
-import re
-import hashlib
+# Standard library from imports
 from datetime import datetime
-from termcolor import cprint
-import threading
-import itertools
-import sys
+from itertools import cycle
+from pathlib import Path
+
+# Third-party from imports
+from anthropic import Anthropic
 from dotenv import load_dotenv
+from termcolor import cprint
 
 # Load environment variables FIRST
 load_dotenv()

@@ -13,12 +13,15 @@ Keep files under 800 lines. No moving files, only creating new ones. 🚀
 
 from __future__ import annotations
 
-import os
-from pathlib import Path
-from datetime import datetime
+# Standard library imports
 import json
+import os
 
-# Import prompts and helpers from RBI agent (do not modify RBI agent)
+# Standard library from imports
+from datetime import datetime
+from pathlib import Path
+
+# Local from imports
 from src.agents import rbi_agent
 from src.agents.backtest_runner import run_backtest_in_conda, save_results
 

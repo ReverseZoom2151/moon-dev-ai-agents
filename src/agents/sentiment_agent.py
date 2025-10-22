@@ -27,23 +27,27 @@ VOICE_MODEL = "tts-1"  # or tts-1-hd for higher quality
 VOICE_NAME = "nova"   # Options: alloy, echo, fable, onyx, nova, shimmer
 VOICE_SPEED = 1      # 0.25 to 4.0
 
-import httpx
-from dotenv import load_dotenv
-import os
-import sys
-from termcolor import cprint
-import time
-from datetime import datetime, timedelta
-import csv 
-from random import randint
-import pathlib
+# Standard library imports
 import asyncio
-import pandas as pd
-import torch
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
-import numpy as np
-import openai
-from pathlib import Path
+import csv
+import os
+import pathlib
+import sys
+import time
+
+# Third-party imports
+import httpx
+
+# Standard library from imports
+from datetime import datetime, timedelta
+from random import randint
+
+# Third-party from imports
+from dotenv import load_dotenv
+from termcolor import cprint
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
+# Note: Additional imports (openai, pandas, torch, numpy) are loaded later in the file as needed
 
 # Create data directory if it doesn't exist
 pathlib.Path(DATA_FOLDER).mkdir(parents=True, exist_ok=True)

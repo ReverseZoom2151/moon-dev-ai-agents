@@ -325,25 +325,35 @@ def get_model_id(model):
     """Get DR/DC identifier based on model"""
     return "DR" if model == "deepseek-reasoner" else "DC"
 
+# Standard library imports
+import hashlib
 import os
-import time
 import re
-from datetime import datetime
-import requests
-from io import BytesIO
+import sys
+import threading
+import time
+
+# Third-party imports
 import openai
+import requests
+
+# Standard library from imports
+from datetime import datetime
+from io import BytesIO
+from itertools import cycle
+from pathlib import Path
+
+# Third-party from imports
 from termcolor import cprint
+
 try:
     from anthropic import Anthropic
 except ImportError:
     Anthropic = None
     cprint("⚠️ Anthropic SDK not installed. Claude models will be unavailable. (Moon Dev note)", "yellow")
-from pathlib import Path
-import threading
-import itertools
-import sys
-import hashlib  # Added for idea hashing
-from src.config import *  # Import config settings including AI_MODEL
+
+# Local from imports
+from src.config import *
 from src.models import model_factory
 
 # DeepSeek Configuration
