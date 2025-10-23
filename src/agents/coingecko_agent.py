@@ -378,7 +378,7 @@ Remember to format your response like this:
 """
             
             # Get AI response using model_priority system with HIGH priority
-            response_text, provider, model_used = self.model_priority.get_model(
+            model_response, provider, model_used = self.model_priority.get_model(
                 priority=ModelPriority.HIGH,
                 system_prompt=prompt,
                 user_content=market_context,
@@ -387,7 +387,10 @@ Remember to format your response like this:
             )
 
             print(f"   ✅ Response from {provider}:{model_used}")
-            
+
+            # Extract text from ModelResponse object
+            response_text = model_response.content if hasattr(model_response, 'content') else str(model_response)
+
             # Clean up the response
             response = (response_text
                 .replace("TextBlock(text='", "")
@@ -597,7 +600,7 @@ Extract all token symbols and return as a simple list.
 """
 
             # Use model_priority with LOW priority for simple extraction
-            response_text, provider, model_used = self.model_priority.get_model(
+            model_response, provider, model_used = self.model_priority.get_model(
                 priority=ModelPriority.LOW,
                 system_prompt=TOKEN_EXTRACTOR_PROMPT,
                 user_content=user_content,
@@ -607,7 +610,10 @@ Extract all token symbols and return as a simple list.
 
             print(f"   ✅ Tokens extracted using {provider}:{model_used}")
 
-            # Clean up response and split into list (work directly with response_text)
+            # Extract text from ModelResponse object
+            response_text = model_response.content if hasattr(model_response, 'content') else str(model_response)
+
+            # Clean up response and split into list
             tokens = response_text.strip().split('\n')
             tokens = [t.strip().upper() for t in tokens if t.strip()]
             
