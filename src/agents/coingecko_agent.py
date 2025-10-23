@@ -102,12 +102,12 @@ Author: Moon Dev 🌙
 """
 
 # Model override settings
-# Set to "0" to use config.py's AI_MODEL setting
+# Set to "0" to use Claude models (recommended if you don't have DeepSeek API key)
 # Available models:
 # - "deepseek-chat" (DeepSeek's V3 model - fast & efficient)
 # - "deepseek-reasoner" (DeepSeek's R1 reasoning model)
-# - "0" (Use config.py's AI_MODEL setting)
-MODEL_OVERRIDE = "deepseek-chat"  # Set to "0" to disable override
+# - "0" (Use Claude models - claude-3-haiku & claude-3-sonnet)
+MODEL_OVERRIDE = "0"  # Using Claude models (no DeepSeek API key needed)
 DEEPSEEK_BASE_URL = "https://api.deepseek.com"  # Base URL for DeepSeek API
 
 # 🤖 Agent Prompts & Personalities
@@ -168,9 +168,10 @@ Help Moon Dev keep track of the trading journey! 🎯
 """
 
 # 🤖 Agent Model Selection
-AGENT_ONE_MODEL = MODEL_OVERRIDE if MODEL_OVERRIDE != "0" else "claude-3-haiku-20240307"
-AGENT_TWO_MODEL = MODEL_OVERRIDE if MODEL_OVERRIDE != "0" else "claude-3-sonnet-20240229"
-TOKEN_EXTRACTOR_MODEL = MODEL_OVERRIDE if MODEL_OVERRIDE != "0" else "claude-3-haiku-20240307"
+# Updated to use Claude 4.5 models (faster, smarter, and not deprecated)
+AGENT_ONE_MODEL = MODEL_OVERRIDE if MODEL_OVERRIDE != "0" else "claude-haiku-4-5-20251001"
+AGENT_TWO_MODEL = MODEL_OVERRIDE if MODEL_OVERRIDE != "0" else "claude-sonnet-4-5-20250929"
+TOKEN_EXTRACTOR_MODEL = MODEL_OVERRIDE if MODEL_OVERRIDE != "0" else "claude-haiku-4-5-20251001"
 
 # 🎮 Game Configuration
 MINUTES_BETWEEN_ROUNDS = 30  # Time to wait between trading rounds (in minutes)
