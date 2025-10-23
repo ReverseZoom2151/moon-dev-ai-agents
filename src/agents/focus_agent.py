@@ -57,7 +57,8 @@ if project_root not in sys.path:
 
 # Local from imports
 from src.config import *
-from src.models import model_factory
+from src.agents.base_agent import BaseAgent
+from src.models.model_priority import ModelPriority
 
 # Load environment variables from the project root
 env_path = Path(project_root) / '.env'
@@ -115,9 +116,8 @@ cprint(f"📝 .env Path: {env_path}", "cyan")
 # - "gemma:2b": Fast and efficient for simple tasks
 # - "llama3.2": Balanced model good for most tasks
 
-# Model override settings
-MODEL_TYPE = "claude"  # Choose from model types above
-MODEL_NAME = None  # Use default from model_factory (claude-haiku-4-5-20251001)
+# Model priority system handles model selection automatically
+# Priority order: GPT-5 → Claude Sonnet 4.5 → Gemini 2.5 Pro
 
 # Configuration for faster testing
 MIN_INTERVAL_MINUTES = 2  # Less than a second
@@ -166,37 +166,18 @@ Keep crushing that code, Moon Dev! Your focus is leading to amazing results.
 TRANSCRIPT TO ANALYZE:
 {transcript}"""
 
-class FocusAgent:
+class FocusAgent(BaseAgent):
     def __init__(self):
         """Initialize the Focus Agent"""
-        # Environment variables should already be loaded from project root
-        
-        self._announce_model()  # Announce at startup
-        
-        # Debug environment variables (without showing values)
-        for key in ["OPENAI_KEY", "ANTHROPIC_KEY", "GEMINI_KEY", "GROQ_API_KEY", "DEEPSEEK_KEY"]:
-            if os.getenv(key):
-                cprint(f"✅ Found {key}", "green")
-            else:
-                cprint(f"❌ Missing {key}", "red")
-        
-        # Initialize model using factory
-        self.model_factory = model_factory
-        self.model = self.model_factory.get_model(MODEL_TYPE, MODEL_NAME)
-        
-        if not self.model:
-            raise ValueError(f"🚨 Could not initialize {MODEL_TYPE} {MODEL_NAME} model! Check API key and model availability.")
-        
-        self._announce_model()  # Announce after initialization
-        
-        # Print model info with pricing if available
-        if MODEL_TYPE == "openai":
-            model_info = self.model.AVAILABLE_MODELS.get(MODEL_NAME, {})
-            cprint(f"\n💫 Moon Dev's Focus Agent using OpenAI!", "green")
-            cprint(f"🤖 Model: {model_info.get('description', '')}", "cyan")
-            cprint(f"💰 Pricing:", "yellow")
-            cprint(f"  ├─ Input: {model_info.get('input_price', '')}", "yellow")
-            cprint(f"  └─ Output: {model_info.get('output_price', '')}", "yellow")
+        # Initialize BaseAgent with model_priority
+        super().__init__('focus', use_model_priority=True)
+
+        # Check if model_priority initialized successfully
+        if not self.model_priority:
+            raise ValueError("🚨 Model priority system not initialized!")
+
+        cprint("🎯 Focus Agent using model_priority system with HIGH priority", "cyan")
+        cprint("   Priority order: GPT-5 → Claude Sonnet 4.5 → Gemini 2.5 Pro", "cyan")
         
         # Initialize voice client
         openai_key = os.getenv("OPENAI_KEY")
@@ -367,97 +348,42 @@ class FocusAgent:
             cprint(f"  ├─ Length: {len(transcript)} chars", "cyan")
             cprint(f"  └─ Content type check: {'chicken' in transcript.lower()}", "yellow")
             
-            # For Ollama models
-            if MODEL_TYPE == "ollama":
-                cprint("\n🧠 Using Ollama model...", "cyan")
-                response = self.model.generate_response(
-                    system_prompt="You are Moon Dev's Focus AI. You analyze focus and provide ratings. NO MARKDOWN OR FORMATTING. RESPOND WITH EXACTLY TWO LINES: A SCORE LINE (X/10) AND ONE SINGLE ENCOURAGING SENTENCE.",
-                    user_content=FOCUS_PROMPT.format(transcript=transcript),
-                    temperature=0.7
-                )
-                
-                # Handle raw string response from Ollama
-                if isinstance(response, str):
-                    response_content = response
-                else:
-                    response_content = response.content if hasattr(response, 'content') else str(response)
-                
-                # Print raw response for debugging
-                cprint(f"\n📝 Raw model response:", "magenta")
-                cprint(f"══════════════════════════════", "magenta")
-                cprint(response_content, "yellow")
-                cprint(f"══════════════════════════════\n", "magenta")
-                
-                # Improved response parsing
-                try:
-                    # Clean up the response and convert to lowercase for consistent parsing
-                    lines = [line.strip().lower() for line in response_content.split('\n') if line.strip()]
-                    
-                    # Look for score in any line
-                    score = None
-                    message = None
-                    
-                    for line in lines:
-                        # Remove any "line X:" prefixes (case insensitive)
-                        line = re.sub(r'^line\s*\d+:\s*', '', line, flags=re.IGNORECASE)
-                        
-                        # Try to find score
-                        if not score and re.search(r'\d+/10', line):
-                            score_match = re.search(r'(\d+)/10', line)
-                            if score_match:
-                                score = float(score_match.group(1))
-                                continue
-                        
-                        # If not a score line and not a system message, treat as message
-                        if not any(keyword in line for keyword in ['transcript', 'consider', 'respond', 'important']):
-                            # Get original case message from response_content
-                            original_lines = [l.strip() for l in response_content.split('\n') if l.strip()]
-                            for orig_line in original_lines:
-                                if re.sub(r'^line\s*\d+:\s*', '', orig_line, flags=re.IGNORECASE).lower() == line:
-                                    message = re.sub(r'^line\s*\d+:\s*', '', orig_line, flags=re.IGNORECASE)
-                                    break
-                    
-                    if score is not None and message:
-                        # Validate score range
-                        if not (1 <= score <= 10):
-                            score = max(1, min(10, score))  # Clamp between 1 and 10
-                        
-                        return score, message
-                    else:
-                        cprint(f"\n⚠️ Parsing Debug:", "yellow")
-                        cprint(f"  ├─ Score found: {score}", "yellow")
-                        cprint(f"  └─ Message found: {message}", "yellow")
-                        raise ValueError("Could not extract score and message")
-                    
-                except Exception as e:
-                    cprint(f"\n❌ Error in response parsing: {str(e)}", "red")
-                    return 5, "Error parsing focus analysis"  # Return middle score instead of 0
-                
-            else:
-                # Handle other model types (unchanged)
-                response = self.model.generate_response(
-                    system_prompt=FOCUS_PROMPT,
-                    user_content=transcript,
-                    temperature=AI_TEMPERATURE,
-                    max_tokens=AI_MAX_TOKENS
-                )
-                response_content = response.content
-                
-                # Parse the response
-                lines = response_content.split('\n')
-                if len(lines) >= 2:
-                    score_line = lines[0].strip()
-                    message = lines[1].strip()
-                    
-                    # Extract score
-                    score_match = re.search(r'(\d+)/10', score_line)
-                    if score_match:
-                        score = float(score_match.group(1))
-                        return score, message
-                
-                # If parsing fails, return default values
-                cprint("⚠️ Couldn't parse response, using default values", "yellow")
-                return 5, "Keep crushing it Moon Dev! Your focus is amazing!"
+            # Use model_priority system with HIGH priority for focus analysis
+            cprint("\n🧠 Getting model response using priority system...", "cyan")
+            model_response, provider, model_used = self.model_priority.get_model(
+                priority=ModelPriority.HIGH,
+                system_prompt=FOCUS_PROMPT,
+                user_content=transcript,
+                temperature=AI_TEMPERATURE,
+                max_tokens=AI_MAX_TOKENS
+            )
+
+            cprint(f"✨ Used model: {provider}:{model_used}", "green")
+
+            # Extract content from ModelResponse
+            response_content = model_response.content if hasattr(model_response, 'content') else str(model_response)
+
+            # Print raw response for debugging
+            cprint(f"\n📝 Raw model response:", "magenta")
+            cprint(f"══════════════════════════════", "magenta")
+            cprint(response_content[:500], "yellow")  # Show first 500 chars
+            cprint(f"══════════════════════════════\n", "magenta")
+
+            # Parse the response
+            lines = response_content.split('\n')
+            if len(lines) >= 2:
+                score_line = lines[0].strip()
+                message = lines[1].strip()
+
+                # Extract score
+                score_match = re.search(r'(\d+)/10', score_line)
+                if score_match:
+                    score = float(score_match.group(1))
+                    return score, message
+
+            # If parsing fails, return default values
+            cprint("⚠️ Couldn't parse response, using default values", "yellow")
+            return 5, "Keep crushing it Moon Dev! Your focus is amazing!"
                 
         except Exception as e:
             cprint(f"❌ Error analyzing focus: {str(e)}", "red")
@@ -493,20 +419,9 @@ class FocusAgent:
         except Exception as e:
             cprint(f"❌ Error logging focus data: {str(e)}", "red")
 
-    def _announce_model(self):
-        """Announce current model with eye-catching formatting"""
-        model_name_display = MODEL_NAME if MODEL_NAME else "default"
-        model_msg = f"🤖 TESTING MODEL: {MODEL_TYPE.upper()} - {model_name_display} 🤖"
-        border = "=" * (len(model_msg) + 4)
-        
-        cprint(border, 'white', 'on_green', attrs=['bold'])
-        cprint(f"  {model_msg}  ", 'white', 'on_green', attrs=['bold'])
-        cprint(border, 'white', 'on_green', attrs=['bold'])
-
     def process_transcript(self, transcript):
         """Process transcript and provide focus assessment"""
-        # Announce model before processing
-        self._announce_model()
+        # Model will be announced automatically by model_priority.get_model()
         
         # Print the transcript being sent to AI
         cprint("\n📝 Transcript being analyzed:", "cyan")
