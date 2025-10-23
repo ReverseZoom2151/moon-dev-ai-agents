@@ -353,6 +353,10 @@ except ImportError:
 from src.config import *
 from src.models.model_priority import ModelPriority, model_priority_queue
 
+# Add config values directly to override imports
+AI_TEMPERATURE = 0.7
+AI_MAX_TOKENS = 16000  # Increased from 4000 to prevent response truncation
+
 # DeepSeek Configuration
 DEEPSEEK_BASE_URL = "https://api.deepseek.com"
 

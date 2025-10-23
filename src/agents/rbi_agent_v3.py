@@ -71,7 +71,7 @@ print("✅ Environment variables loaded")
 
 # Add config values directly to avoid import issues
 AI_TEMPERATURE = 0.7
-AI_MAX_TOKENS = 4000
+AI_MAX_TOKENS = 16000  # Increased from 4000 to prevent response truncation
 
 # Add project root to path for imports
 PROJECT_ROOT = Path(__file__).parent.parent.parent
