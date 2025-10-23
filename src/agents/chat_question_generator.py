@@ -11,28 +11,29 @@ import os
 import sys
 import time
 
-# Third-party imports
-import pandas as pd
-
 # Standard library from imports
 from datetime import datetime, timedelta
 from pathlib import Path
+
+# Add project root to Python path for imports (MUST be before src imports)
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+# Third-party imports
+import pandas as pd
 
 # Third-party from imports
 from dotenv import load_dotenv
 from termcolor import cprint
 
-# Add project root to Python path for imports
-project_root = str(Path(__file__).parent.parent.parent)
-if project_root not in sys.path:
-    sys.path.append(project_root)
-
 # Local from imports
 from src.config import *
-from src.models import model_factory
+from src.agents.base_agent import BaseAgent
+from src.models.model_priority import ModelPriority
 
 # Load environment variables from the project root
-env_path = Path(project_root) / '.env'
+env_path = PROJECT_ROOT / '.env'
 if not env_path.exists():
     raise ValueError(f"🚨 .env file not found at {env_path}")
 
@@ -67,29 +68,30 @@ Recent chat messages:
 Generate SHORT questions (10 words max!) that viewers might ask. Format each question on a new line starting with "Q:".
 """
 
-class ChatQuestionGenerator:
+class ChatQuestionGenerator(BaseAgent):
     def __init__(self):
         """Initialize the Question Generator"""
         cprint("\n🤔 Initializing Moon Dev's Chat Question Generator...", "cyan")
-        
+
+        # Initialize BaseAgent with model_priority
+        super().__init__('chat_question_generator', use_model_priority=True)
+
         # Set up data directory and file paths
-        self.data_dir = Path(project_root) / "src" / "data" / "chat_agent"
+        self.data_dir = PROJECT_ROOT / "src" / "data" / "chat_agent"
         self.chat_log_path = self.data_dir / "chat_history.csv"
-        
+
         # Verify chat history exists
         if not self.chat_log_path.exists():
             raise ValueError(f"🚨 Chat history not found at {self.chat_log_path}")
-        
-        # Initialize model
-        self.model_factory = model_factory
-        self.model = self.model_factory.get_model(MODEL_TYPE, MODEL_NAME)
-        
-        if not self.model:
-            raise ValueError(f"🚨 Could not initialize {MODEL_TYPE} {MODEL_NAME} model!")
-        
-        cprint(f"✅ Using model: {MODEL_TYPE} - {MODEL_NAME}", "green")
+
+        # Check model_priority system initialized
+        if not self.model_priority:
+            raise ValueError("🚨 Model priority system not initialized!")
+
+        cprint("✅ Using Model Priority System: MEDIUM (Auto-Fallback Enabled)", "green")
+        cprint("   Primary: Claude Haiku 4.5 -> GPT-5 Mini -> Gemini 2.5 Flash", "green")
         cprint("🎯 Chat Question Generator initialized!", "green")
-        
+
         self.running = False
         
     def get_recent_messages(self, minutes=MINUTES_TO_ANALYZE):
@@ -141,22 +143,30 @@ class ChatQuestionGenerator:
                 chat_messages=chat_messages
             )
             
-            # Generate questions using AI
-            response = self.model.generate_response(
+            # Generate questions using AI with model_priority
+            response, provider, model = self.model_priority.get_model(
+                priority=ModelPriority.MEDIUM,
                 system_prompt="You are a helpful AI that generates relevant questions based on chat conversations.",
                 user_content=prompt,
                 temperature=0.8,
                 max_tokens=300
             )
-            
+
+            if not response:
+                cprint("❌ All models failed - could not generate questions", "red")
+                return []
+
             # Extract questions from response
             questions = []
-            for line in response.content.strip().split('\n'):
+            for line in response.strip().split('\n'):
                 if line.strip().startswith('Q:'):
                     question = line[2:].strip()
                     if question:
                         questions.append(question)
-            
+
+            if questions:
+                cprint(f"   Used: {provider}:{model}", "cyan")
+
             return questions[:MAX_QUESTIONS]
             
         except Exception as e:
