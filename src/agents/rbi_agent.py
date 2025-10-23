@@ -722,7 +722,7 @@ def research_strategy(content):
         
         # Save research output
         filepath = RESEARCH_DIR / f"{strategy_name}_strategy.txt"
-        with open(filepath, 'w') as f:
+        with open(filepath, 'w', encoding='utf-8') as f:
             f.write(output)
         cprint(f"📝 Research AI found something spicy! Saved to {filepath} 🌶️", "green")
         cprint(f"🏷️ Generated strategy name: {strategy_name}", "yellow")
@@ -756,7 +756,7 @@ def create_backtest(strategy, strategy_name="UnknownStrategy"):
                 output = str(output)
         
         filepath = BACKTEST_DIR / f"{strategy_name}_BT.py"
-        with open(filepath, 'w') as f:
+        with open(filepath, 'w', encoding='utf-8') as f:
             f.write(output)
         cprint(f"🔥 Backtest AI cooked up some heat! Saved to {filepath} 🚀", "green")
         return output
@@ -793,7 +793,7 @@ def debug_backtest(backtest_code, strategy=None, strategy_name="UnknownStrategy"
                 output = str(output)
             
         filepath = FINAL_BACKTEST_DIR / f"{strategy_name}_BTFinal.py"
-        with open(filepath, 'w') as f:
+        with open(filepath, 'w', encoding='utf-8') as f:
             f.write(output)
         cprint(f"🔧 Debug AI fixed the code! Saved to {filepath} ✨", "green")
         return output
@@ -826,7 +826,7 @@ def package_check(backtest_code, strategy_name="UnknownStrategy"):
                 output = str(output)
             
         filepath = PACKAGE_DIR / f"{strategy_name}_PKG.py"
-        with open(filepath, 'w') as f:
+        with open(filepath, 'w', encoding='utf-8') as f:
             f.write(output)
         cprint(f"📦 Package AI optimized the imports! Saved to {filepath} ✨", "green")
         return output
@@ -881,7 +881,7 @@ def is_idea_processed(idea: str) -> bool:
         
     idea_hash = get_idea_hash(idea)
     
-    with open(PROCESSED_IDEAS_LOG, 'r') as f:
+    with open(PROCESSED_IDEAS_LOG, 'r', encoding='utf-8') as f:
         processed_hashes = [line.strip().split(',')[0] for line in f if line.strip()]
         
     return idea_hash in processed_hashes
@@ -894,12 +894,12 @@ def log_processed_idea(idea: str, strategy_name: str = "Unknown") -> None:
     # Create the log file if it doesn't exist
     if not PROCESSED_IDEAS_LOG.exists():
         PROCESSED_IDEAS_LOG.parent.mkdir(parents=True, exist_ok=True)
-        with open(PROCESSED_IDEAS_LOG, 'w') as f:
+        with open(PROCESSED_IDEAS_LOG, 'w', encoding='utf-8') as f:
             f.write("# Moon Dev's RBI AI - Processed Ideas Log 🌙\n")
             f.write("# Format: hash,timestamp,strategy_name,idea_snippet\n")
     
     # Append the processed idea to the log
-    with open(PROCESSED_IDEAS_LOG, 'a') as f:
+    with open(PROCESSED_IDEAS_LOG, 'a', encoding='utf-8') as f:
         # Truncate idea if too long for the log
         idea_snippet = idea[:100] + ('...' if len(idea) > 100 else '')
         f.write(f"{idea_hash},{timestamp},{strategy_name},{idea_snippet}\n")
@@ -937,7 +937,7 @@ def process_trading_idea(idea: str) -> None:
         
         # Save research output
         research_file = RESEARCH_DIR / f"{strategy_name}_strategy.txt"
-        with open(research_file, 'w') as f:
+        with open(research_file, 'w', encoding='utf-8') as f:
             f.write(strategy)
             
         # Phase 2: Backtest using only the research output
@@ -950,7 +950,7 @@ def process_trading_idea(idea: str) -> None:
             
         # Save backtest output
         backtest_file = BACKTEST_DIR / f"{strategy_name}_BT.py"
-        with open(backtest_file, 'w') as f:
+        with open(backtest_file, 'w', encoding='utf-8') as f:
             f.write(backtest)
             
         # Phase 3: Package Check using only the backtest code
@@ -963,7 +963,7 @@ def process_trading_idea(idea: str) -> None:
             
         # Save package check output
         package_file = PACKAGE_DIR / f"{strategy_name}_PKG.py"
-        with open(package_file, 'w') as f:
+        with open(package_file, 'w', encoding='utf-8') as f:
             f.write(package_checked)
             
         # Phase 4: Debug using only the package-checked code
@@ -976,7 +976,7 @@ def process_trading_idea(idea: str) -> None:
             
         # Save final backtest
         final_file = FINAL_BACKTEST_DIR / f"{strategy_name}_BTFinal.py"
-        with open(final_file, 'w') as f:
+        with open(final_file, 'w', encoding='utf-8') as f:
             f.write(final_backtest)
             
         print("\n🎉 Mission Accomplished!")
@@ -995,12 +995,12 @@ def main():
     if not ideas_file.exists():
         cprint("❌ ideas.txt not found! Creating template...", "red")
         ideas_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(ideas_file, 'w') as f:
+        with open(ideas_file, 'w', encoding='utf-8') as f:
             f.write("# Add your trading ideas here (one per line)\n")
             f.write("# Can be YouTube URLs, PDF links, or text descriptions\n")
         return
         
-    with open(ideas_file, 'r') as f:
+    with open(ideas_file, 'r', encoding='utf-8') as f:
         ideas = [line.strip() for line in f if line.strip() and not line.startswith('#')]
         
     total_ideas = len(ideas)
