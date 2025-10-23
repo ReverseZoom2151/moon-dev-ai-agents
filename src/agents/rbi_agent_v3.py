@@ -99,7 +99,7 @@ TARGET_RETURN = 50  # Target return in % (50 = 50%)
 # Examples: 10 = 10%, 25 = 25%, 50 = 50%, 100 = 100%
 
 # Execution Configuration
-CONDA_ENV = "tflow"  # Your conda environment
+# CONDA_ENV = "tflow"  # No longer needed - using sys.executable instead for cross-platform compatibility
 MAX_DEBUG_ITERATIONS = 10  # Max times to try debugging before moving to optimization
 MAX_OPTIMIZATION_ITERATIONS = 10  # Max times to KEEP OPTIMIZING until target is hit! 🎯
                                   # Agent runs this many optimization loops trying to achieve TARGET_RETURN
@@ -579,16 +579,13 @@ def execute_backtest(file_path: str, strategy_name: str) -> dict:
     """
     cprint(f"\n🚀 Executing backtest: {strategy_name}", "cyan")
     cprint(f"📂 File: {file_path}", "cyan")
-    cprint(f"🐍 Using conda env: {CONDA_ENV}", "cyan")
-    
+    cprint(f"🐍 Using Python: {sys.executable}", "cyan")
+
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"File not found: {file_path}")
-    
-    # Build the command
-    cmd = [
-        "conda", "run", "-n", CONDA_ENV,
-        "python", str(file_path)
-    ]
+
+    # Build the command - use current Python interpreter for cross-platform compatibility
+    cmd = [sys.executable, str(file_path)]
     
     start_time = datetime.now()
     
@@ -1328,7 +1325,7 @@ def main():
     cprint(f"📅 Today's Date: {TODAY_DATE}", "magenta")
     cprint(f"🎯 OPTIMIZATION LOOP ENABLED!", "yellow")
     cprint(f"🎯 Target Return: {TARGET_RETURN}%", "green")
-    cprint(f"🐍 Using conda env: {CONDA_ENV}", "cyan")
+    cprint(f"🐍 Using Python: {sys.executable}", "cyan")
     cprint(f"🔧 Max debug iterations: {MAX_DEBUG_ITERATIONS}", "cyan")
     cprint(f"🚀 Max optimization iterations: {MAX_OPTIMIZATION_ITERATIONS}", "cyan")
 

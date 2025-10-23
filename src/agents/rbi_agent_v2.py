@@ -70,7 +70,7 @@ except ImportError as e:
 # Uses model_priority_queue with automatic fallback!
 
 # Execution Configuration
-CONDA_ENV = "tflow"  # Your conda environment
+# CONDA_ENV = "tflow"  # No longer needed - using sys.executable instead for cross-platform compatibility
 MAX_DEBUG_ITERATIONS = 10  # Max times to try debugging
 EXECUTION_TIMEOUT = 300  # 5 minutes
 
@@ -474,16 +474,13 @@ def execute_backtest(file_path: str, strategy_name: str) -> dict:
     """
     cprint(f"\n🚀 Executing backtest: {strategy_name}", "cyan")
     cprint(f"📂 File: {file_path}", "cyan")
-    cprint(f"🐍 Using conda env: {CONDA_ENV}", "cyan")
-    
+    cprint(f"🐍 Using Python: {sys.executable}", "cyan")
+
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"File not found: {file_path}")
-    
-    # Build the command
-    cmd = [
-        "conda", "run", "-n", CONDA_ENV,
-        "python", str(file_path)
-    ]
+
+    # Build the command - use current Python interpreter for cross-platform compatibility
+    cmd = [sys.executable, str(file_path)]
     
     start_time = datetime.now()
     
@@ -1080,7 +1077,7 @@ def main():
     cprint(f"\n🌟 Moon Dev's RBI AI v2.0 Starting Up!", "green")
     cprint(f"📅 Today's Date: {TODAY_DATE}", "magenta")
     cprint(f"🔄 EXECUTION LOOP ENABLED!", "yellow")
-    cprint(f"🐍 Using conda env: {CONDA_ENV}", "cyan")
+    cprint(f"🐍 Using Python: {sys.executable}", "cyan")
     cprint(f"🔧 Max debug iterations: {MAX_DEBUG_ITERATIONS}", "cyan")
     
     cprint(f"\n📂 RBI v2.0 Data Directory: {DATA_DIR}", "magenta")
