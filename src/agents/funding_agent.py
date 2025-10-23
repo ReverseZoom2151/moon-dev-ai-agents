@@ -357,13 +357,20 @@ class FundingAgent(BaseAgent):
             # Always start with clean history using the new format
             self.funding_history = pd.DataFrame(columns=['timestamp', 'symbol', 'funding_rate', 'annual_rate'])
             print("📝 Initialized new funding rate history")
-            
+
             if self.history_file.exists():
                 # Keep just one backup file
                 backup_file = self.data_dir / "funding_history_backup.csv"
+
+                # Delete old backup if it exists (Windows requires this)
+                if backup_file.exists():
+                    backup_file.unlink()
+                    print(f"🗑️ Removed old backup file")
+
+                # Now rename the current history to backup
                 os.rename(self.history_file, backup_file)
                 print(f"📦 Backed up old history file")
-                
+
         except Exception as e:
             print(f"❌ Error loading history: {str(e)}")
             self.funding_history = pd.DataFrame(columns=['timestamp', 'symbol', 'funding_rate', 'annual_rate'])
