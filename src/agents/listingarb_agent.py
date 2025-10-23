@@ -154,14 +154,14 @@ DEEPSEEK_BASE_URL = "https://api.deepseek.com"  # Base URL for DeepSeek API
 # 🤖 Agent Model Selection
 AI_MODEL = MODEL_OVERRIDE if MODEL_OVERRIDE != "0" else config.AI_MODEL
 
-# 📁 File Paths
-DISCOVERED_TOKENS_FILE = Path("src/data/discovered_tokens.csv")  # Input from token discovery script
-AI_ANALYSIS_FILE = Path("src/data/ai_analysis.csv")  # AI analysis results
+# 📁 File Paths (relative to PROJECT_ROOT)
+DISCOVERED_TOKENS_FILE = PROJECT_ROOT / "src" / "data" / "discovered_tokens.csv"
+AI_ANALYSIS_FILE = PROJECT_ROOT / "src" / "data" / "ai_analysis.csv"
 
 # 🤖 CoinGecko API Settings
 COINGECKO_API_KEY = os.getenv("COINGECKO_API_KEY")
 COINGECKO_BASE_URL = "https://pro-api.coingecko.com/api/v3"
-TEMP_DATA_DIR = Path("src/data/temp_data")
+TEMP_DATA_DIR = PROJECT_ROOT / "src" / "data" / "temp_data"
 
 # ⚙️ Configuration
 HOURS_BETWEEN_RUNS = 24        # Run AI analysis every 24 hours to manage API costs
@@ -250,8 +250,8 @@ class AIAgent:
         else:
             self.client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_KEY"))
             print(f"🤖 {name} using Claude model: {model}")
-            
-        self.memory_file = Path(f"src/data/agent_memory/{name.lower().replace(' ', '_')}.json")
+
+        self.memory_file = PROJECT_ROOT / "src" / "data" / "agent_memory" / f"{name.lower().replace(' ', '_')}.json"
         self.memory = {
             'analyzed_tokens': [],
             'promising_tokens': [],
@@ -731,9 +731,9 @@ class ListingArbSystem:
                 
                 # Sort by timestamp descending to show newest first
                 buy_recommendations = buy_recommendations.sort_values('timestamp', ascending=False)
-                
+
                 # Save to new CSV
-                buys_file = Path("src/data/ai_analysis_buys.csv")
+                buys_file = PROJECT_ROOT / "src" / "data" / "ai_analysis_buys.csv"
                 buy_recommendations.to_csv(buys_file, index=False)
                 
                 print(f"\n💰 Found {len(buy_recommendations)} buy recommendations under ${MAX_MARKET_CAP:,.0f} market cap")
