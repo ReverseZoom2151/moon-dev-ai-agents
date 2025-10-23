@@ -30,21 +30,37 @@ class OllamaModel(BaseModel):
     
     def __init__(self, api_key=None, model_name="llama3.2"):
         """Initialize Ollama model
-        
+
         Args:
-            api_key: Not used for Ollama but kept for compatibility
+            api_key: API key for hosted Ollama services (optional for local)
             model_name: Name of the Ollama model to use
         """
-        self.base_url = "http://localhost:11434/api"  # Default Ollama API endpoint
+        # Support both local and hosted Ollama services
+        import os
+        self.api_key = api_key or os.getenv("OLLAMA_API_KEY")
+        self.base_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434/api")
         self.model_name = model_name
-        # Pass a dummy API key to satisfy BaseModel
-        super().__init__(api_key="LOCAL_OLLAMA")
+
+        # If API key is provided, assume hosted service
+        if self.api_key:
+            cprint(f"🔑 Using Ollama with API key (hosted service)", "cyan")
+            cprint(f"🌐 Endpoint: {self.base_url}", "cyan")
+        else:
+            cprint(f"🏠 Using local Ollama (no API key)", "cyan")
+
+        # Pass API key to BaseModel (or dummy value for local)
+        super().__init__(api_key=self.api_key or "LOCAL_OLLAMA")
         self.initialize_client()
         
     def initialize_client(self):
         """Initialize the Ollama client connection"""
         try:
-            response = requests.get(f"{self.base_url}/tags")
+            # Prepare headers with API key if provided
+            headers = {}
+            if self.api_key and self.api_key != "LOCAL_OLLAMA":
+                headers["Authorization"] = f"Bearer {self.api_key}"
+
+            response = requests.get(f"{self.base_url}/tags", headers=headers)
             if response.status_code == 200:
                 cprint(f"✨ Successfully connected to Ollama API", "green")
                 # Print available models
@@ -78,7 +94,12 @@ class OllamaModel(BaseModel):
     def is_available(self):
         """Check if the model is available"""
         try:
-            response = requests.get(f"{self.base_url}/tags")
+            # Prepare headers with API key if provided
+            headers = {}
+            if self.api_key and self.api_key != "LOCAL_OLLAMA":
+                headers["Authorization"] = f"Bearer {self.api_key}"
+
+            response = requests.get(f"{self.base_url}/tags", headers=headers)
             return response.status_code == 200
         except:
             return False
@@ -112,11 +133,17 @@ class OllamaModel(BaseModel):
                     "temperature": temperature
                 }
             }
-            
+
+            # Prepare headers with API key if provided
+            headers = {}
+            if self.api_key and self.api_key != "LOCAL_OLLAMA":
+                headers["Authorization"] = f"Bearer {self.api_key}"
+
             # Make the request with 90 second timeout
             response = requests.post(
                 f"{self.base_url}/chat",
                 json=data,
+                headers=headers,
                 timeout=90  # Match swarm timeout
             )
             
