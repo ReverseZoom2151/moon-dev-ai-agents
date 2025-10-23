@@ -9,7 +9,10 @@ class TestStrategy(Strategy):
 
     def next(self):
         if self.data.Close[-1] > self.sma[-1]:
-            self.buy()
+            if not self.position:
+                self.buy()
+        elif self.position:
+            self.position.close()
 
 # Load data using relative path (works on Windows and Unix)
 data_path = Path(__file__).parent.parent.parent / 'data' / 'rbi' / 'BTC-USD-15m.csv'
