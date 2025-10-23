@@ -53,9 +53,10 @@ print("✅ Environment variables loaded")
 AI_TEMPERATURE = 0.7
 AI_MAX_TOKENS = 4000
 
-# Import model factory with proper path handling
-import sys
-# sys.path already set up with PROJECT_ROOT above
+# Add project root to path for imports
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 try:
     from src.models import model_factory
