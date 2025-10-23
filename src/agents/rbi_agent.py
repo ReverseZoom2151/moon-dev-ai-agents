@@ -843,9 +843,10 @@ def process_trading_idea(idea: str) -> None:
         # Phase 1: Research with isolated content
         print("\n🧪 Phase 1: Research")
         strategy, strategy_name = research_strategy(idea_content)
-        
+
         if not strategy:
-            print("❌ Research phase failed!")
+            cprint("❌ Research phase failed - no strategy generated (likely response too long)", "red")
+            cprint("🔄 Skipping to next idea...", "yellow")
             return
             
         print(f"🏷️ Strategy Name: {strategy_name}")
@@ -861,11 +862,12 @@ def process_trading_idea(idea: str) -> None:
         # Phase 2: Backtest using only the research output
         print("\n📈 Phase 2: Backtest")
         backtest = create_backtest(strategy, strategy_name)
-        
+
         if not backtest:
-            print("❌ Backtest phase failed!")
+            cprint("❌ Backtest phase failed - no code generated (likely response too long)", "red")
+            cprint("🔄 Skipping to next idea...", "yellow")
             return
-            
+
         # Save backtest output
         backtest_file = BACKTEST_DIR / f"{strategy_name}_BT.py"
         with open(backtest_file, 'w', encoding='utf-8') as f:
@@ -874,11 +876,12 @@ def process_trading_idea(idea: str) -> None:
         # Phase 3: Package Check using only the backtest code
         print("\n📦 Phase 3: Package Check")
         package_checked = package_check(backtest, strategy_name)
-        
+
         if not package_checked:
-            print("❌ Package check failed!")
+            cprint("❌ Package check failed - no fixed code generated", "red")
+            cprint("🔄 Skipping to next idea...", "yellow")
             return
-            
+
         # Save package check output
         package_file = PACKAGE_DIR / f"{strategy_name}_PKG.py"
         with open(package_file, 'w', encoding='utf-8') as f:
@@ -887,11 +890,12 @@ def process_trading_idea(idea: str) -> None:
         # Phase 4: Debug using only the package-checked code
         print("\n🔧 Phase 4: Debug")
         final_backtest = debug_backtest(package_checked, strategy, strategy_name)
-        
+
         if not final_backtest:
-            print("❌ Debug phase failed!")
+            cprint("❌ Debug phase failed - no fixed code generated (likely response too long)", "red")
+            cprint("🔄 Skipping to next idea...", "yellow")
             return
-            
+
         # Save final backtest
         final_file = FINAL_BACKTEST_DIR / f"{strategy_name}_BTFinal.py"
         with open(final_file, 'w', encoding='utf-8') as f:
