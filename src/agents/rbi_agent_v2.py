@@ -663,30 +663,33 @@ def chat_with_model(system_prompt, user_content, priority=ModelPriority.HIGH, ph
     # Extract usage info from ModelResponse
     usage = response.usage if hasattr(response, 'usage') else {}
 
+    # Extract token counts from usage (handle both dict and Pydantic object)
+    if usage:
+        if isinstance(usage, dict):
+            input_tokens = usage.get('input_tokens', usage.get('prompt_tokens', 0))
+            output_tokens = usage.get('output_tokens', usage.get('completion_tokens', 0))
+        else:
+            # Pydantic object - use getattr
+            input_tokens = getattr(usage, 'input_tokens', getattr(usage, 'prompt_tokens', 0))
+            output_tokens = getattr(usage, 'output_tokens', getattr(usage, 'completion_tokens', 0))
+
+        phase_result.input_tokens = input_tokens
+        phase_result.output_tokens = output_tokens
+        phase_result.total_tokens = input_tokens + output_tokens
+        phase_result.cost_usd = estimate_cost({'input_tokens': input_tokens, 'output_tokens': output_tokens}, provider, model)
+    else:
+        input_tokens = 0
+        output_tokens = 0
+
     # Get finish_reason from raw_response if available
     if hasattr(response, 'raw_response'):
         raw = response.raw_response
         if hasattr(raw, 'choices') and len(raw.choices) > 0:
             phase_result.finish_reason = getattr(raw.choices[0], 'finish_reason', 'unknown')
 
-    # Update phase result with usage
-    if usage:
-        if provider == "openai":
-            phase_result.input_tokens = usage.get('prompt_tokens', 0)
-            phase_result.output_tokens = usage.get('completion_tokens', 0)
-        elif provider == "claude":
-            phase_result.input_tokens = usage.get('input_tokens', 0)
-            phase_result.output_tokens = usage.get('completion_tokens', usage.get('output_tokens', 0))
-        else:
-            phase_result.output_tokens = usage.get('completion_tokens', usage.get('output_tokens', 0))
-            phase_result.input_tokens = usage.get('total_tokens', 0) - phase_result.output_tokens
-
-        phase_result.total_tokens = phase_result.input_tokens + phase_result.output_tokens
-        phase_result.cost_usd = estimate_cost(usage, provider, model)
-
     # Display detailed debug info
     cprint(f"  ✅ Response received from {provider}:{model}", "green")
-    cprint(f"  {format_token_usage(usage, provider)}", "cyan")
+    cprint(f"  {format_token_usage({'input_tokens': input_tokens, 'output_tokens': output_tokens}, provider)}", "cyan")
     cprint(f"  💰 Cost: ${phase_result.cost_usd:.4f}", "cyan")
     cprint(f"  🏁 Finish reason: {phase_result.finish_reason}", "cyan")
 
