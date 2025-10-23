@@ -806,10 +806,12 @@ def process_trading_idea_with_execution(idea: str) -> None:
     print("\n🧪 Phase 1: Research")
     # For this example, using the idea directly
     strategy, strategy_name = research_strategy(idea)
-    
+
     if not strategy:
-        raise ValueError("Research phase failed - no strategy generated")
-        
+        cprint("❌ Research phase failed - no strategy generated (likely response too long)", "red")
+        cprint("🔄 Skipping to next idea...", "yellow")
+        return
+
     print(f"🏷️ Strategy Name: {strategy_name}")
     
     # Log the idea as processed once we have a strategy name
@@ -818,16 +820,20 @@ def process_trading_idea_with_execution(idea: str) -> None:
     # Phase 2: Backtest
     print("\n📈 Phase 2: Backtest")
     backtest = create_backtest(strategy, strategy_name)
-    
+
     if not backtest:
-        raise ValueError("Backtest phase failed - no code generated")
-    
+        cprint("❌ Backtest phase failed - no code generated (likely response too long)", "red")
+        cprint("🔄 Skipping to next idea...", "yellow")
+        return
+
     # Phase 3: Package Check
     print("\n📦 Phase 3: Package Check")
     package_checked = package_check(backtest, strategy_name)
-    
+
     if not package_checked:
-        raise ValueError("Package check failed - no fixed code generated")
+        cprint("❌ Package check failed - no fixed code generated", "red")
+        cprint("🔄 Skipping to next idea...", "yellow")
+        return
     
     # Save the package-checked version
     package_file = PACKAGE_DIR / f"{strategy_name}_PKG.py"
@@ -858,15 +864,17 @@ def process_trading_idea_with_execution(idea: str) -> None:
                 
                 if debug_iteration < MAX_DEBUG_ITERATIONS:
                     debugged_code = debug_backtest(
-                        current_code, 
-                        error_message, 
-                        strategy_name, 
+                        current_code,
+                        error_message,
+                        strategy_name,
                         debug_iteration
                     )
-                    
+
                     if not debugged_code:
-                        raise ValueError("Debug AI failed to generate fixed code")
-                        
+                        cprint("❌ Debug AI failed to generate fixed code (likely response too long)", "red")
+                        cprint("🔄 Skipping to next idea...", "yellow")
+                        return
+
                     current_code = debugged_code
                     current_file = FINAL_BACKTEST_DIR / f"{strategy_name}_BTFinal_v{debug_iteration}.py"
                     print("🔄 Retrying with debugged code...")
@@ -1013,7 +1021,9 @@ def process_trading_idea_with_execution(idea: str) -> None:
             if error_signature in error_history:
                 print(f"\n🔄 DETECTED REPEATED ERROR: {error_signature}")
                 print("🛑 Breaking loop to prevent infinite debugging")
-                raise ValueError(f"Repeated error detected after {debug_iteration + 1} attempts: {error_signature}")
+                cprint("❌ Repeated error detected - cannot fix this strategy", "red")
+                cprint("🔄 Skipping to next idea...", "yellow")
+                return
             
             error_history.append(error_signature)
             debug_iteration += 1
@@ -1022,15 +1032,17 @@ def process_trading_idea_with_execution(idea: str) -> None:
                 # Debug the code
                 print(f"\n🔧 Sending to Debug AI (attempt {debug_iteration})...")
                 debugged_code = debug_backtest(
-                    current_code, 
-                    error_message, 
-                    strategy_name, 
+                    current_code,
+                    error_message,
+                    strategy_name,
                     debug_iteration
                 )
-                
+
                 if not debugged_code:
-                    raise ValueError("Debug AI failed to generate fixed code")
-                    
+                    cprint("❌ Debug AI failed to generate fixed code (likely response too long)", "red")
+                    cprint("🔄 Skipping to next idea...", "yellow")
+                    return
+
                 current_code = debugged_code
                 current_file = FINAL_BACKTEST_DIR / f"{strategy_name}_BTFinal_v{debug_iteration}.py"
                 print("🔄 Retrying with debugged code...")
