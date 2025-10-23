@@ -334,6 +334,12 @@ class FocusAgent(BaseAgent):
             # Extract content from ModelResponse
             response_content = model_response.content if hasattr(model_response, 'content') else str(model_response)
 
+            # Validate response has content
+            if not response_content or len(response_content.strip()) == 0:
+                cprint(f"⚠️ Model {provider}:{model_used} returned empty content", "yellow")
+                cprint("❌ Cannot analyze focus without AI response", "red")
+                return None
+
             # Print raw response for debugging
             cprint(f"\n📝 Raw model response:", "magenta")
             cprint(f"══════════════════════════════", "magenta")

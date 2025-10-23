@@ -391,6 +391,11 @@ Remember to format your response like this:
             # Extract text from ModelResponse object
             response_text = model_response.content if hasattr(model_response, 'content') else str(model_response)
 
+            # Validate response has content
+            if not response_text or len(response_text.strip()) == 0:
+                cprint(f"⚠️ Model {provider}:{model_used} returned empty content", "yellow")
+                response_text = "No analysis available - AI response was empty. This might be due to response length limits."
+
             # Clean up the response
             response = (response_text
                 .replace("TextBlock(text='", "")
@@ -612,6 +617,11 @@ Extract all token symbols and return as a simple list.
 
             # Extract text from ModelResponse object
             response_text = model_response.content if hasattr(model_response, 'content') else str(model_response)
+
+            # Validate response has content
+            if not response_text or len(response_text.strip()) == 0:
+                cprint(f"⚠️ Model {provider}:{model_used} returned empty content", "yellow")
+                return []  # Return empty list if no tokens extracted
 
             # Clean up response and split into list
             tokens = response_text.strip().split('\n')
