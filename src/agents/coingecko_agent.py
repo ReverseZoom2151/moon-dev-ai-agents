@@ -230,8 +230,6 @@ import os
 import time
 
 # Third-party imports
-import anthropic
-import openai
 import pandas as pd
 import requests
 
@@ -260,6 +258,8 @@ if sys.platform == 'win32':
 
 # Local from imports
 from src.config import *
+from src.agents.base_agent import BaseAgent
+from src.models.model_priority import ModelPriority
 
 # Load environment variables
 load_dotenv()
@@ -295,28 +295,23 @@ def cleanup_old_memory_files():
 print(f"📁 Agent memory directory: {AGENT_MEMORY_DIR}")
 cleanup_old_memory_files()  # Clean up old files on startup
 
-class AIAgent:
+class AIAgent(BaseAgent):
     """Individual AI Agent for collaborative decision making"""
-    
+
     def __init__(self, name: str, model: str = None):
+        # Initialize BaseAgent with model_priority
+        super().__init__(name.lower().replace(' ', '_'), use_model_priority=True)
+
         self.name = name
         self.model = model or AI_MODEL
-        
-        # Initialize appropriate client based on model
-        if "deepseek" in self.model.lower():
-            deepseek_key = os.getenv("DEEPSEEK_KEY")
-            if deepseek_key:
-                self.client = openai.OpenAI(
-                    api_key=deepseek_key,
-                    base_url=DEEPSEEK_BASE_URL
-                )
-                print(f"🚀 {name} using DeepSeek model: {model}")
-            else:
-                raise ValueError("🚨 DEEPSEEK_KEY not found in environment variables!")
-        else:
-            self.client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_KEY"))
-            print(f"🤖 {name} using Claude model: {model}")
-            
+
+        # Check if model_priority initialized successfully
+        if not self.model_priority:
+            raise ValueError("🚨 Model priority system not initialized!")
+
+        print(f"🤖 {name} using model_priority system with HIGH priority")
+        print(f"   Priority order: GPT-5 → Claude Sonnet 4.5 → Gemini 2.5 Pro")
+
         # Use a simpler memory file name
         self.memory_file = AGENT_MEMORY_DIR / f"{name.lower().replace(' ', '_')}.json"
         self.load_memory()
@@ -382,30 +377,16 @@ Remember to format your response like this:
 [Fun reference to Moon Dev's trading style]
 """
             
-            # Get AI response with correct client
-            if "deepseek" in self.model.lower():
-                response = self.client.chat.completions.create(
-                    model=self.model,
-                    messages=[
-                        {"role": "system", "content": prompt},
-                        {"role": "user", "content": market_context}
-                    ],
-                    max_tokens=max_tokens,
-                    temperature=temperature
-                )
-                response_text = response.choices[0].message.content
-            else:
-                message = self.client.messages.create(
-                    model=self.model,
-                    max_tokens=max_tokens,
-                    temperature=temperature,
-                    system=prompt,
-                    messages=[{
-                        "role": "user",
-                        "content": market_context
-                    }]
-                )
-                response_text = str(message.content)
+            # Get AI response using model_priority system with HIGH priority
+            response_text, provider, model_used = self.model_priority.get_model(
+                priority=ModelPriority.HIGH,
+                system_prompt=prompt,
+                user_content=market_context,
+                temperature=temperature,
+                max_tokens=max_tokens
+            )
+
+            print(f"   ✅ Response from {provider}:{model_used}")
             
             # Clean up the response
             response = (response_text
@@ -566,14 +547,21 @@ class CoinGeckoAPI:
         print(f"📊 Getting {days} days of OHLC data for {id}...")
         return self._make_request(f"coins/{id}/ohlc", params)
 
-class TokenExtractorAgent:
+class TokenExtractorAgent(BaseAgent):
     """Agent that extracts token/crypto symbols from conversations"""
-    
+
     def __init__(self):
-        self.client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_KEY"))
+        # Initialize BaseAgent with model_priority
+        super().__init__('token_extractor', use_model_priority=True)
+
         self.model = TOKEN_EXTRACTOR_MODEL
         self.token_history = self._load_token_history()
-        cprint("🔍 Token Extractor Agent initialized!", "white", "on_cyan")
+
+        # Check if model_priority initialized successfully
+        if not self.model_priority:
+            raise ValueError("🚨 Model priority system not initialized for Token Extractor!")
+
+        cprint("🔍 Token Extractor Agent initialized with model_priority!", "white", "on_cyan")
         
     def _load_token_history(self) -> pd.DataFrame:
         """Load or create token history DataFrame"""
@@ -588,15 +576,8 @@ class TokenExtractorAgent:
         """Extract tokens/symbols from agent messages"""
         try:
             print_section("🔍 Extracting Mentioned Tokens", "on_cyan")
-            
-            message = self.client.messages.create(
-                model=self.model,
-                max_tokens=EXTRACTOR_MAX_TOKENS,
-                temperature=EXTRACTOR_TEMP,
-                system=TOKEN_EXTRACTOR_PROMPT,  # Use the token extractor prompt
-                messages=[{
-                    "role": "user",
-                    "content": f"""
+
+            user_content = f"""
 Agent One said:
 {agent_one_msg}
 
@@ -605,11 +586,20 @@ Agent Two said:
 
 Extract all token symbols and return as a simple list.
 """
-                }]
+
+            # Use model_priority with LOW priority for simple extraction
+            response_text, provider, model_used = self.model_priority.get_model(
+                priority=ModelPriority.LOW,
+                system_prompt=TOKEN_EXTRACTOR_PROMPT,
+                user_content=user_content,
+                temperature=EXTRACTOR_TEMP,
+                max_tokens=EXTRACTOR_MAX_TOKENS
             )
-            
-            # Clean up response and split into list
-            tokens = str(message.content).strip().split('\n')
+
+            print(f"   ✅ Tokens extracted using {provider}:{model_used}")
+
+            # Clean up response and split into list (work directly with response_text)
+            tokens = response_text.strip().split('\n')
             tokens = [t.strip().upper() for t in tokens if t.strip()]
             
             # Create records for each token
