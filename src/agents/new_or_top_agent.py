@@ -144,17 +144,16 @@ AI_MODEL = MODEL_OVERRIDE if MODEL_OVERRIDE != "0" else config.AI_MODEL
 # Configuration
 COINGECKO_API_KEY = os.getenv("COINGECKO_API_KEY")
 
-# Auto-detect endpoint based on API key format
-# Demo keys (CG-xxx) use FREE endpoint: api.coingecko.com
-# Pro keys use PRO endpoint: pro-api.coingecko.com
+# Auto-detect endpoint based on API key presence
+# If API key is provided, use PRO endpoint
+# No API key = use FREE endpoint (rate limited)
 if not COINGECKO_API_KEY:
     BASE_URL = "https://api.coingecko.com/api/v3"  # Free API (no key)
     cprint("⚠️ No CoinGecko API key - using FREE API (rate limited)", "yellow")
 else:
-    # Use FREE endpoint for all keys - most users have demo/free tier keys
-    # If you have a PRO subscription, change this to: https://pro-api.coingecko.com/api/v3
-    BASE_URL = "https://api.coingecko.com/api/v3"
-    cprint("🦎 Using CoinGecko FREE API with Demo key", "cyan")
+    # Use PRO endpoint when API key is provided
+    BASE_URL = "https://pro-api.coingecko.com/api/v3"
+    cprint("🦎 Using CoinGecko PRO API with your API key", "green")
 RESULTS_DIR = PROJECT_ROOT / "src" / "data" / "coingecko_results"
 DELAY_BETWEEN_REQUESTS = 1  # Seconds between API calls
 
