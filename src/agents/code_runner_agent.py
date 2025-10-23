@@ -493,69 +493,77 @@ def submit_to_ai_debug(number):
         
         time.sleep(0.5)
         
-        # Send Command+A to select all
-        cprint("\n⌨️ Selecting all text (cmd+a)...", "cyan")
+        # Send Command+A to select all (cross-platform)
+        cprint(f"\n⌨️ Selecting all text ({MODIFIER_KEY}+a)...", "cyan")
         try:
-            # Command key down
-            cmd_down = CG.CGEventCreateKeyboardEvent(None, 0x37, True)
-            CG.CGEventPost(CG.kCGHIDEventTap, cmd_down)
-            time.sleep(0.1)
-            
-            # 'A' key with command flag
-            a_down = CG.CGEventCreateKeyboardEvent(None, 0x00, True)  # 0x00 is 'a'
-            a_up = CG.CGEventCreateKeyboardEvent(None, 0x00, False)
-            CG.CGEventSetFlags(a_down, CG.kCGEventFlagMaskCommand)
-            CG.CGEventSetFlags(a_up, CG.kCGEventFlagMaskCommand)
-            
-            CG.CGEventPost(CG.kCGHIDEventTap, a_down)
-            time.sleep(0.1)
-            CG.CGEventPost(CG.kCGHIDEventTap, a_up)
-            
-            # Command key up
-            cmd_up = CG.CGEventCreateKeyboardEvent(None, 0x37, False)
-            CG.CGEventPost(CG.kCGHIDEventTap, cmd_up)
+            if IS_MACOS and HAS_MACOS_FRAMEWORKS:
+                # macOS - use CoreGraphics
+                cmd_down = CG.CGEventCreateKeyboardEvent(None, 0x37, True)
+                CG.CGEventPost(CG.kCGHIDEventTap, cmd_down)
+                time.sleep(0.1)
+
+                a_down = CG.CGEventCreateKeyboardEvent(None, 0x00, True)  # 0x00 is 'a'
+                a_up = CG.CGEventCreateKeyboardEvent(None, 0x00, False)
+                CG.CGEventSetFlags(a_down, CG.kCGEventFlagMaskCommand)
+                CG.CGEventSetFlags(a_up, CG.kCGEventFlagMaskCommand)
+
+                CG.CGEventPost(CG.kCGHIDEventTap, a_down)
+                time.sleep(0.1)
+                CG.CGEventPost(CG.kCGHIDEventTap, a_up)
+
+                cmd_up = CG.CGEventCreateKeyboardEvent(None, 0x37, False)
+                CG.CGEventPost(CG.kCGHIDEventTap, cmd_up)
+            else:
+                # Windows/Linux - use pyautogui
+                pyautogui.hotkey('ctrl', 'a')
+                time.sleep(0.1)
         except Exception as e:
-            cprint(f"❌ Error sending cmd+a: {e}", "red")
+            cprint(f"❌ Error sending {MODIFIER_KEY}+a: {e}", "red")
             return False
             
         time.sleep(0.5)
         
-        # Send Command+I
-        cprint("\n⌨️ Inserting (cmd+i)...", "cyan")
+        # Send Command+I (cross-platform)
+        cprint(f"\n⌨️ Inserting ({MODIFIER_KEY}+i)...", "cyan")
         try:
-            # Command key down
-            cmd_down = CG.CGEventCreateKeyboardEvent(None, 0x37, True)
-            CG.CGEventPost(CG.kCGHIDEventTap, cmd_down)
-            time.sleep(0.1)
-            
-            i_down = CG.CGEventCreateKeyboardEvent(None, 0x22, True)
-            i_up = CG.CGEventCreateKeyboardEvent(None, 0x22, False)
-            CG.CGEventSetFlags(i_down, CG.kCGEventFlagMaskCommand)
-            CG.CGEventSetFlags(i_up, CG.kCGEventFlagMaskCommand)
-            
-            CG.CGEventPost(CG.kCGHIDEventTap, i_down)
-            time.sleep(0.1)
-            CG.CGEventPost(CG.kCGHIDEventTap, i_up)
-            
-            cmd_up = CG.CGEventCreateKeyboardEvent(None, 0x37, False)
-            CG.CGEventPost(CG.kCGHIDEventTap, cmd_up)
+            if IS_MACOS and HAS_MACOS_FRAMEWORKS:
+                # macOS - use CoreGraphics
+                cmd_down = CG.CGEventCreateKeyboardEvent(None, 0x37, True)
+                CG.CGEventPost(CG.kCGHIDEventTap, cmd_down)
+                time.sleep(0.1)
 
-            # Add pause to ensure cmd+i completes
+                i_down = CG.CGEventCreateKeyboardEvent(None, 0x22, True)
+                i_up = CG.CGEventCreateKeyboardEvent(None, 0x22, False)
+                CG.CGEventSetFlags(i_down, CG.kCGEventFlagMaskCommand)
+                CG.CGEventSetFlags(i_up, CG.kCGEventFlagMaskCommand)
+
+                CG.CGEventPost(CG.kCGHIDEventTap, i_down)
+                time.sleep(0.1)
+                CG.CGEventPost(CG.kCGHIDEventTap, i_up)
+
+                cmd_up = CG.CGEventCreateKeyboardEvent(None, 0x37, False)
+                CG.CGEventPost(CG.kCGHIDEventTap, cmd_up)
+            else:
+                # Windows/Linux - use pyautogui
+                pyautogui.hotkey('ctrl', 'i')
+                time.sleep(0.1)
+
+            # Add pause to ensure command completes
             time.sleep(1.0)
-            
+
             # Move back to cursor position
             cprint("\n🖱️ Moving back to cursor position...", "cyan")
             if not move_mouse_cg(AI_CHAT_X, AI_CHAT_Y):
                 cprint("❌ Failed to move to cursor position!", "red")
                 return False
-                
+
             time.sleep(0.5)
             if not quick_click():
                 cprint("❌ Failed to click cursor position!", "red")
                 return False
-                
+
             time.sleep(0.5)
-            
+
         except Exception as e:
             cprint(f"❌ Error sending keyboard commands: {e}", "red")
             return False
@@ -854,61 +862,75 @@ def execute_and_capture():
                     cprint("❌ Failed to click terminal!", "red")
                     continue
                 
-                # Select all (cmd+a) and paste to composer (cmd+i)
+                # Select all and paste to composer (cross-platform)
                 time.sleep(0.5)
                 try:
-                    # Send cmd+a
-                    cmd_down = CG.CGEventCreateKeyboardEvent(None, 0x37, True)
-                    CG.CGEventPost(CG.kCGHIDEventTap, cmd_down)
-                    time.sleep(0.1)
-                    
-                    a_down = CG.CGEventCreateKeyboardEvent(None, 0x00, True)
-                    a_up = CG.CGEventCreateKeyboardEvent(None, 0x00, False)
-                    CG.CGEventSetFlags(a_down, CG.kCGEventFlagMaskCommand)
-                    CG.CGEventSetFlags(a_up, CG.kCGEventFlagMaskCommand)
-                    
-                    CG.CGEventPost(CG.kCGHIDEventTap, a_down)
-                    time.sleep(0.1)
-                    CG.CGEventPost(CG.kCGHIDEventTap, a_up)
-                    
-                    cmd_up = CG.CGEventCreateKeyboardEvent(None, 0x37, False)
-                    CG.CGEventPost(CG.kCGHIDEventTap, cmd_up)
-                    
-                    time.sleep(0.5)
-                    
-                    # Send cmd+i
-                    cmd_down = CG.CGEventCreateKeyboardEvent(None, 0x37, True)
-                    CG.CGEventPost(CG.kCGHIDEventTap, cmd_down)
-                    time.sleep(0.1)
-                    
-                    i_down = CG.CGEventCreateKeyboardEvent(None, 0x22, True)
-                    i_up = CG.CGEventCreateKeyboardEvent(None, 0x22, False)
-                    CG.CGEventSetFlags(i_down, CG.kCGEventFlagMaskCommand)
-                    CG.CGEventSetFlags(i_up, CG.kCGEventFlagMaskCommand)
-                    
-                    CG.CGEventPost(CG.kCGHIDEventTap, i_down)
-                    time.sleep(0.1)
-                    CG.CGEventPost(CG.kCGHIDEventTap, i_up)
-                    
-                    cmd_up = CG.CGEventCreateKeyboardEvent(None, 0x37, False)
-                    CG.CGEventPost(CG.kCGHIDEventTap, cmd_up)
+                    # Send select all command
+                    cprint(f"\n⌨️ Selecting all ({MODIFIER_KEY}+a)...", "cyan")
+                    if IS_MACOS and HAS_MACOS_FRAMEWORKS:
+                        # macOS - use CoreGraphics
+                        cmd_down = CG.CGEventCreateKeyboardEvent(None, 0x37, True)
+                        CG.CGEventPost(CG.kCGHIDEventTap, cmd_down)
+                        time.sleep(0.1)
 
-                    # Add pause to ensure cmd+i completes
+                        a_down = CG.CGEventCreateKeyboardEvent(None, 0x00, True)
+                        a_up = CG.CGEventCreateKeyboardEvent(None, 0x00, False)
+                        CG.CGEventSetFlags(a_down, CG.kCGEventFlagMaskCommand)
+                        CG.CGEventSetFlags(a_up, CG.kCGEventFlagMaskCommand)
+
+                        CG.CGEventPost(CG.kCGHIDEventTap, a_down)
+                        time.sleep(0.1)
+                        CG.CGEventPost(CG.kCGHIDEventTap, a_up)
+
+                        cmd_up = CG.CGEventCreateKeyboardEvent(None, 0x37, False)
+                        CG.CGEventPost(CG.kCGHIDEventTap, cmd_up)
+                    else:
+                        # Windows/Linux - use pyautogui
+                        pyautogui.hotkey('ctrl', 'a')
+                        time.sleep(0.1)
+
+                    time.sleep(0.5)
+
+                    # Send insert command
+                    cprint(f"\n⌨️ Inserting ({MODIFIER_KEY}+i)...", "cyan")
+                    if IS_MACOS and HAS_MACOS_FRAMEWORKS:
+                        # macOS - use CoreGraphics
+                        cmd_down = CG.CGEventCreateKeyboardEvent(None, 0x37, True)
+                        CG.CGEventPost(CG.kCGHIDEventTap, cmd_down)
+                        time.sleep(0.1)
+
+                        i_down = CG.CGEventCreateKeyboardEvent(None, 0x22, True)
+                        i_up = CG.CGEventCreateKeyboardEvent(None, 0x22, False)
+                        CG.CGEventSetFlags(i_down, CG.kCGEventFlagMaskCommand)
+                        CG.CGEventSetFlags(i_up, CG.kCGEventFlagMaskCommand)
+
+                        CG.CGEventPost(CG.kCGHIDEventTap, i_down)
+                        time.sleep(0.1)
+                        CG.CGEventPost(CG.kCGHIDEventTap, i_up)
+
+                        cmd_up = CG.CGEventCreateKeyboardEvent(None, 0x37, False)
+                        CG.CGEventPost(CG.kCGHIDEventTap, cmd_up)
+                    else:
+                        # Windows/Linux - use pyautogui
+                        pyautogui.hotkey('ctrl', 'i')
+                        time.sleep(0.1)
+
+                    # Add pause to ensure command completes
                     time.sleep(1.0)
-                    
+
                     # Move back to cursor position
                     cprint("\n🖱️ Moving back to AI chat position...", "cyan")
                     if not move_mouse_cg(AI_CHAT_X, AI_CHAT_Y):
                         cprint("❌ Failed to move to AI chat position!", "red")
                         return False
-                        
+
                     time.sleep(0.5)
                     if not quick_click():
                         cprint("❌ Failed to click AI chat position!", "red")
                         return False
-                    
+
                     time.sleep(0.5)
-                    
+
                 except Exception as e:
                     cprint(f"❌ Error sending keyboard commands: {e}", "red")
                     return False
