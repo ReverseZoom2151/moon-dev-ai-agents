@@ -937,15 +937,17 @@ def execute_and_capture():
 
 if __name__ == "__main__":
     try:
-        # Check if pyobjc-framework-Quartz is installed
-        try:
-            import Quartz
-        except ImportError:
-            cprint("\n❌ Quartz framework not found. Installing required package...", "yellow")
-            os.system("pip install pyobjc-framework-Quartz")
-            cprint("✅ Installation complete. Please run the script again.", "green")
-            sys.exit(1)
-            
+        # Check if macOS-specific Quartz framework is installed (only on macOS)
+        if IS_MACOS and not HAS_MACOS_FRAMEWORKS:
+            try:
+                import Quartz
+            except ImportError:
+                cprint("\n❌ Quartz framework not found. Installing required package...", "yellow")
+                os.system("pip install pyobjc-framework-Quartz")
+                cprint("✅ Installation complete. Please run the script again.", "green")
+                sys.exit(1)
+
+        cprint(f"\n🚀 Moon Dev's Code Executor Agent - Starting on {platform.system()}...", "green")
         execute_and_capture()
     except KeyboardInterrupt:
         cprint("\n👋 Execution cancelled by user", "yellow")
