@@ -281,3 +281,27 @@ class BinanceExchange(BaseExchange):
             return symbol in markets
         except:
             return False
+
+    def get_ohlcv(self, symbol: str, timeframe: str = '1h', limit: int = 100) -> List[List]:
+        """
+        Fetch OHLCV (candlestick) data from Binance
+
+        Args:
+            symbol: Trading pair (e.g., 'BTC/USDT')
+            timeframe: Candle timeframe ('1m', '5m', '15m', '1h', '4h', '1d', etc.)
+            limit: Number of candles to fetch (max 1000)
+
+        Returns:
+            List of OHLCV data: [[timestamp, open, high, low, close, volume], ...]
+            Or empty list on error
+        """
+        try:
+            symbol = self.normalize_symbol(symbol)
+
+            # Fetch OHLCV data using CCXT
+            ohlcv = self.client.fetch_ohlcv(symbol, timeframe=timeframe, limit=limit)
+
+            return ohlcv
+        except Exception as e:
+            print(f"Binance get_ohlcv error for {symbol}: {e}")
+            return []
