@@ -669,28 +669,34 @@ def process_trading_idea_with_execution(idea: str) -> None:
     print("\n🧪 Phase 1: Research")
     # For this example, using the idea directly
     strategy, strategy_name = research_strategy(idea)
-    
+
     if not strategy:
-        raise ValueError("Research phase failed - no strategy generated")
-        
+        cprint("❌ Research phase failed - no strategy generated (likely response too long)", "red")
+        cprint("🔄 Skipping to next idea...", "yellow")
+        return
+
     print(f"🏷️ Strategy Name: {strategy_name}")
-    
+
     # Log the idea as processed once we have a strategy name
     log_processed_idea(idea, strategy_name)
     
     # Phase 2: Backtest
     print("\n📈 Phase 2: Backtest")
     backtest = create_backtest(strategy, strategy_name)
-    
+
     if not backtest:
-        raise ValueError("Backtest phase failed - no code generated")
-    
+        cprint("❌ Backtest phase failed - no code generated (likely response too long)", "red")
+        cprint("🔄 Skipping to next idea...", "yellow")
+        return
+
     # Phase 3: Package Check
     print("\n📦 Phase 3: Package Check")
     package_checked = package_check(backtest, strategy_name)
-    
+
     if not package_checked:
-        raise ValueError("Package check failed - no fixed code generated")
+        cprint("❌ Package check failed - no fixed code generated", "red")
+        cprint("🔄 Skipping to next idea...", "yellow")
+        return
     
     # Save the package-checked version
     package_file = PACKAGE_DIR / f"{strategy_name}_PKG.py"
