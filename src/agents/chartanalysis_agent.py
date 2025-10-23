@@ -8,17 +8,23 @@ Chuck the Chart Agent generates and analyzes trading charts using AI vision capa
 # Standard library imports
 import os
 import re
+import sys
 import time
 import traceback
+
+# Standard library from imports
+from datetime import datetime
+from pathlib import Path
+
+# Add project root to Python path for imports
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 # Third-party imports
 import mplfinance as mpf
 import openai
 import pandas as pd
-
-# Standard library from imports
-from datetime import datetime
-from pathlib import Path
 
 # Third-party from imports
 from dotenv import load_dotenv
@@ -27,10 +33,6 @@ from dotenv import load_dotenv
 from src import nice_funcs_hl as hl
 from src.agents.base_agent import BaseAgent
 from src.models.model_priority import ModelPriority
-
-
-# Get the project root directory
-PROJECT_ROOT = Path(__file__).parent.parent.parent
 
 # Configuration
 CHECK_INTERVAL_MINUTES = 10  # 3 hours and 53 minutes
