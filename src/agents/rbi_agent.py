@@ -61,26 +61,9 @@ Remember: Past performance doesn't guarantee future results!
 #     "name": "deepseek-chat"  # Using DeepSeek Chat for package optimization
 # }
 
-# New OpenAI presets using GPT-5 for all agents 🌙🚀
-RESEARCH_CONFIG = {
-    "type": "openai",
-    "name": "gpt-5-2025-08-07"
-}
-
-BACKTEST_CONFIG = {
-    "type": "openai",
-    "name": "gpt-5-2025-08-07"
-}
-
-DEBUG_CONFIG = {
-    "type": "openai",
-    "name": "gpt-5-2025-08-07"
-}
-
-PACKAGE_CONFIG = {
-    "type": "openai",
-    "name": "gpt-5-2025-08-07"
-}
+# Model Priority System - Automatic fallback: GPT-5 → Claude → Gemini
+# HIGH priority: Best models for complex tasks (research, backtest, debug)
+# Uses model_priority_queue with automatic fallback! 🌙🚀
 
 
 
@@ -368,7 +351,7 @@ except ImportError:
 
 # Local from imports
 from src.config import *
-from src.models import model_factory
+from src.models.model_priority import ModelPriority, model_priority_queue
 
 # DeepSeek Configuration
 DEEPSEEK_BASE_URL = "https://api.deepseek.com"
@@ -438,91 +421,21 @@ def init_anthropic_client():
         print(f"❌ Error initializing Anthropic client: {str(e)}")
         return None
 
-def chat_with_model(system_prompt, user_content, model_config):
-    """Chat with AI model using model factory"""
-    try:
-        # Initialize model using factory with specific config
-        model = model_factory.get_model(model_config["type"], model_config["name"])
-        if not model:
-            raise ValueError(f"🚨 Could not initialize {model_config['type']} {model_config['name']} model!")
+def chat_with_model(system_prompt, user_content, priority=ModelPriority.HIGH):
+    """Chat with AI using model_priority with automatic fallback"""
+    response, provider, model = model_priority_queue.get_model(
+        priority=priority,
+        system_prompt=system_prompt,
+        user_content=user_content,
+        temperature=AI_TEMPERATURE,
+        max_tokens=AI_MAX_TOKENS
+    )
 
-        cprint(f"🤖 Using {model_config['type']} model: {model_config['name']}", "cyan")
-        cprint("🌟 Moon Dev's RBI AI is thinking...", "yellow")
-        
-        # Debug prints for prompt lengths
-        cprint(f"📝 System prompt length: {len(system_prompt)} chars", "cyan")
-        cprint(f"📝 User content length: {len(user_content)} chars", "cyan")
-        # If model returned a wrapper, normalize early
-        if hasattr(model, 'model_name') and model.model_type == 'openai':
-            cprint(f"🧪 OpenAI model in use: {model.model_name}", "cyan")
+    if not response:
+        raise ValueError("❌ All AI models failed!")
 
-        # For Ollama models, handle response differently
-        if model_config["type"] == "ollama":
-            response = model.generate_response(
-                system_prompt=system_prompt,
-                user_content=user_content,
-                temperature=AI_TEMPERATURE
-            )
-            # Handle string response from Ollama
-            if isinstance(response, str):
-                return response
-            # Handle object response
-            if hasattr(response, 'content'):
-                return response.content
-            return str(response)
-        else:
-            # For other models, use standard parameters
-            response = model.generate_response(
-                system_prompt=system_prompt,
-                user_content=user_content,
-                temperature=AI_TEMPERATURE,
-                max_tokens=AI_MAX_TOKENS
-            )
-            if response is None:
-                cprint("❌ Model returned None response", "red")
-                return None
-
-            # Coerce response into text content
-            content = None
-            try:
-                from src.models.base_model import ModelResponse
-                if isinstance(response, ModelResponse):
-                    content = response.content
-            except Exception:
-                pass
-
-            if content is None:
-                if isinstance(response, str):
-                    content = response
-                elif hasattr(response, 'content'):
-                    content = response.content
-                else:
-                    cprint(f"❌ Response missing content attribute. Response type: {type(response)}", "red")
-                    try:
-                        cprint(f"Response attributes: {dir(response)}", "yellow")
-                    except Exception:
-                        pass
-                    return None
-
-            if not isinstance(content, str):
-                content = str(content) if content is not None else ""
-            if not content or len(content.strip()) == 0:
-                cprint("❌ Model returned empty content", "red")
-                return None
-
-            return content
-
-    except Exception as e:
-        cprint(f"❌ Error in AI chat: {str(e)}", "red")
-        cprint(f"🔍 Error type: {type(e).__name__}", "yellow")
-        if hasattr(e, 'response'):
-            cprint(f"🔍 Response error: {getattr(e, 'response', 'No response details')}", "yellow")
-        if hasattr(e, '__dict__'):
-            cprint("🔍 Error attributes:", "yellow")
-            for attr in dir(e):
-                if not attr.startswith('_'):
-                    cprint(f"  ├─ {attr}: {getattr(e, attr)}", "yellow")
-        return None
+    cprint(f"✅ Used model: {provider}:{model}", "green")
+    return response.content
 
 def get_youtube_transcript(video_id):
     """Get transcript from YouTube video"""
