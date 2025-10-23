@@ -6,7 +6,7 @@ Built with love by Moon Dev 🚀
 AI-Powered OBS Clip Creator with Model Factory Integration
 Automatically finds the best moments from your live streams and names your clips!
 
-Works with ALL models through model_factory: Claude, GPT, DeepSeek, Groq, Grok, Ollama
+Works with ALL models through model_priority: Claude, GPT, DeepSeek, Groq, Grok, Ollama, Gemini
 """
 
 # ============================================================================
@@ -154,7 +154,8 @@ from termcolor import cprint
 # Add project root to path for imports
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
-from src.models.model_factory import model_factory
+from src.agents.base_agent import BaseAgent
+from src.models.model_priority import ModelPriority
 
 # Setup paths relative to src/data/
 PROJECT_ROOT = Path(__file__).parent.parent
@@ -166,26 +167,22 @@ cprint("🔧 Loading Whisper model (this only happens once)...", "cyan")
 whisper_model = whisper.load_model("base")  # Options: tiny, base, small, medium, large
 cprint("✅ Whisper model loaded!", "green")
 
-class RealtimeClipsAgent:
-    """AI-powered real-time clip creator using Moon Dev's Model Factory"""
+class RealtimeClipsAgent(BaseAgent):
+    """AI-powered real-time clip creator using model_priority"""
 
     def __init__(self):
+        # Initialize BaseAgent with model_priority
+        super().__init__('realtime_clips_agent', use_model_priority=True)
+
+        if not self.model_priority:
+            raise ValueError("🚨 Model priority system not initialized!")
+
         self.obs_folder = Path(OBS_FOLDER)
         self.base_clips_folder = DATA_DIR
         self.base_clips_folder.mkdir(exist_ok=True)
 
-        # Initialize AI model via model factory
-        cprint(f"\n🤖 Initializing AI model: {AI_MODEL_TYPE}", "cyan")
-        self.model = model_factory.get_model(AI_MODEL_TYPE, AI_MODEL_NAME)
-
-        if not self.model:
-            cprint(f"❌ Failed to initialize {AI_MODEL_TYPE} model!", "red")
-            cprint("Available models:", "yellow")
-            for model_type in model_factory._models.keys():
-                cprint(f"  - {model_type}", "yellow")
-            sys.exit(1)
-
-        cprint(f"✅ Using model: {self.model.model_name}", "green")
+        cprint("✅ Using model_priority with LOW priority for clip analysis", "green")
+        cprint(f"   Priority order: Gemini 2.5 Flash → Groq → Claude Haiku", "yellow")
 
     def get_todays_folder(self):
         """Get today's date folder (MM-DD-YYYY format)."""
@@ -329,18 +326,21 @@ class RealtimeClipsAgent:
         return " ".join(segment_texts)
 
     def chat_with_ai(self, system_prompt, user_content):
-        """Send prompt to AI model via model factory"""
+        """Send prompt to AI model via model_priority"""
         try:
-            response = self.model.generate_response(
+            # Use model_priority with LOW priority for fast clip analysis
+            model_response, provider, model_used = self.model_priority.get_model(
+                priority=ModelPriority.LOW,
                 system_prompt=system_prompt,
                 user_content=user_content,
                 temperature=0.7,
                 max_tokens=1024
             )
 
-            if hasattr(response, 'content'):
-                return response.content
-            return str(response)
+            # Extract text from ModelResponse object
+            response_text = model_response.content if hasattr(model_response, 'content') else str(model_response)
+
+            return response_text
 
         except Exception as e:
             cprint(f"❌ AI model error: {e}", "red")
@@ -356,7 +356,7 @@ class RealtimeClipsAgent:
         preview = transcript_text[:300]
         cprint(f"📄 Transcript preview:", "cyan")
         cprint(f"   \"{preview}...\"", "yellow")
-        cprint(f"\n🤖 Asking {self.model.model_name} to rate this clip (1-5)...", "cyan")
+        cprint(f"\n🤖 Asking AI to rate this clip (1-5)...", "cyan")
 
         try:
             result_text = self.chat_with_ai(
@@ -423,7 +423,7 @@ class RealtimeClipsAgent:
 
         transcript_text = "\n".join(formatted)
 
-        cprint(f"🤖 Sending transcript to {self.model.model_name} for analysis...", "cyan")
+        cprint(f"🤖 Sending transcript to AI for analysis...", "cyan")
         cprint(f"📊 Total duration: {transcript_obj['segments'][-1]['end']:.1f} seconds", "cyan")
 
         try:
@@ -479,7 +479,7 @@ class RealtimeClipsAgent:
         preview = transcript_text[:200]
         cprint(f"📄 Transcript preview for title generation:", "cyan")
         cprint(f"   \"{preview}...\"", "yellow")
-        cprint(f"\n🤖 Asking {self.model.model_name} for a short title...", "cyan")
+        cprint(f"\n🤖 Asking AI for a short title...", "cyan")
 
         try:
             title = self.chat_with_ai(
