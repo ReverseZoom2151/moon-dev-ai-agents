@@ -79,39 +79,15 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 try:
-    from src.models import model_factory
-    print("✅ Successfully imported model_factory")
+    from src.models.model_priority import ModelPriority, model_priority_queue
+    print("✅ Successfully imported model_priority")
 except ImportError as e:
-    print(f"⚠️ Could not import model_factory: {e}")
+    print(f"⚠️ Could not import model_priority: {e}")
     sys.exit(1)
 
-# Model Configurations
-# You can switch between "deepseek", "xai", "openai", "claude", "groq", etc.
-# Using OpenAI GPT-5 - proven to work great in rbi_agent_v2_simple!
-RESEARCH_CONFIG = {
-    "type": "openai",
-    "name": "gpt-5-2025-08-07"
-}
-
-BACKTEST_CONFIG = {
-    "type": "openai",
-    "name": "gpt-5-2025-08-07"
-}
-
-DEBUG_CONFIG = {
-    "type": "openai",
-    "name": "gpt-5-2025-08-07"
-}
-
-PACKAGE_CONFIG = {
-    "type": "openai",
-    "name": "gpt-5-2025-08-07"
-}
-
-OPTIMIZE_CONFIG = {
-    "type": "openai",
-    "name": "gpt-5-2025-08-07"
-}
+# Model Priority System - Automatic fallback: GPT-5 → Claude → Gemini
+# HIGH priority: Best models for complex tasks (research, backtest, debug, optimize)
+# Uses model_priority_queue with automatic fallback!
 
 # 🎯🎯🎯 PROFIT TARGET CONFIGURATION 🎯🎯🎯
 # ============================================
@@ -587,35 +563,21 @@ def analyze_no_trades_issue(execution_result: dict) -> str:
     
     return "Strategy executed but took 0 trades, resulting in NaN values. Please adjust the strategy logic to actually generate trading signals and take trades."
 
-def chat_with_model(system_prompt, user_content, model_config):
-    """Chat with AI model using model factory"""
-    model = model_factory.get_model(model_config["type"], model_config["name"])
-    if not model:
-        raise ValueError(f"🚨 Could not initialize {model_config['type']} {model_config['name']} model!")
+def chat_with_model(system_prompt, user_content, priority=ModelPriority.HIGH):
+    """Chat with AI using model_priority with automatic fallback"""
+    response, provider, model = model_priority_queue.get_model(
+        priority=priority,
+        system_prompt=system_prompt,
+        user_content=user_content,
+        temperature=AI_TEMPERATURE,
+        max_tokens=AI_MAX_TOKENS
+    )
 
-    cprint(f"🤖 Using {model_config['type']} model: {model_config['name']}", "cyan")
-    
-    if model_config["type"] == "ollama":
-        response = model.generate_response(
-            system_prompt=system_prompt,
-            user_content=user_content,
-            temperature=AI_TEMPERATURE
-        )
-        if isinstance(response, str):
-            return response
-        if hasattr(response, 'content'):
-            return response.content
-        return str(response)
-    else:
-        response = model.generate_response(
-            system_prompt=system_prompt,
-            user_content=user_content,
-            temperature=AI_TEMPERATURE,
-            max_tokens=AI_MAX_TOKENS
-        )
-        if not response:
-            raise ValueError("Model returned None response")
-        return response.content
+    if not response:
+        raise ValueError("❌ All AI models failed!")
+
+    cprint(f"✅ Used model: {provider}:{model}", "green")
+    return response.content
 
 def clean_model_output(output, content_type="text"):
     """Clean model output by removing thinking tags and extracting code from markdown"""
@@ -693,7 +655,7 @@ def research_strategy(content):
         "Research AI",
         RESEARCH_PROMPT, 
         content,
-        RESEARCH_CONFIG
+        ModelPriority.HIGH
     )
     
     if output:
@@ -733,7 +695,7 @@ def create_backtest(strategy, strategy_name="UnknownStrategy"):
         "Backtest AI",
         BACKTEST_PROMPT,
         f"Create a backtest for this strategy:\n\n{strategy}",
-        BACKTEST_CONFIG
+        ModelPriority.HIGH
     )
     
     if output:
@@ -755,7 +717,7 @@ def package_check(backtest_code, strategy_name="UnknownStrategy"):
         "Package AI",
         PACKAGE_PROMPT,
         f"Check and fix indicator packages in this code:\n\n{backtest_code}",
-        PACKAGE_CONFIG
+        ModelPriority.HIGH
     )
     
     if output:
@@ -781,7 +743,7 @@ def debug_backtest(backtest_code, error_message, strategy_name="UnknownStrategy"
         "Debug AI",
         debug_prompt_with_error,
         f"Fix this backtest code:\n\n{backtest_code}",
-        DEBUG_CONFIG
+        ModelPriority.HIGH
     )
     
     if output:
@@ -812,7 +774,7 @@ def optimize_strategy(backtest_code, current_return, target_return, strategy_nam
         "Optimization AI",
         optimize_prompt_with_stats,
         f"Optimize this backtest code to hit the target:\n\n{backtest_code}",
-        OPTIMIZE_CONFIG
+        ModelPriority.HIGH
     )
 
     if output:
