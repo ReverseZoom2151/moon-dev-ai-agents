@@ -246,23 +246,27 @@ def clean_ideas_file():
     
     # Success message with animation
     cprint("\n✨ CLEANING COMPLETE! ✨", "white", "on_green")
-    
-    # Show the cleaned ideas with fancy formatting
-    cprint(f"\n📝 CLEANED IDEAS ({len(cleaned_lines)}):", "white", "on_blue")
-    
-    for i, line in enumerate(cleaned_lines, 1):
-        # Alternate background colors
-        bg_color = "on_blue" if i % 2 == 0 else "on_cyan"
-        cprint(f" {i:2d}. {line}", "yellow", bg_color)
-        
-        # Add random emoji every few lines
-        if i % 3 == 0:
-            emoji = random.choice(EMOJIS)
-            position = random.randint(0, 30)
-            print(" " * position + emoji)
-        
-        # Small delay for visual effect
-        time.sleep(0.1)
+
+    # Save cleaned ideas summary to a report file
+    report_path = DATA_DIR / "cleaned_ideas_report.txt"
+    cprint(f"\n💾 SAVING REPORT TO {report_path}...", "white", "on_blue")
+
+    with open(report_path, 'w', encoding='utf-8') as f:
+        f.write("=" * 80 + "\n")
+        f.write(" 🌙 MOON DEV'S IDEA CLEANER - REPORT 🌙\n")
+        f.write("=" * 80 + "\n\n")
+        f.write(f"Date: {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
+        f.write(f"Total Ideas Cleaned: {len(cleaned_lines)}\n\n")
+        f.write("=" * 80 + "\n")
+        f.write(" CLEANED IDEAS:\n")
+        f.write("=" * 80 + "\n\n")
+
+        for i, line in enumerate(cleaned_lines, 1):
+            f.write(f"{i:3d}. {line}\n")
+
+    cprint(f"✅ REPORT SAVED: {report_path}", "white", "on_green")
+    cprint(f"\n📝 CLEANED {len(cleaned_lines)} IDEAS", "white", "on_blue")
+    cprint(f"📄 View full report: {report_path}", "cyan")
     
     # Final celebration
     print("\n" + "★" * 60)
