@@ -235,40 +235,33 @@ if project_root not in sys.path:
 # No config.py imports needed - all settings are at the top of this file (lines 55-111)
 # Local from imports
 from src import nice_funcs as n
+from src.agents.base_agent import BaseAgent
 from src.agents.swarm_agent import SwarmAgent
 from src.data.ohlcv_collector import collect_all_tokens
-from src.models.model_factory import model_factory
+from src.models.model_priority import ModelPriority
 
 # Load environment variables
 load_dotenv()
 
-class TradingAgent:
+class TradingAgent(BaseAgent):
     def __init__(self):
+        # Initialize BaseAgent with model_priority
+        super().__init__('trading_agent', use_model_priority=True)
+
+        if not self.model_priority:
+            raise ValueError("🚨 Model priority system not initialized!")
+
         # Check if using swarm mode or single model
         if USE_SWARM_MODE:
             cprint(f"\n🌊 Initializing Trading Agent in SWARM MODE (6 AI consensus)...", "cyan", attrs=['bold'])
             self.swarm = SwarmAgent()
             cprint("✅ Swarm mode initialized with 6 AI models!", "green")
-
-            # Still need a lightweight model for portfolio allocation (not trading decisions)
-            cprint("💼 Initializing fast model for portfolio calculations...", "cyan")
-            self.model = model_factory.get_model(AI_MODEL_TYPE, AI_MODEL_NAME)
-            if self.model:
-                cprint(f"✅ Allocation model ready: {self.model.model_name}", "green")
+            cprint("💼 Portfolio allocation will use model_priority (HIGH priority)", "cyan")
         else:
-            # Initialize AI model via model factory (original behavior)
-            cprint(f"\n🤖 Initializing Trading Agent with {AI_MODEL_TYPE} model...", "cyan")
-            self.model = model_factory.get_model(AI_MODEL_TYPE, AI_MODEL_NAME)
+            cprint(f"\n🤖 Initializing Trading Agent with model_priority system...", "cyan")
             self.swarm = None  # Not used in single model mode
-
-            if not self.model:
-                cprint(f"❌ Failed to initialize {AI_MODEL_TYPE} model!", "red")
-                cprint("Available models:", "yellow")
-                for model_type in model_factory._models.keys():
-                    cprint(f"  - {model_type}", "yellow")
-                sys.exit(1)
-
-            cprint(f"✅ Using model: {self.model.model_name}", "green")
+            cprint("✅ Using model_priority with HIGH priority for trading decisions", "green")
+            cprint(f"   Priority order: GPT-5 → Claude Sonnet 4.5 → Gemini 2.5 Pro", "yellow")
 
         self.recommendations_df = pd.DataFrame(columns=['token', 'action', 'confidence', 'reasoning'])
 
@@ -291,19 +284,22 @@ class TradingAgent:
         cprint("\n🤖 Moon Dev's LLM Trading Agent initialized!", "green")
 
     def chat_with_ai(self, system_prompt, user_content):
-        """Send prompt to AI model via model factory"""
+        """Send prompt to AI model via model_priority"""
         try:
-            response = self.model.generate_response(
+            # Use model_priority with HIGH priority for trading decisions
+            model_response, provider, model_used = self.model_priority.get_model(
+                priority=ModelPriority.HIGH,
                 system_prompt=system_prompt,
                 user_content=user_content,
                 temperature=AI_TEMPERATURE,
                 max_tokens=AI_MAX_TOKENS
             )
 
-            # Handle response format
-            if hasattr(response, 'content'):
-                return response.content
-            return str(response)
+            # Extract text from ModelResponse object
+            response_text = model_response.content if hasattr(model_response, 'content') else str(model_response)
+
+            cprint(f"   ✅ Response from {provider}:{model_used}", "green")
+            return response_text
 
         except Exception as e:
             cprint(f"❌ AI model error: {e}", "red")
