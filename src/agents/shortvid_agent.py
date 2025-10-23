@@ -28,7 +28,7 @@ from dotenv import load_dotenv
 
 # Text Input Settings
 USE_TEXT_FILE = True  # Whether to use input text file by default
-INPUT_TEXT_FILE = "/Users/md/Dropbox/dev/github/moon-dev-ai-agents-for-trading/src/data/tweets/generated_tweets_20250127_092231.txt"
+INPUT_TEXT_FILE = PROJECT_ROOT / "src" / "data" / "tweets/generated_tweets_20250127_092231.txt"
 
 # Processing Settings
 PLAY_AUDIO = False  # Whether to play audio after generation (slower if True)
@@ -40,12 +40,12 @@ MODEL_ID = "eleven_multilingual_v2"  # Default model
 OUTPUT_FORMAT = "mp3_44100_128"  # High quality audio
 
 # Video Settings
-RAW_VIDS_DIR = Path("/Users/md/Dropbox/dev/github/moon-dev-ai-agents-for-trading/src/data/videos/raw_vids")
-FINAL_VIDS_DIR = Path("/Users/md/Dropbox/dev/github/moon-dev-ai-agents-for-trading/src/data/videos")
+RAW_VIDS_DIR = Path(PROJECT_ROOT / "src" / "data" / "videos/raw_vids")
+FINAL_VIDS_DIR = Path(PROJECT_ROOT / "src" / "data" / "videos")
 SUPPORTED_VIDEO_FORMATS = ['.mp4', '.mov', '.avi', '.mkv']
 
 # Output Settings
-AUDIO_DIR = Path("/Users/md/Dropbox/dev/github/moon-dev-ai-agents-for-trading/src/data/videos/audio")
+AUDIO_DIR = Path(PROJECT_ROOT / "src" / "data" / "videos/audio")
 
 class VideoAgent:
     """Moon Dev's Video Agent 🎬"""

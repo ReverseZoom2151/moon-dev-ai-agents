@@ -24,6 +24,14 @@ import sys
 import threading
 import time
 
+# Fix Windows console encoding for emojis
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+        sys.stderr.reconfigure(encoding='utf-8')
+    except (AttributeError, OSError):
+        pass
+
 # Third-party imports
 import openai
 
@@ -47,7 +55,7 @@ AI_MAX_TOKENS = 4000
 
 # Import model factory with proper path handling
 import sys
-sys.path.append('/Users/md/Dropbox/dev/github/moon-dev-ai-agents-for-trading')
+# sys.path already set up with PROJECT_ROOT above
 
 try:
     from src.models import model_factory

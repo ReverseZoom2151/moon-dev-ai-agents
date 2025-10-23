@@ -10,6 +10,14 @@ import random
 import sys
 import time
 
+# Fix Windows console encoding for emojis
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+        sys.stderr.reconfigure(encoding='utf-8')
+    except (AttributeError, OSError):
+        pass
+
 # Third-party imports
 import pandas as pd
 import requests
@@ -63,8 +71,8 @@ TRANSACTION_EMOJIS = [
 
 # Sound effects paths
 SOUND_EFFECTS = [
-    "/Users/md/Dropbox/dev/github/Untitled/sounds/crack1.wav",
-    "/Users/md/Dropbox/dev/github/Untitled/sounds/golfhit25.MP3"
+    PROJECT_ROOT / "sounds" / "crack1.wav",
+    PROJECT_ROOT / "sounds" / "golfhit25.MP3"
 ]
 
 class TxScanner:

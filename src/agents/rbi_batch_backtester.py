@@ -29,7 +29,7 @@ from src.agents.backtest_runner import run_backtest_in_conda, save_results
 # ==== CONFIG ====
 # Target research folder (can be overridden via CLI argument)
 DEFAULT_RESEARCH_DIR = Path(
-    "/Users/md/Dropbox/dev/github/moon-dev-ai-agents-for-trading/src/data/rbi/03_14_2025/research"
+    PROJECT_ROOT / "src" / "data" / "rbi/03_14_2025/research"
 )
 
 # Output subfolder name under the research directory
@@ -273,6 +273,14 @@ def run_one_strategy(research_dir: Path, file_path: Path, conda_env: str) -> Non
 
 def main():
     import sys
+
+# Fix Windows console encoding for emojis
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+        sys.stderr.reconfigure(encoding='utf-8')
+    except (AttributeError, OSError):
+        pass
 
     # Resolve research directory
     research_dir = DEFAULT_RESEARCH_DIR

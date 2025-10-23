@@ -14,6 +14,14 @@ import sys
 import threading
 import time
 
+# Fix Windows console encoding for emojis
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+        sys.stderr.reconfigure(encoding='utf-8')
+    except (AttributeError, OSError):
+        pass
+
 # Third-party imports
 import numpy as np
 import pandas as pd
@@ -57,7 +65,7 @@ AD_COUNTDOWN_MINUTES = 5  # How many minutes until ad plays (e.g., 1, 2, 3, etc.
 AD_INTERVAL_SECONDS = 10   # How often to check/show countdown
 CHATS_TO_PREVENT_AD = 10    # Number of chats needed to prevent ad
 AD_VIDEO_PATHS = [
-    "/Users/md/Dropbox/dev/github/moon-dev-ai-agents-for-trading/src/data/chat_agent/7 minute ATC ad.mov"
+    PROJECT_ROOT / "src" / "data" / "chat_agent/7 minute ATC ad.mov"
     # Add more video paths here as needed
 ]
 

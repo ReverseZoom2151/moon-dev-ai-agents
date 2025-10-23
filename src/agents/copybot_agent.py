@@ -16,6 +16,14 @@ import os
 import sys
 import time
 
+# Fix Windows console encoding for emojis
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+        sys.stderr.reconfigure(encoding='utf-8')
+    except (AttributeError, OSError):
+        pass
+
 # Third-party imports
 import pandas as pd
 
@@ -34,7 +42,7 @@ from src.data.ohlcv_collector import collect_token_data
 from src.models.model_priority import ModelPriority, model_priority_queue
 
 # Data path for current copybot portfolio
-COPYBOT_PORTFOLIO_PATH = '/Users/md/Dropbox/dev/github/solana-copy-trader/csvs/current_portfolio.csv'
+COPYBOT_PORTFOLIO_PATH = PROJECT_ROOT.parent / "solana-copy-trader" / "csvs/current_portfolio.csv"
 
 # LLM Prompts
 PORTFOLIO_ANALYSIS_PROMPT = """
