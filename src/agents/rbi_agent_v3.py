@@ -87,31 +87,30 @@ except ImportError as e:
 
 # Model Configurations
 # You can switch between "deepseek", "xai", "openai", "claude", "groq", etc.
-# Available xAI models: grok-4-fast-reasoning (best value!), grok-4-0709, grok-4-fast-non-reasoning,
-#                       grok-3, grok-3-mini, grok-code-fast-1
+# Using OpenAI GPT-5 - proven to work great in rbi_agent_v2_simple!
 RESEARCH_CONFIG = {
-    "type": "xai",  # Using Grok 4 Fast Reasoning (2M context, cheap!)
-    "name": "grok-4-fast-reasoning"
+    "type": "openai",
+    "name": "gpt-5-2025-08-07"
 }
 
 BACKTEST_CONFIG = {
-    "type": "xai",  # Using Grok 4 Fast Reasoning for backtest coding
-    "name": "grok-4-fast-reasoning"
+    "type": "openai",
+    "name": "gpt-5-2025-08-07"
 }
 
 DEBUG_CONFIG = {
-    "type": "xai",  # Using Grok 4 Fast Reasoning for debugging
-    "name": "grok-4-fast-reasoning"
+    "type": "openai",
+    "name": "gpt-5-2025-08-07"
 }
 
 PACKAGE_CONFIG = {
-    "type": "xai",  # Using Grok 4 Fast Reasoning for package checking
-    "name": "grok-4-fast-reasoning"
+    "type": "openai",
+    "name": "gpt-5-2025-08-07"
 }
 
 OPTIMIZE_CONFIG = {
-    "type": "xai",  # Using Grok 4 Fast Reasoning for optimization
-    "name": "grok-4-fast-reasoning"
+    "type": "openai",
+    "name": "gpt-5-2025-08-07"
 }
 
 # 🎯🎯🎯 PROFIT TARGET CONFIGURATION 🎯🎯🎯
