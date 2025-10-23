@@ -104,7 +104,21 @@ For updates: https://github.com/moon-dev-ai-agents-for-trading
 # Standard library imports
 import json
 import os
+import sys
 import time
+from pathlib import Path
+
+# Set UTF-8 encoding for Windows console
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except:
+        pass
+
+# Add project root to path for imports
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 # Third-party imports
 import anthropic
@@ -117,7 +131,6 @@ import src.config as config
 # Standard library from imports
 from concurrent.futures import ProcessPoolExecutor
 from datetime import datetime, timedelta
-from pathlib import Path
 from typing import Dict, List
 
 # Third-party from imports
