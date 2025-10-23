@@ -39,8 +39,16 @@ from random import randint, uniform
 # Third-party from imports
 from anthropic import Anthropic
 from dotenv import load_dotenv
-from google.cloud import speech_v1p1beta1 as speech
 from termcolor import cprint
+
+# Optional: Google Cloud Speech-to-Text (install: pip install google-cloud-speech)
+try:
+    from google.cloud import speech_v1p1beta1 as speech
+    SPEECH_AVAILABLE = True
+except ImportError:
+    SPEECH_AVAILABLE = False
+    cprint("⚠️ Google Cloud Speech-to-Text not available", "yellow")
+    cprint("   Install with: pip install google-cloud-speech", "cyan")
 
 # Add project root to Python path for imports
 project_root = str(Path(__file__).parent.parent.parent)
