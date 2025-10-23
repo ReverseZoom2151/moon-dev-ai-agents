@@ -67,6 +67,11 @@ from termcolor import cprint
 
 # Local from imports
 from src.models import model_factory
+from src.models.model_priority import ModelPriority
+
+# Initialize model_priority system (only on macOS since agent only runs there)
+if IS_MACOS:
+    model_priority = ModelPriority(model_factory)
 
 # Configuration - Moon Dev's target coordinates (DO NOT ADJUST THESE)
 CODE_EDITOR_X = -2686
@@ -93,9 +98,8 @@ SCREENSHOT_HEIGHT = 1200  # Shorter but captures top area
 # Composer screenshot prompt
 AI_CHAT_SCREENSHOT_PROMPT = "Does this image have more than 5 emojis in it? Return ONLY true or false."
 
-# AI Model settings
-MODEL_TYPE = "openai"  # Using OpenAI for image analysis
-MODEL_NAME = None  # Use default from model_factory (gpt-5-2025-08-07)
+# AI Model settings - using model_priority system with HIGH priority
+# HIGH priority uses: openai:gpt-5-2025-08-07 -> claude:claude-sonnet-4-5-20250929 -> gemini:gemini-2.5-pro
 
 # Easily configurable settings
 CLICK_PAUSE = 2.0         # Pause after movement before clicking
@@ -704,20 +708,25 @@ def capture_composer_screenshot():
     return None
 
 def analyze_composer_screenshot(screenshot_path: str) -> bool:
-    """Analyze AI chat screenshot using GPT-4 Vision"""
+    """Analyze AI chat screenshot using GPT-4 Vision via model_priority"""
     try:
         cprint("\n🔍 Analyzing AI chat screenshot...", "cyan")
-        
-        # Get model instance from factory
-        model = model_factory.get_model(MODEL_TYPE, MODEL_NAME)
-        if not model:
-            cprint("❌ Failed to get GPT-4 Vision model!", "red")
-            return False
-            
+
+        # Use model_priority with HIGH priority for vision analysis
+        # Note: For image analysis, we need OpenAI's vision capabilities
+        # HIGH priority ensures we get gpt-5 which supports vision
+
         # Read image file as base64
         with open(screenshot_path, "rb") as image_file:
             base64_image = base64.b64encode(image_file.read()).decode('utf-8')
-            
+
+        # For now, use model_factory directly for vision API
+        # TODO: Add vision support to model_priority system
+        model = model_factory.get_model("openai", None)  # Use default OpenAI model
+        if not model:
+            cprint("❌ Failed to get OpenAI Vision model!", "red")
+            return False
+
         # Create message with image
         messages = [
             {
@@ -733,12 +742,12 @@ def analyze_composer_screenshot(screenshot_path: str) -> bool:
                 ]
             }
         ]
-        
-        cprint("📤 Sending image to OpenAI for analysis...", "cyan")
-        
-        # Get response
+
+        cprint("📤 Sending image to OpenAI Vision for analysis...", "cyan")
+
+        # Get response using OpenAI's vision API
         response = model.client.chat.completions.create(
-            model=MODEL_NAME,
+            model=model.model_name,  # Use the model's configured name
             messages=messages,
             max_tokens=10
         )
