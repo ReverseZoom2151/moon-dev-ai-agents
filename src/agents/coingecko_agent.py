@@ -243,6 +243,20 @@ from typing import Dict, List, Optional, Union
 from dotenv import load_dotenv
 from termcolor import colored, cprint
 
+# Add project root to path for direct execution
+import sys
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+# Fix Windows console encoding for emojis
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+        sys.stderr.reconfigure(encoding='utf-8')
+    except (AttributeError, OSError):
+        pass
+
 # Local from imports
 from src.config import *
 
