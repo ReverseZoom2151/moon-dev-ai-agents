@@ -99,7 +99,8 @@ from tqdm import tqdm
 from youtube_transcript_api import YouTubeTranscriptApi
 
 # Local from imports
-from src.models import model_factory
+from src.agents.base_agent import BaseAgent
+from src.models.model_priority import ModelPriority
 
 # Constants
 MIN_CLIP_DURATION = 300  # 5 minutes in seconds
@@ -139,15 +140,16 @@ YOU MUST USE THE TRANSCRIPT ABOVE TO WRITE THE INTRO, MAKE SURE THAT IT IS ON TO
 RAW TEXT ONLY. NO MARKDOWN. NO QUOTES. NO ANALYSIS. NO THINKING. JUST THE INTRO.
 """
 
-# Constants for directories
-INPUT_DIR = Path("/Users/md/Dropbox/dev/github/moon-dev-ai-agents-for-trading/src/data/videos/raw_streams")
-OUTPUT_DIR = Path("/Users/md/Dropbox/dev/github/moon-dev-ai-agents-for-trading/src/data/videos/finished_clips")
-TEMP_DIR = Path("/Users/md/Dropbox/dev/github/moon-dev-ai-agents-for-trading/src/data/videos/temp")
-YOUTUBE_MATERIALS_DIR = Path("/Users/md/Dropbox/dev/github/moon-dev-ai-agents-for-trading/src/data/videos/youtube_materials")
+# Constants for directories - using relative paths from project root
+INPUT_DIR = PROJECT_ROOT / "src" / "data" / "videos" / "raw_streams"
+OUTPUT_DIR = PROJECT_ROOT / "src" / "data" / "videos" / "finished_clips"
+TEMP_DIR = PROJECT_ROOT / "src" / "data" / "videos" / "temp"
+YOUTUBE_MATERIALS_DIR = PROJECT_ROOT / "src" / "data" / "videos" / "youtube_materials"
 
-class ClipsAgent:
+class ClipsAgent(BaseAgent):
     def __init__(self):
         """Initialize the Clips Agent"""
+        super().__init__('clips', use_model_priority=True)
         self._setup_directories()
         self._setup_ai()
         self._setup_voice()
@@ -165,19 +167,18 @@ class ClipsAgent:
         cprint(f"📂 YouTube materials directory: {YOUTUBE_MATERIALS_DIR}", "cyan")
     
     def _setup_ai(self):
-        """Initialize AI model using factory"""
+        """Initialize AI model using model priority system"""
         if not PROCESS_YOUTUBE:
             cprint("🤖 AI initialization skipped - YouTube processing disabled", "yellow")
             return
-            
-        try:
-            self.model = model_factory.get_model(MODEL_TYPE, MODEL_NAME)
-            if not self.model:
-                raise ValueError(f"Could not initialize {MODEL_TYPE} {MODEL_NAME} model!")
-            cprint("🤖 AI Model initialized successfully!", "green")
-        except Exception as e:
-            cprint(f"❌ Error initializing AI model: {str(e)}", "red")
-            raise
+
+        # Check model_priority system initialized
+        if not self.model_priority:
+            cprint("❌ Model priority system not initialized!", "red")
+            raise ValueError("🚨 Model priority system not initialized!")
+
+        cprint("🤖 Using Model Priority System: MEDIUM (Auto-Fallback Enabled)", "cyan")
+        cprint("   Primary: Claude Haiku 4.5 -> GPT-5 Mini -> Gemini 2.5 Flash", "cyan")
 
     def _setup_voice(self):
         """Initialize OpenAI client for voice generation"""
@@ -552,7 +553,7 @@ class ClipsAgent:
             return None
 
     def analyze_transcript(self, transcript):
-        """Analyze transcript using AI"""
+        """Analyze transcript using AI with model priority system"""
         try:
             # Clean up the transcript first
             cleaned_transcript = transcript
@@ -565,95 +566,46 @@ class ClipsAgent:
                         if text:
                             cleaned_lines.append(text)
                 cleaned_transcript = ' '.join(cleaned_lines)
-            
+
             cprint("\n🎬 Input Transcript:", "magenta")
             cprint("═" * 100, "magenta")
             cprint(cleaned_transcript, "white")
             cprint("═" * 100, "magenta")
-            
-            cprint(f"\n🧠 Analyzing transcript with {MODEL_TYPE.upper()} ({MODEL_NAME})...", "cyan")
-            
+
+            cprint("\n🧠 Analyzing transcript with Model Priority System...", "cyan")
+
             # Format prompt with transcript first
             formatted_prompt = TRANSCRIPT_PROMPT.format(transcript=cleaned_transcript)
-            
-            # For Ollama model, we handle the response directly
-            if MODEL_TYPE == "ollama":
-                response = self.model.generate_response(
-                    system_prompt="You are Moon Dev's Hype AI. You write short, exciting video intros.",
-                    user_content=formatted_prompt,
-                    temperature=0.7
-                )
-                if response:
-                    # Extract just the quoted response
-                    if '"' in response:
-                        # Get text between first and last quote
-                        content = response[response.find('"'):response.rfind('"')+1]
-                    else:
-                        # If no quotes, wrap the whole response
-                        content = f'"{response.strip()}"'
-                    
-                    # Verify response length
-                    sentences = [s.strip() for s in content.replace('"','').split('.') if s.strip()]
-                    if len(sentences) > MAX_SENTENCES:
-                        cprint(f"\n⚠️ Response too long ({len(sentences)} sentences) - retrying...", "yellow")
-                        max_retries = 3
-                        retry_count = 0
-                        
-                        while len(sentences) > MAX_SENTENCES and retry_count < max_retries:
-                            retry_count += 1
-                            cprint(f"🔄 Retry attempt {retry_count}/{max_retries}...", "yellow")
-                            
-                            # Use the same prompt but with a new temperature
-                            response = self.model.generate_response(
-                                system_prompt="You are Moon Dev's Hype AI. You write short, exciting video intros.",
-                                user_content=formatted_prompt,
-                                temperature=0.7 + (retry_count * 0.1)  # Increase temperature slightly each retry
-                            )
-                            
-                            if response:
-                                if '"' in response:
-                                    content = response[response.find('"'):response.rfind('"')+1]
-                                else:
-                                    content = f'"{response.strip()}"'
-                                sentences = [s.strip() for s in content.replace('"','').split('.') if s.strip()]
-                                
-                                if len(sentences) <= MAX_SENTENCES:
-                                    cprint("✨ Got a good response!", "green")
-                                    break
-                        
-                        if len(sentences) > MAX_SENTENCES:
-                            cprint(f"⚠️ Still got {len(sentences)} sentences after {max_retries} retries. Using best attempt.", "yellow")
-                    
-                    cprint("\n🎙️ AI Response:", "green")
-                    cprint("═" * 100, "green")
-                    cprint(content, "cyan", attrs=['bold'])
-                    cprint("═" * 100, "green")
-                    
-                    return content
-            else:
-                # For other models, use the standard generate_response
-                response = self.model.generate_response(
-                    system_prompt="You are Moon Dev's Hype AI. You write short, exciting video intros.",
-                    user_content=formatted_prompt
-                )
-                
-                if response and hasattr(response, 'content') and response.content:
-                    content = response.content
-                    cprint("\n🎙️ AI Response:", "green")
-                    cprint("═" * 100, "green")
-                    cprint(content, "cyan", attrs=['bold'])
-                    cprint("═" * 100, "green")
-                    return content
-                elif isinstance(response, str):
-                    content = response
-                    cprint("\n🎙️ AI Response:", "green")
-                    cprint("═" * 100, "green")
-                    cprint(content, "cyan", attrs=['bold'])
-                    cprint("═" * 100, "green")
-                    return content
-            
-            cprint("❌ No valid response from AI model", "red")
-            return None
+
+            # Use model_priority for unified model access with automatic fallback
+            response, provider, model = self.model_priority.get_model(
+                priority=ModelPriority.MEDIUM,
+                system_prompt="You are Moon Dev's Hype AI. You write short, exciting video intros.",
+                user_content=formatted_prompt,
+                temperature=0.7,
+                max_tokens=500
+            )
+
+            if not response:
+                cprint("❌ All models failed - could not analyze transcript", "red")
+                return None
+
+            # Extract content from response
+            content = response.strip()
+
+            # Verify response length
+            sentences = [s.strip() for s in content.replace('"','').split('.') if s.strip()]
+            if len(sentences) > MAX_SENTENCES:
+                cprint(f"\n⚠️ Response too long ({len(sentences)} sentences, max {MAX_SENTENCES})", "yellow")
+                cprint("   Model priority system will try next model automatically if needed", "yellow")
+
+            cprint("\n🎙️ AI Response:", "green")
+            cprint("═" * 100, "green")
+            cprint(content, "cyan", attrs=['bold'])
+            cprint("═" * 100, "green")
+            cprint(f"   Used: {provider}:{model}", "cyan")
+
+            return content
                 
         except Exception as e:
             cprint(f"❌ Error analyzing transcript: {str(e)}", "red")
