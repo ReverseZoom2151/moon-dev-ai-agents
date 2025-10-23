@@ -550,9 +550,9 @@ def animate_progress(agent_name, stop_event):
         "Moon Dev approved 🌙",
         "to the moon! 🚀"
     ]
-    
-    spinner = itertools.cycle(spinners)
-    message = itertools.cycle(messages)
+
+    spinner = cycle(spinners)
+    message = cycle(messages)
     
     while not stop_event.is_set():
         sys.stdout.write(f'\r{next(spinner)} {agent_name} is {next(message)}...')
