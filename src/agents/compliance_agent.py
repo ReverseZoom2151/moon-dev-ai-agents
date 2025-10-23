@@ -43,14 +43,12 @@ from termcolor import colored, cprint
 from tqdm import tqdm
 
 # Local from imports
-from src.models import model_factory
+from src.agents.base_agent import BaseAgent
+from src.models.model_priority import ModelPriority
 
 # Configuration
-MODEL_CONFIG = {
-    "type": "openai",
-    "name": "gpt-4o-mini",  # Using OpenAI's GPT-4o-mini model for analysis
-    "reasoning_effort": "high"  # Maximum reasoning for compliance checks
-}
+AI_TEMPERATURE = 0.7  # Temperature for compliance analysis
+AI_MAX_TOKENS = 2000  # Max tokens for response
 
 # Paths (PROJECT_ROOT already defined above)
 DATA_DIR = PROJECT_ROOT / "src" / "data" / "compliance"
@@ -102,62 +100,41 @@ Your response MUST follow this format:
 Remember to be thorough but fair in your assessment. The goal is to help improve ad compliance, not to reject ads unnecessarily.
 """
 
-class ComplianceAgent:
+class ComplianceAgent(BaseAgent):
     """Agent to analyze ad compliance with Facebook guidelines"""
-    
+
     def __init__(self, guidelines_path: Path = None):
         """Initialize the compliance agent"""
+        # Initialize BaseAgent with model_priority
+        super().__init__('compliance_agent', use_model_priority=True)
+
+        if not self.model_priority:
+            raise ValueError("🚨 Model priority system not initialized!")
+
         self.guidelines = self._load_guidelines(guidelines_path)
-        self.model = self._init_model()
         self._whisper_model = None  # Lazy-loaded
-        
+
         # Create output directories if they don't exist
         for dir_path in [OUTPUT_DIR, FRAMES_DIR, TRANSCRIPTS_DIR, REPORTS_DIR]:
             dir_path.mkdir(parents=True, exist_ok=True)
-            
+
+        cprint("🤖 Using model_priority with MEDIUM priority for compliance analysis", "green")
+        cprint("   Priority order: Claude Haiku 4.5 → GPT-5 Mini → Gemini 2.5 Flash", "yellow")
         cprint("🌙 Moon Dev's Compliance Agent initialized! 🌙", "magenta")
         
     def _load_guidelines(self, guidelines_path: Optional[Path] = None) -> str:
         """Load Facebook advertising guidelines"""
         if not guidelines_path:
             guidelines_path = GUIDELINES_PATH
-            
+
         try:
-            with open(guidelines_path, 'r') as f:
+            with open(guidelines_path, 'r', encoding='utf-8') as f:
                 guidelines = f.read()
             cprint(f"✅ Loaded guidelines from {guidelines_path}", "green")
             return guidelines
         except Exception as e:
             cprint(f"❌ Error loading guidelines: {str(e)}", "red")
             return "Facebook advertising guidelines not available."
-            
-    def _init_model(self):
-        """Initialize AI model for compliance analysis"""
-        try:
-            cprint(f"🤖 Initializing {MODEL_CONFIG['type']} model: {MODEL_CONFIG['name']}...", "cyan")
-            
-            model = model_factory.get_model(MODEL_CONFIG["type"], MODEL_CONFIG["name"])
-            if not model:
-                cprint(f"❌ Failed to initialize {MODEL_CONFIG['type']} model", "red")
-                cprint("⚠️ Will attempt to use any available model", "yellow")
-                
-                # Try to use any available model
-                for model_type in model_factory.MODEL_IMPLEMENTATIONS.keys():
-                    if model_factory.is_model_available(model_type):
-                        model = model_factory.get_model(model_type)
-                        cprint(f"✅ Using alternative model: {model_type}", "green")
-                        break
-                        
-            if not model:
-                cprint("❌ No AI models available. Please check your API keys.", "red")
-                raise ValueError("No AI models available")
-                
-            cprint(f"✅ Successfully initialized AI model", "green")
-            return model
-            
-        except Exception as e:
-            cprint(f"❌ Error initializing model: {str(e)}", "red")
-            raise
     
     def _lazy_load_whisper(self):
         """Lazy-load the Whisper model when needed"""
@@ -292,22 +269,25 @@ class ComplianceAgent:
                 {"type": "text", "text": self.guidelines[:5000]}
             ]
             
-            # Get analysis from model
+            # Get analysis from model using model_priority
             cprint("🧠 Asking AI to analyze compliance...", "cyan")
             cprint("🌙 Moon Dev's Compliance Agent is thinking deeply... 🌙", "magenta")
-            
-            response = self.model.generate_response(
+
+            model_response, provider, model_used = self.model_priority.get_model(
+                priority=ModelPriority.MEDIUM,
                 system_prompt=COMPLIANCE_PROMPT,
                 user_content=user_content,
-                temperature=0.7,
-                max_tokens=2000
+                temperature=AI_TEMPERATURE,
+                max_tokens=AI_MAX_TOKENS
             )
-            
-            if not response or not hasattr(response, 'content'):
+
+            if not model_response:
                 cprint("❌ Model returned empty response", "red")
                 return {"error": "Model returned empty response"}
-            
-            content = response.content
+
+            # Extract text from ModelResponse object
+            content = model_response.content if hasattr(model_response, 'content') else str(model_response)
+            cprint(f"   ✅ Analysis from {provider}:{model_used}", "green")
             
             # Try to parse JSON from response
             try:
