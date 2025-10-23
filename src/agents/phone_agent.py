@@ -47,7 +47,7 @@ from termcolor import cprint
 from twilio.twiml.voice_response import Gather, VoiceResponse
 
 # Local from imports
-from src.models.model_priority import ModelPriority
+from src.models.model_priority import ModelPriority, ModelPriorityQueue
 
 # Testing mode flag - set to True to test in terminal without Twilio
 TESTING_MODE = True
@@ -82,7 +82,7 @@ MAX_TOKENS = 50  # Keep responses short and concise
 TEMPERATURE = 0.7
 
 # Initialize model priority system for AI responses
-model_priority = ModelPriority()
+model_priority = ModelPriorityQueue()
 
 # Audio timing settings
 SPEECH_END_PAUSE = 1.0  # Seconds of silence to consider speech ended
