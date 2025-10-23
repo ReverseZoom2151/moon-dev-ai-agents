@@ -22,6 +22,11 @@ import selenium
 from datetime import datetime
 from pathlib import Path
 
+# Add project root to Python path for imports (MUST be before src imports)
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 # Third-party from imports
 from dotenv import load_dotenv
 from selenium import webdriver
@@ -34,13 +39,8 @@ from termcolor import cprint
 # Local from imports
 from src.config import *
 
-# Add project root to Python path for imports
-project_root = str(Path(__file__).parent.parent.parent)
-if project_root not in sys.path:
-    sys.path.append(project_root)
-
 # Load environment variables from the project root
-env_path = Path(project_root) / '.env'
+env_path = PROJECT_ROOT / '.env'
 if not env_path.exists():
     raise ValueError(f"🚨 .env file not found at {env_path}")
 
