@@ -6,8 +6,18 @@ Built with love by Moon Dev 🚀
 '''
 
 # Standard library imports
+import sys
 import time
 import traceback
+
+# Fix Windows console encoding for emojis (must be done early)
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+        sys.stderr.reconfigure(encoding='utf-8')
+    except (AttributeError, OSError):
+        # Python < 3.7 or already configured
+        pass
 
 # Third-party imports
 import numpy as np
