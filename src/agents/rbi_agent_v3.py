@@ -133,6 +133,169 @@ for dir in [DATA_DIR, TODAY_DIR, RESEARCH_DIR, BACKTEST_DIR, PACKAGE_DIR,
             FINAL_BACKTEST_DIR, OPTIMIZATION_DIR, CHARTS_DIR, EXECUTION_DIR]:
     dir.mkdir(parents=True, exist_ok=True)
 
+# ==============================================================================
+# DEBUG & TRACKING FUNCTIONS
+# ==============================================================================
+
+def calculate_prompt_length(text: str) -> int:
+    """Estimate token count (rough approximation: 1 token ≈ 4 chars)"""
+    return len(text) // 4
+
+def format_token_usage(usage: dict, provider: str) -> str:
+    """Format token usage info for display"""
+    if not usage:
+        return "No usage data available"
+
+    # Different providers use different keys
+    if provider == "openai":
+        prompt = usage.get('prompt_tokens', 0)
+        completion = usage.get('completion_tokens', 0)
+        total = usage.get('total_tokens', prompt + completion)
+    elif provider == "claude":
+        prompt = usage.get('input_tokens', 0)
+        completion = usage.get('completion_tokens', usage.get('output_tokens', 0))
+        total = prompt + completion
+    else:
+        # Generic fallback
+        completion = usage.get('completion_tokens', usage.get('output_tokens', 0))
+        total = usage.get('total_tokens', completion)
+        prompt = total - completion
+
+    return f"📊 Tokens: Input={prompt:,} | Output={completion:,} | Total={total:,}"
+
+def estimate_cost(usage: dict, provider: str, model: str) -> float:
+    """Estimate API cost in USD based on token usage"""
+    if not usage:
+        return 0.0
+
+    # Extract token counts
+    if provider == "openai":
+        input_tokens = usage.get('prompt_tokens', 0)
+        output_tokens = usage.get('completion_tokens', 0)
+
+        # GPT-5 pricing (estimated)
+        if "gpt-5" in model.lower():
+            input_cost = (input_tokens / 1_000_000) * 5.00  # $5 per 1M input tokens
+            output_cost = (output_tokens / 1_000_000) * 15.00  # $15 per 1M output tokens
+        else:
+            input_cost = (input_tokens / 1_000_000) * 2.50
+            output_cost = (output_tokens / 1_000_000) * 10.00
+
+    elif provider == "claude":
+        input_tokens = usage.get('input_tokens', 0)
+        output_tokens = usage.get('completion_tokens', usage.get('output_tokens', 0))
+
+        # Claude Sonnet 4.5 pricing
+        if "sonnet" in model.lower():
+            input_cost = (input_tokens / 1_000_000) * 3.00  # $3 per 1M input tokens
+            output_cost = (output_tokens / 1_000_000) * 15.00  # $15 per 1M output tokens
+        else:
+            input_cost = (input_tokens / 1_000_000) * 1.00
+            output_cost = (output_tokens / 1_000_000) * 5.00
+    else:
+        # Generic/free models
+        return 0.0
+
+    return input_cost + output_cost
+
+# Import dataclass for tracking classes
+from dataclasses import dataclass, field
+from typing import List
+
+@dataclass
+class PhaseResult:
+    """Track results of each AI phase"""
+    phase_name: str
+    success: bool
+    provider: str
+    model: str
+    input_tokens: int
+    output_tokens: int
+    total_tokens: int
+    cost_usd: float
+    finish_reason: str = "unknown"
+    error_message: str = None
+
+    def __str__(self):
+        status = "✅ SUCCESS" if self.success else "❌ FAILED"
+        return (
+            f"{status} | {self.phase_name} | {self.provider}:{self.model}\n"
+            f"  Tokens: {self.input_tokens:,} in + {self.output_tokens:,} out = {self.total_tokens:,} total\n"
+            f"  Cost: ${self.cost_usd:.4f} | Finish: {self.finish_reason}"
+        )
+
+@dataclass
+class RunSummary:
+    """Track entire run statistics"""
+    idea: str
+    strategy_name: str = "Unknown"
+    phases: List[PhaseResult] = field(default_factory=list)
+    start_time: float = field(default_factory=lambda: time.time())
+    end_time: float = None
+    final_status: str = "Unknown"
+
+    def add_phase(self, phase: PhaseResult):
+        """Add a phase result to the summary"""
+        self.phases.append(phase)
+
+    def finalize(self, status: str):
+        """Mark run as complete and generate summary"""
+        self.end_time = time.time()
+        self.final_status = status
+
+    def get_total_tokens(self) -> int:
+        """Calculate total tokens used across all phases"""
+        return sum(p.total_tokens for p in self.phases)
+
+    def get_total_cost(self) -> float:
+        """Calculate total cost across all phases"""
+        return sum(p.cost_usd for p in self.phases)
+
+    def get_failed_phases(self) -> List[PhaseResult]:
+        """Get list of failed phases"""
+        return [p for p in self.phases if not p.success]
+
+    def print_summary(self):
+        """Print formatted run summary"""
+        duration = self.end_time - self.start_time if self.end_time else 0
+
+        cprint("\n" + "="*80, "cyan")
+        cprint("📊 RUN SUMMARY", "cyan", attrs=["bold"])
+        cprint("="*80, "cyan")
+
+        cprint(f"\n🎯 Strategy: {self.strategy_name}", "white", attrs=["bold"])
+        cprint(f"⏱️  Duration: {duration:.1f}s", "white")
+        cprint(f"🏁 Final Status: {self.final_status}", "green" if "success" in self.final_status.lower() else "yellow")
+
+        # Phase breakdown
+        cprint(f"\n📋 Phases Completed: {len(self.phases)}", "white", attrs=["bold"])
+        for i, phase in enumerate(self.phases, 1):
+            cprint(f"\n  {i}. {phase}", "green" if phase.success else "red")
+
+        # Failed phases
+        failed = self.get_failed_phases()
+        if failed:
+            cprint(f"\n⚠️  Failed Phases: {len(failed)}", "yellow", attrs=["bold"])
+            for phase in failed:
+                if phase.error_message:
+                    cprint(f"  • {phase.phase_name}: {phase.error_message}", "yellow")
+
+        # Totals
+        cprint(f"\n💰 Total Cost: ${self.get_total_cost():.4f}", "cyan", attrs=["bold"])
+        cprint(f"🎫 Total Tokens: {self.get_total_tokens():,}", "cyan", attrs=["bold"])
+
+        # Token breakdown by phase
+        cprint(f"\n📊 Token Usage by Phase:", "white", attrs=["bold"])
+        for phase in self.phases:
+            pct = (phase.total_tokens / self.get_total_tokens() * 100) if self.get_total_tokens() > 0 else 0
+            cprint(f"  • {phase.phase_name}: {phase.total_tokens:,} ({pct:.1f}%)", "white")
+
+        cprint("\n" + "="*80, "cyan")
+
+# ==============================================================================
+# PROMPTS
+# ==============================================================================
+
 # All prompts (same as v1)
 RESEARCH_PROMPT = """
 You are Moon Dev's Research AI 🌙
@@ -563,8 +726,20 @@ def analyze_no_trades_issue(execution_result: dict) -> str:
     
     return "Strategy executed but took 0 trades, resulting in NaN values. Please adjust the strategy logic to actually generate trading signals and take trades."
 
-def chat_with_model(system_prompt, user_content, priority=ModelPriority.HIGH):
-    """Chat with AI using model_priority with automatic fallback"""
+def chat_with_model(system_prompt, user_content, priority=ModelPriority.HIGH, phase_name="Unknown"):
+    """
+    Chat with AI using model_priority with automatic fallback
+
+    Returns: Tuple of (content, phase_result)
+    """
+    # Calculate input size
+    input_length = calculate_prompt_length(system_prompt + user_content)
+    cprint(f"\n🔍 {phase_name} - Sending request...", "cyan")
+    cprint(f"  📏 Input size: ~{input_length:,} tokens", "cyan")
+    cprint(f"  🎯 Priority: {priority.name}", "cyan")
+    cprint(f"  🔢 Max output tokens: {AI_MAX_TOKENS:,}", "cyan")
+
+    # Call model
     response, provider, model = model_priority_queue.get_model(
         priority=priority,
         system_prompt=system_prompt,
@@ -573,16 +748,70 @@ def chat_with_model(system_prompt, user_content, priority=ModelPriority.HIGH):
         max_tokens=AI_MAX_TOKENS
     )
 
+    # Create phase result
+    phase_result = PhaseResult(
+        phase_name=phase_name,
+        success=False,
+        provider=provider or "unknown",
+        model=model or "unknown",
+        input_tokens=0,
+        output_tokens=0,
+        total_tokens=0,
+        cost_usd=0.0
+    )
+
     if not response:
-        raise ValueError("❌ All AI models failed!")
+        cprint(f"  ❌ All AI models failed!", "red")
+        phase_result.error_message = "All models in priority chain failed"
+        return None, phase_result
+
+    # Extract usage info from ModelResponse
+    usage = response.usage if hasattr(response, 'usage') else {}
+
+    # Get finish_reason from raw_response if available
+    if hasattr(response, 'raw_response'):
+        raw = response.raw_response
+        if hasattr(raw, 'choices') and len(raw.choices) > 0:
+            phase_result.finish_reason = getattr(raw.choices[0], 'finish_reason', 'unknown')
+
+    # Update phase result with usage
+    if usage:
+        if provider == "openai":
+            phase_result.input_tokens = usage.get('prompt_tokens', 0)
+            phase_result.output_tokens = usage.get('completion_tokens', 0)
+        elif provider == "claude":
+            phase_result.input_tokens = usage.get('input_tokens', 0)
+            phase_result.output_tokens = usage.get('completion_tokens', usage.get('output_tokens', 0))
+        else:
+            phase_result.output_tokens = usage.get('completion_tokens', usage.get('output_tokens', 0))
+            phase_result.input_tokens = usage.get('total_tokens', 0) - phase_result.output_tokens
+
+        phase_result.total_tokens = phase_result.input_tokens + phase_result.output_tokens
+        phase_result.cost_usd = estimate_cost(usage, provider, model)
+
+    # Display detailed debug info
+    cprint(f"  ✅ Response received from {provider}:{model}", "green")
+    cprint(f"  {format_token_usage(usage, provider)}", "cyan")
+    cprint(f"  💰 Cost: ${phase_result.cost_usd:.4f}", "cyan")
+    cprint(f"  🏁 Finish reason: {phase_result.finish_reason}", "cyan")
 
     # Check if response has valid content
     if not response.content or len(response.content.strip()) == 0:
-        cprint(f"⚠️ Model {provider}:{model} returned empty content", "yellow")
-        return None
+        cprint(f"  ⚠️ Model {provider}:{model} returned EMPTY content", "yellow")
+        cprint(f"  ❓ Possible reasons:", "yellow")
+        cprint(f"     • finish_reason={phase_result.finish_reason} (check if 'length' or 'content_filter')", "yellow")
+        cprint(f"     • Input too long: ~{input_length:,} tokens consumed context window", "yellow")
+        cprint(f"     • API timeout or network error", "yellow")
+        phase_result.error_message = f"Empty response (finish_reason={phase_result.finish_reason})"
+        return None, phase_result
 
-    cprint(f"✅ Used model: {provider}:{model}", "green")
-    return response.content
+    # Success!
+    content_length = len(response.content)
+    output_token_estimate = calculate_prompt_length(response.content)
+    cprint(f"  📝 Content length: {content_length:,} chars (~{output_token_estimate:,} tokens)", "green")
+
+    phase_result.success = True
+    return response.content, phase_result
 
 def clean_model_output(output, content_type="text"):
     """Clean model output by removing thinking tags and extracting code from markdown"""
@@ -655,12 +884,13 @@ def research_strategy(content):
     """Research AI: Analyzes and creates trading strategy"""
     cprint("\n🔍 Starting Research AI...", "cyan")
     
-    output = run_with_animation(
+    output, phase_result = run_with_animation(
         chat_with_model,
         "Research AI",
-        RESEARCH_PROMPT, 
+        RESEARCH_PROMPT,
         content,
-        ModelPriority.HIGH
+        ModelPriority.HIGH,
+        "Research"
     )
     
     if output:
@@ -688,52 +918,54 @@ def research_strategy(content):
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write(output)
         cprint(f"📝 Research saved to {filepath}", "green")
-        return output, strategy_name
-    return None, None
+        return (output, strategy_name), phase_result
+    return (None, None), phase_result
 
 def create_backtest(strategy, strategy_name="UnknownStrategy"):
     """Backtest AI: Creates backtest implementation"""
     cprint("\n📊 Starting Backtest AI...", "cyan")
     
-    output = run_with_animation(
+    output, phase_result = run_with_animation(
         chat_with_model,
         "Backtest AI",
         BACKTEST_PROMPT,
         f"Create a backtest for this strategy:\n\n{strategy}",
-        ModelPriority.HIGH
+        ModelPriority.HIGH,
+        "Backtest"
     )
-    
+
     if output:
         output = clean_model_output(output, "code")
-        
+
         filepath = BACKTEST_DIR / f"{strategy_name}_BT.py"
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write(output)
         cprint(f"🔥 Backtest saved to {filepath}", "green")
-        return output
-    return None
+        return output, phase_result
+    return None, phase_result
 
 def package_check(backtest_code, strategy_name="UnknownStrategy"):
     """Package AI: Ensures correct indicator packages are used"""
     cprint("\n📦 Starting Package AI...", "cyan")
     
-    output = run_with_animation(
+    output, phase_result = run_with_animation(
         chat_with_model,
         "Package AI",
         PACKAGE_PROMPT,
         f"Check and fix indicator packages in this code:\n\n{backtest_code}",
-        ModelPriority.HIGH
+        ModelPriority.HIGH,
+        "Package"
     )
-    
+
     if output:
         output = clean_model_output(output, "code")
-        
+
         filepath = PACKAGE_DIR / f"{strategy_name}_PKG.py"
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write(output)
         cprint(f"📦 Package-fixed code saved to {filepath}", "green")
-        return output
-    return None
+        return output, phase_result
+    return None, phase_result
 
 def debug_backtest(backtest_code, error_message, strategy_name="UnknownStrategy", iteration=1):
     """Debug AI: Fixes technical issues in backtest code"""
@@ -742,24 +974,25 @@ def debug_backtest(backtest_code, error_message, strategy_name="UnknownStrategy"
     
     # Create debug prompt with specific error
     debug_prompt_with_error = DEBUG_PROMPT.format(error_message=error_message)
-    
-    output = run_with_animation(
+
+    output, phase_result = run_with_animation(
         chat_with_model,
         "Debug AI",
         debug_prompt_with_error,
         f"Fix this backtest code:\n\n{backtest_code}",
-        ModelPriority.HIGH
+        ModelPriority.HIGH,
+        f"Debug (iteration {iteration})"
     )
-    
+
     if output:
         output = clean_model_output(output, "code")
-        
+
         filepath = FINAL_BACKTEST_DIR / f"{strategy_name}_BTFinal_v{iteration}.py"
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write(output)
         cprint(f"🔧 Debugged code saved to {filepath}", "green")
-        return output
-    return None
+        return output, phase_result
+    return None, phase_result
 
 def optimize_strategy(backtest_code, current_return, target_return, strategy_name="UnknownStrategy", iteration=1):
     """Optimization AI: Improves strategy to hit target return"""
@@ -774,12 +1007,13 @@ def optimize_strategy(backtest_code, current_return, target_return, strategy_nam
         target_return=target_return
     )
 
-    output = run_with_animation(
+    output, phase_result = run_with_animation(
         chat_with_model,
         "Optimization AI",
         optimize_prompt_with_stats,
         f"Optimize this backtest code to hit the target:\n\n{backtest_code}",
-        ModelPriority.HIGH
+        ModelPriority.HIGH,
+        f"Optimize (iteration {iteration})"
     )
 
     if output:
@@ -789,50 +1023,63 @@ def optimize_strategy(backtest_code, current_return, target_return, strategy_nam
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write(output)
         cprint(f"🎯 Optimized code saved to {filepath}", "green")
-        return output
-    return None
+        return output, phase_result
+    return None, phase_result
 
 def process_trading_idea_with_execution(idea: str) -> None:
     """
     THE NEW V3.0 PROCESS WITH OPTIMIZATION LOOP! 🚀🎯
     Research -> Backtest -> Package -> Execute -> Debug (loop) -> OPTIMIZE (loop) -> Target Hit!
     """
+    # Initialize run summary for tracking
+    run_summary = RunSummary(idea=idea[:100])
+
     print("\n🚀 Moon Dev's RBI AI v3.0 Processing New Idea!")
     print("🎯 Now with OPTIMIZATION LOOP!")
     print(f"🎯 Target Return: {TARGET_RETURN}%")
     print(f"📝 Processing idea: {idea[:100]}...")
-    
+
     # Phase 1: Research
     print("\n🧪 Phase 1: Research")
     # For this example, using the idea directly
-    strategy, strategy_name = research_strategy(idea)
+    (strategy, strategy_name), phase_result = research_strategy(idea)
+    run_summary.add_phase(phase_result)
+    run_summary.strategy_name = strategy_name if strategy_name else "Failed"
 
     if not strategy:
         cprint("❌ Research phase failed - no strategy generated (likely response too long)", "red")
         cprint("🔄 Skipping to next idea...", "yellow")
+        run_summary.finalize("Failed at Research phase")
+        run_summary.print_summary()
         return
 
     print(f"🏷️ Strategy Name: {strategy_name}")
-    
+
     # Log the idea as processed once we have a strategy name
     log_processed_idea(idea, strategy_name)
-    
+
     # Phase 2: Backtest
     print("\n📈 Phase 2: Backtest")
-    backtest = create_backtest(strategy, strategy_name)
+    backtest, phase_result = create_backtest(strategy, strategy_name)
+    run_summary.add_phase(phase_result)
 
     if not backtest:
         cprint("❌ Backtest phase failed - no code generated (likely response too long)", "red")
         cprint("🔄 Skipping to next idea...", "yellow")
+        run_summary.finalize("Failed at Backtest phase")
+        run_summary.print_summary()
         return
 
     # Phase 3: Package Check
     print("\n📦 Phase 3: Package Check")
-    package_checked = package_check(backtest, strategy_name)
+    package_checked, phase_result = package_check(backtest, strategy_name)
+    run_summary.add_phase(phase_result)
 
     if not package_checked:
         cprint("❌ Package check failed - no fixed code generated", "red")
         cprint("🔄 Skipping to next idea...", "yellow")
+        run_summary.finalize("Failed at Package Check phase")
+        run_summary.print_summary()
         return
     
     # Save the package-checked version
@@ -863,16 +1110,19 @@ def process_trading_idea_with_execution(idea: str) -> None:
                 debug_iteration += 1
                 
                 if debug_iteration < MAX_DEBUG_ITERATIONS:
-                    debugged_code = debug_backtest(
+                    debugged_code, phase_result = debug_backtest(
                         current_code,
                         error_message,
                         strategy_name,
                         debug_iteration
                     )
+                    run_summary.add_phase(phase_result)
 
                     if not debugged_code:
                         cprint("❌ Debug AI failed to generate fixed code (likely response too long)", "red")
                         cprint("🔄 Skipping to next idea...", "yellow")
+                        run_summary.finalize("Failed at Debug phase (no trades)")
+                        run_summary.print_summary()
                         return
 
                     current_code = debugged_code
@@ -882,6 +1132,8 @@ def process_trading_idea_with_execution(idea: str) -> None:
                 else:
                     print(f"\n❌ Max debug iterations ({MAX_DEBUG_ITERATIONS}) reached - strategy still not taking trades")
                     print("🔄 Moving to next idea...")
+                    run_summary.finalize(f"Failed - Max debug iterations ({MAX_DEBUG_ITERATIONS}) - no trades")
+                    run_summary.print_summary()
                     return  # Move to next idea instead of crashing
             else:
                 # SUCCESS! Code executes with trades! 🎉
@@ -940,13 +1192,14 @@ def process_trading_idea_with_execution(idea: str) -> None:
                         print(f"\n🔄 Optimization attempt {optimization_iteration}/{MAX_OPTIMIZATION_ITERATIONS}")
 
                         # Optimize the strategy
-                        optimized_code = optimize_strategy(
+                        optimized_code, phase_result = optimize_strategy(
                             optimization_code,
                             best_return,
                             TARGET_RETURN,
                             strategy_name,
                             optimization_iteration
                         )
+                        run_summary.add_phase(phase_result)
 
                         if not optimized_code:
                             print("❌ Optimization AI failed to generate code")
@@ -995,6 +1248,8 @@ def process_trading_idea_with_execution(idea: str) -> None:
                                     f.write(best_code)
 
                                 print(f"✅ Target-hitting backtest saved to: {final_file}")
+                                run_summary.finalize(f"Success - Target hit through optimization: {new_return}%")
+                                run_summary.print_summary()
                                 return  # DONE!
                         else:
                             print(f"⚠️ No improvement. Trying different optimization approach...")
@@ -1009,6 +1264,8 @@ def process_trading_idea_with_execution(idea: str) -> None:
                     with open(best_file, 'w', encoding='utf-8') as f:
                         f.write(best_code)
                     print(f"💾 Saved best version: {best_file}")
+                    run_summary.finalize(f"Partial success - Best return: {best_return}% (target: {TARGET_RETURN}%)")
+                    run_summary.print_summary()
                     return  # Move to next idea
             
         else:
@@ -1023,6 +1280,8 @@ def process_trading_idea_with_execution(idea: str) -> None:
                 print("🛑 Breaking loop to prevent infinite debugging")
                 cprint("❌ Repeated error detected - cannot fix this strategy", "red")
                 cprint("🔄 Skipping to next idea...", "yellow")
+                run_summary.finalize("Failed - Repeated error in debug loop")
+                run_summary.print_summary()
                 return
             
             error_history.append(error_signature)
@@ -1031,16 +1290,19 @@ def process_trading_idea_with_execution(idea: str) -> None:
             if debug_iteration < MAX_DEBUG_ITERATIONS:
                 # Debug the code
                 print(f"\n🔧 Sending to Debug AI (attempt {debug_iteration})...")
-                debugged_code = debug_backtest(
+                debugged_code, phase_result = debug_backtest(
                     current_code,
                     error_message,
                     strategy_name,
                     debug_iteration
                 )
+                run_summary.add_phase(phase_result)
 
                 if not debugged_code:
                     cprint("❌ Debug AI failed to generate fixed code (likely response too long)", "red")
                     cprint("🔄 Skipping to next idea...", "yellow")
+                    run_summary.finalize("Failed at Debug phase (execution error)")
+                    run_summary.print_summary()
                     return
 
                 current_code = debugged_code
@@ -1049,9 +1311,13 @@ def process_trading_idea_with_execution(idea: str) -> None:
             else:
                 print(f"\n❌ Max debug iterations ({MAX_DEBUG_ITERATIONS}) reached - could not fix code")
                 print("🔄 Moving to next idea...")
+                run_summary.finalize(f"Failed - Max debug iterations ({MAX_DEBUG_ITERATIONS}) - execution errors")
+                run_summary.print_summary()
                 return  # Move to next idea instead of crashing
-    
+
     print("\n✨ Processing complete!")
+    run_summary.finalize("Success - Strategy completed")
+    run_summary.print_summary()
 
 def main():
     """Main function - process ideas from file"""
