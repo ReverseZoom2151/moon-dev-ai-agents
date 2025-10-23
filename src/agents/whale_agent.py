@@ -2,8 +2,28 @@
 🐳 Moon Dev's Whale Watcher
 Built with love by Moon Dev 🚀
 
-Dez the Whale Agent tracks open interest changes across different timeframes and announces market moves if she sees anomalies 
+Dez the Whale Agent tracks open interest changes across different timeframes and announces market moves if she sees anomalies
 """
+
+# Standard library imports
+import os
+import sys
+import time
+import traceback
+
+# Fix Windows console encoding for emojis
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+        sys.stderr.reconfigure(encoding='utf-8')
+    except (AttributeError, OSError):
+        pass
+
+# Get the project root directory (before imports)
+from pathlib import Path
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 # Model override settings
 # Set to "0" to use config.py's AI_MODEL setting
@@ -14,11 +34,6 @@ Dez the Whale Agent tracks open interest changes across different timeframes and
 MODEL_OVERRIDE = "deepseek-chat"  # Set to "0" to disable override
 DEEPSEEK_BASE_URL = "https://api.deepseek.com"  # Base URL for DeepSeek API
 
-# Standard library imports
-import os
-import time
-import traceback
-
 # Third-party imports
 import numpy as np
 import openai
@@ -27,7 +42,6 @@ import pandas as pd
 # Standard library from imports
 from collections import deque
 from datetime import datetime, timedelta
-from pathlib import Path
 
 # Third-party from imports
 from dotenv import load_dotenv
@@ -39,10 +53,6 @@ from src import nice_funcs as n
 from src import nice_funcs_hl as hl
 from src.agents.api import MoonDevAPI
 from src.agents.base_agent import BaseAgent
-from src.models import model_factory
-
-# Get the project root directory
-PROJECT_ROOT = Path(__file__).parent.parent.parent
 
 # Configuration
 CHECK_INTERVAL_MINUTES = 5  # How often to check OI (can be set to 0.5 for 30 seconds)
