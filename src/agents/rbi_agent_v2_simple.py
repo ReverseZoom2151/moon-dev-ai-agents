@@ -203,7 +203,7 @@ def research_strategy(content):
     
     # Save research output
     filepath = RESEARCH_DIR / f"{strategy_name}_strategy.txt"
-    with open(filepath, 'w') as f:
+    with open(filepath, 'w', encoding='utf-8') as f:
         f.write(output)
     cprint(f"📝 Research saved to {filepath}", "green")
     return output, strategy_name
@@ -223,7 +223,7 @@ def create_backtest(strategy, strategy_name="UnknownStrategy"):
     output = clean_model_output(output, "code")
     
     filepath = BACKTEST_DIR / f"{strategy_name}_BT.py"
-    with open(filepath, 'w') as f:
+    with open(filepath, 'w', encoding='utf-8') as f:
         f.write(output)
     cprint(f"🔥 Backtest saved to {filepath}", "green")
     return output
@@ -251,7 +251,7 @@ def execute_backtest(file_path: str, strategy_name: str) -> dict:
     
     # Save execution results
     result_file = EXECUTION_DIR / f"{strategy_name}_{datetime.now().strftime('%H%M%S')}.json"
-    with open(result_file, 'w') as f:
+    with open(result_file, 'w', encoding='utf-8') as f:
         json.dump(output, f, indent=2)
     
     if output['success']:
