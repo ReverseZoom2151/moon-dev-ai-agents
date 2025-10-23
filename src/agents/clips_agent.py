@@ -593,6 +593,12 @@ class ClipsAgent(BaseAgent):
             # Extract content from response
             content = response.strip()
 
+            # Validate content is not empty
+            if not content or len(content) == 0:
+                cprint(f"⚠️ Model {provider}:{model} returned empty content", "yellow")
+                cprint("❌ Cannot analyze transcript without AI response", "red")
+                return None
+
             # Verify response length
             sentences = [s.strip() for s in content.replace('"','').split('.') if s.strip()]
             if len(sentences) > MAX_SENTENCES:

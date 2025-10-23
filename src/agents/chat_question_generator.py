@@ -156,6 +156,11 @@ class ChatQuestionGenerator(BaseAgent):
                 cprint("❌ All models failed - could not generate questions", "red")
                 return []
 
+            # Validate response has content
+            if not response.strip() or len(response.strip()) == 0:
+                cprint(f"⚠️ Model {provider}:{model} returned empty content", "yellow")
+                return []
+
             # Extract questions from response
             questions = []
             for line in response.strip().split('\n'):
