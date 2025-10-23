@@ -33,34 +33,31 @@ import traceback
 from datetime import datetime
 from pathlib import Path
 
-# Platform check - this agent only works on macOS
+# Platform check - now supports Windows and macOS
 IS_MACOS = platform.system() == "Darwin"
+IS_WINDOWS = platform.system() == "Windows"
+IS_LINUX = platform.system() == "Linux"
 
-if not IS_MACOS:
-    print("\n" + "=" * 80)
-    print("ERROR: PLATFORM NOT SUPPORTED")
-    print("=" * 80)
-    print(f"\nThis agent (code_runner_agent.py) is designed specifically for macOS.")
-    print(f"Current platform: {platform.system()}")
-    print("\nReason: This agent uses macOS-specific frameworks:")
-    print("  - AppKit (for application control)")
-    print("  - Quartz/CoreGraphics (for mouse/keyboard automation)")
-    print("  - Cocoa (for screenshot capture)")
-    print("\nThese frameworks are not available on Windows or Linux.")
-    print("\nIf you need similar functionality on Windows, you would need to:")
-    print("  - Use pywin32 or ctypes for Windows API calls")
-    print("  - Rewrite the mouse/keyboard automation")
-    print("  - Use different screenshot methods")
-    print("=" * 80 + "\n")
-    sys.exit(1)
+print(f"\nPlatform detected: {platform.system()}")
 
-# Third-party imports (macOS-specific - only imported if on macOS)
+# Third-party imports - pyautogui is cross-platform
+import pyautogui
+
+# macOS-specific imports (optional, for enhanced functionality)
 if IS_MACOS:
-    import AppKit
-    import pyautogui
-    import Quartz
-    from Cocoa import NSURL
-    from Quartz import CoreGraphics as CG
+    try:
+        import AppKit
+        import Quartz
+        from Cocoa import NSURL
+        from Quartz import CoreGraphics as CG
+        HAS_MACOS_FRAMEWORKS = True
+        print("Using macOS-native frameworks for enhanced control")
+    except ImportError:
+        HAS_MACOS_FRAMEWORKS = False
+        print("macOS frameworks not found, using pyautogui")
+else:
+    HAS_MACOS_FRAMEWORKS = False
+    print("Using cross-platform pyautogui library")
 
 # Third-party imports (cross-platform)
 from termcolor import cprint
@@ -69,15 +66,21 @@ from termcolor import cprint
 from src.models import model_factory
 from src.models.model_priority import ModelPriority
 
-# Initialize model_priority system (only on macOS since agent only runs there)
-if IS_MACOS:
-    model_priority = ModelPriority(model_factory)
+# Initialize model_priority system
+model_priority = ModelPriority(model_factory)
 
-# Configuration - Moon Dev's target coordinates (DO NOT ADJUST THESE)
+# Keyboard modifiers (cross-platform)
+if IS_MACOS:
+    MODIFIER_KEY = 'command'  # macOS uses Command key
+else:
+    MODIFIER_KEY = 'ctrl'  # Windows/Linux use Ctrl key
+
+cprint(f"Keyboard modifier key: {MODIFIER_KEY}", "cyan")
+
+# Configuration - Moon Dev's target coordinates (ADJUST THESE FOR YOUR SETUP)
+# Use the find_coordinates script in the scripts folder to find your coordinates
 CODE_EDITOR_X = -2686
 CODE_EDITOR_Y = -1144
-
-# command 
 
 # Terminal coordinates
 TERMINAL_X = -2593
@@ -306,62 +309,26 @@ def quick_click():
         return False
 
 def send_command_return():
-    """Send Command+Return using CoreGraphics events"""
+    """Send Modifier+Return (cross-platform: Command on macOS, Ctrl on Windows/Linux)"""
     try:
-        # Create Command key down event
-        cmd_down = CG.CGEventCreateKeyboardEvent(None, 0x37, True)  # 0x37 is Command
-        CG.CGEventPost(CG.kCGHIDEventTap, cmd_down)
+        cprint(f"⌨️ Sending {MODIFIER_KEY}+Enter...", "cyan")
+        pyautogui.hotkey(MODIFIER_KEY, 'enter')
         time.sleep(0.1)
-        
-        # Create Return key down/up events
-        return_down = CG.CGEventCreateKeyboardEvent(None, 0x24, True)  # 0x24 is Return
-        return_up = CG.CGEventCreateKeyboardEvent(None, 0x24, False)
-        
-        CG.CGEventSetFlags(return_down, CG.kCGEventFlagMaskCommand)
-        CG.CGEventSetFlags(return_up, CG.kCGEventFlagMaskCommand)
-        
-        CG.CGEventPost(CG.kCGHIDEventTap, return_down)
-        time.sleep(0.1)
-        CG.CGEventPost(CG.kCGHIDEventTap, return_up)
-        time.sleep(0.1)
-        
-        # Release Command key
-        cmd_up = CG.CGEventCreateKeyboardEvent(None, 0x37, False)
-        CG.CGEventPost(CG.kCGHIDEventTap, cmd_up)
-        
         return True
     except Exception as e:
-        cprint(f"❌ Error sending cmd+return: {e}", "red")
+        cprint(f"❌ Error sending {MODIFIER_KEY}+Enter: {e}", "red")
         return False
 
 def send_command_apostrophe():
-    """Send Command+apostrophe (') using CoreGraphics events"""
+    """Send Modifier+apostrophe (') - cross-platform"""
     try:
-        # Create Command key down event
-        cmd_down = CG.CGEventCreateKeyboardEvent(None, 0x37, True)  # 0x37 is Command key
-        CG.CGEventPost(CG.kCGHIDEventTap, cmd_down)
+        cprint(f"⌨️ Sending {MODIFIER_KEY}+'...", "cyan")
+        pyautogui.hotkey(MODIFIER_KEY, "'")
         time.sleep(0.1)
-
-        # Apostrophe key down/up events using constant
-        apostrophe_down = CG.CGEventCreateKeyboardEvent(None, APPLY_FIX_COMMAND['key'], True)
-        apostrophe_up = CG.CGEventCreateKeyboardEvent(None, APPLY_FIX_COMMAND['key'], False)
-
-        CG.CGEventSetFlags(apostrophe_down, CG.kCGEventFlagMaskCommand)
-        CG.CGEventSetFlags(apostrophe_up, CG.kCGEventFlagMaskCommand)
-
-        CG.CGEventPost(CG.kCGHIDEventTap, apostrophe_down)
-        time.sleep(0.1)
-        CG.CGEventPost(CG.kCGHIDEventTap, apostrophe_up)
-        time.sleep(0.1)
-
-        # Release Command key
-        cmd_up = CG.CGEventCreateKeyboardEvent(None, 0x37, False)
-        CG.CGEventPost(CG.kCGHIDEventTap, cmd_up)
-
-        cprint(f"⌨️ {APPLY_FIX_COMMAND['name']} sent successfully! 🚀 Moon Dev 🙏", "cyan")
+        cprint(f"⌨️ {MODIFIER_KEY}+' sent successfully!", "cyan")
         return True
     except Exception as e:
-        cprint(f"❌ Error sending {APPLY_FIX_COMMAND['name']}: {e}", "red")
+        cprint(f"❌ Error sending {MODIFIER_KEY}+': {e}", "red")
         return False
 
 def send_keys(text):
