@@ -38,7 +38,7 @@ IS_MACOS = platform.system() == "Darwin"
 
 if not IS_MACOS:
     print("\n" + "=" * 80)
-    print("❌ PLATFORM NOT SUPPORTED")
+    print("ERROR: PLATFORM NOT SUPPORTED")
     print("=" * 80)
     print(f"\nThis agent (code_runner_agent.py) is designed specifically for macOS.")
     print(f"Current platform: {platform.system()}")
