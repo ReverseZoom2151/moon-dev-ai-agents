@@ -130,24 +130,26 @@ class HousecoinAgent(BaseAgent):
         """Initialize the Housecoin DCA Agent"""
         cprint("\n🏠 Initializing Housecoin DCA Agent with AI Decision Layer 🏠", "cyan", attrs=['bold'])
 
-        # Initialize BaseAgent with model_priority
-        super().__init__('housecoin_agent', use_model_priority=True)
+        # Initialize BaseAgent with model_priority and exchange_manager
+        super().__init__('housecoin_agent', use_model_priority=True, use_exchange_manager=True)
 
         if not self.model_priority:
             raise ValueError("🚨 Model priority system not initialized!")
 
+        if not self.em:
+            raise ValueError("🚨 Exchange Manager not initialized!")
+
         cprint("✅ Using model_priority with MEDIUM priority for DCA decisions", "green")
         cprint(f"   Priority order: GPT-5 → Claude Sonnet 4.5 → Gemini 2.5 Pro", "yellow")
+        cprint("✅ Using Exchange Orchestrator for price data (FREE sources first!)", "green")
 
         # Load state
         self.state = self.load_state()
         self.last_buy_time = datetime.fromisoformat(self.state['last_buy_time']) if self.state['last_buy_time'] else None
 
-        # API keys
-        self.birdeye_api_key = os.getenv('birdeye_api_key') or os.getenv('BIRDEYE_API_KEY')
-
-        if not self.birdeye_api_key:
-            cprint("⚠️ Warning: BIRDEYE_API_KEY not found", "yellow")
+        # Note: Birdeye API key is managed by Exchange Orchestrator
+        # The orchestrator will initialize Birdeye automatically if BIRDEYE_API_KEY is set in .env
+        # Housecoin data comes from Birdeye (Solana token by address)
 
         cprint("✅ Housecoin Agent initialized!", "green")
         cprint("⚠️ NOT FINANCIAL ADVICE - Trade at your own risk!", "yellow", attrs=['bold'])
