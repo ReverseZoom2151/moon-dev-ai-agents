@@ -84,26 +84,51 @@ else:
 
 cprint(f"Keyboard modifier key: {MODIFIER_KEY}", "cyan")
 
-# Configuration - Moon Dev's target coordinates (ADJUST THESE FOR YOUR SETUP)
-# Use the find_coordinates script in the scripts folder to find your coordinates
-CODE_EDITOR_X = -2686
-CODE_EDITOR_Y = -1144
+# Get screen size for cross-platform coordinate calculation
+SCREEN_WIDTH, SCREEN_HEIGHT = pyautogui.size()
+cprint(f"\nScreen size detected: {SCREEN_WIDTH}x{SCREEN_HEIGHT}", "cyan")
 
-# Terminal coordinates
-TERMINAL_X = -2593
-TERMINAL_Y = -556
+# Configuration - Moon Dev's target coordinates (cross-platform defaults)
+# These use percentage-based positioning that works on any screen size
+if IS_MACOS:
+    # Original macOS coordinates (multi-monitor setup)
+    CODE_EDITOR_X = -2686
+    CODE_EDITOR_Y = -1144
+    TERMINAL_X = -2593
+    TERMINAL_Y = -556
+    AI_CHAT_X = -1683
+    AI_CHAT_Y = -414
+    SCREENSHOT_X = -1933
+    SCREENSHOT_Y = -1614
+    cprint("Using macOS multi-monitor coordinates", "yellow")
+else:
+    # Windows/Linux: Use center and safe positions
+    # Code editor: center-left of screen
+    CODE_EDITOR_X = int(SCREEN_WIDTH * 0.3)
+    CODE_EDITOR_Y = int(SCREEN_HEIGHT * 0.5)
 
-# Composer coordinates and settings
-AI_CHAT_X = -1683  # Adjust as needed
-AI_CHAT_Y = -414   # Adjust as needed
+    # Terminal: lower-center
+    TERMINAL_X = int(SCREEN_WIDTH * 0.5)
+    TERMINAL_Y = int(SCREEN_HEIGHT * 0.7)
+
+    # AI Chat: right side of screen
+    AI_CHAT_X = int(SCREEN_WIDTH * 0.75)
+    AI_CHAT_Y = int(SCREEN_HEIGHT * 0.3)
+
+    # Screenshot: upper portion
+    SCREENSHOT_X = int(SCREEN_WIDTH * 0.5)
+    SCREENSHOT_Y = int(SCREEN_HEIGHT * 0.2)
+
+    cprint(f"Using Windows/Linux defaults:", "yellow")
+    cprint(f"  Code Editor: ({CODE_EDITOR_X}, {CODE_EDITOR_Y})", "yellow")
+    cprint(f"  Terminal: ({TERMINAL_X}, {TERMINAL_Y})", "yellow")
+    cprint(f"  AI Chat: ({AI_CHAT_X}, {AI_CHAT_Y})", "yellow")
+
+# Size settings (same across platforms)
 AI_CHAT_WIDTH = 200
 AI_CHAT_HEIGHT = 1500
-
-# Screenshot area coordinates (top half of screen)
-SCREENSHOT_X = -1933  # Same X as AI chat
-SCREENSHOT_Y = -1614  # Higher up (600 pixels up from AI_CHAT_Y)
-SCREENSHOT_WIDTH = 600  # Wider capture area
-SCREENSHOT_HEIGHT = 1200  # Shorter but captures top area
+SCREENSHOT_WIDTH = 600
+SCREENSHOT_HEIGHT = 1200
 
 # Composer screenshot prompt
 AI_CHAT_SCREENSHOT_PROMPT = "Does this image have more than 5 emojis in it? Return ONLY true or false."
@@ -368,54 +393,75 @@ def send_keys(text):
         return False
 
 def send_enter():
-    """Send Enter key press"""
+    """Send Enter key press (cross-platform)"""
     try:
-        # Create Return key events
-        return_down = CG.CGEventCreateKeyboardEvent(None, 0x24, True)  # 0x24 is Return
-        return_up = CG.CGEventCreateKeyboardEvent(None, 0x24, False)
-        
-        # Post events
-        CG.CGEventPost(CG.kCGHIDEventTap, return_down)
-        time.sleep(0.1)
-        CG.CGEventPost(CG.kCGHIDEventTap, return_up)
-        
+        if IS_MACOS and HAS_MACOS_FRAMEWORKS:
+            # macOS - use CoreGraphics
+            return_down = CG.CGEventCreateKeyboardEvent(None, 0x24, True)  # 0x24 is Return
+            return_up = CG.CGEventCreateKeyboardEvent(None, 0x24, False)
+
+            CG.CGEventPost(CG.kCGHIDEventTap, return_down)
+            time.sleep(0.1)
+            CG.CGEventPost(CG.kCGHIDEventTap, return_up)
+        else:
+            # Windows/Linux - use pyautogui
+            pyautogui.press('enter')
+            time.sleep(0.1)
+
         return True
     except Exception as e:
         cprint(f"❌ Error sending enter: {e}", "red")
         return False
 
 def set_clipboard_content(text):
-    """Set clipboard content using pbcopy"""
+    """Set clipboard content (cross-platform)"""
     try:
-        process = subprocess.Popen(['pbcopy'], stdin=subprocess.PIPE)
-        process.communicate(text.encode('utf-8'))
+        if IS_MACOS:
+            # macOS - use pbcopy
+            process = subprocess.Popen(['pbcopy'], stdin=subprocess.PIPE)
+            process.communicate(text.encode('utf-8'))
+        else:
+            # Windows/Linux - use pyperclip or pyautogui
+            try:
+                import pyperclip
+                pyperclip.copy(text)
+            except ImportError:
+                # Fallback: write to clipboard file (Windows)
+                import win32clipboard
+                win32clipboard.OpenClipboard()
+                win32clipboard.EmptyClipboard()
+                win32clipboard.SetClipboardText(text)
+                win32clipboard.CloseClipboard()
         return True
     except Exception as e:
         cprint(f"❌ Error setting clipboard content: {e}", "red")
         return False
 
 def paste_from_clipboard():
-    """Paste content from clipboard using Command+V"""
+    """Paste content from clipboard (cross-platform: Cmd+V on macOS, Ctrl+V on Windows/Linux)"""
     try:
-        # Command key down
-        cmd_down = CG.CGEventCreateKeyboardEvent(None, 0x37, True)
-        CG.CGEventPost(CG.kCGHIDEventTap, cmd_down)
-        time.sleep(0.1)
-        
-        # 'V' key with command flag
-        v_down = CG.CGEventCreateKeyboardEvent(None, 0x09, True)  # 0x09 is 'v'
-        v_up = CG.CGEventCreateKeyboardEvent(None, 0x09, False)
-        CG.CGEventSetFlags(v_down, CG.kCGEventFlagMaskCommand)
-        CG.CGEventSetFlags(v_up, CG.kCGEventFlagMaskCommand)
-        
-        CG.CGEventPost(CG.kCGHIDEventTap, v_down)
-        time.sleep(0.1)
-        CG.CGEventPost(CG.kCGHIDEventTap, v_up)
-        
-        # Command key up
-        cmd_up = CG.CGEventCreateKeyboardEvent(None, 0x37, False)
-        CG.CGEventPost(CG.kCGHIDEventTap, cmd_up)
-        
+        if IS_MACOS and HAS_MACOS_FRAMEWORKS:
+            # macOS - use CoreGraphics for Command+V
+            cmd_down = CG.CGEventCreateKeyboardEvent(None, 0x37, True)
+            CG.CGEventPost(CG.kCGHIDEventTap, cmd_down)
+            time.sleep(0.1)
+
+            v_down = CG.CGEventCreateKeyboardEvent(None, 0x09, True)  # 0x09 is 'v'
+            v_up = CG.CGEventCreateKeyboardEvent(None, 0x09, False)
+            CG.CGEventSetFlags(v_down, CG.kCGEventFlagMaskCommand)
+            CG.CGEventSetFlags(v_up, CG.kCGEventFlagMaskCommand)
+
+            CG.CGEventPost(CG.kCGHIDEventTap, v_down)
+            time.sleep(0.1)
+            CG.CGEventPost(CG.kCGHIDEventTap, v_up)
+
+            cmd_up = CG.CGEventCreateKeyboardEvent(None, 0x37, False)
+            CG.CGEventPost(CG.kCGHIDEventTap, cmd_up)
+        else:
+            # Windows/Linux - use pyautogui for Ctrl+V
+            pyautogui.hotkey('ctrl', 'v')
+            time.sleep(0.1)
+
         return True
     except Exception as e:
         cprint(f"❌ Error pasting from clipboard: {e}", "red")
