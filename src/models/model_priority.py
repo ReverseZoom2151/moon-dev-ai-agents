@@ -51,11 +51,11 @@ class ModelPriorityQueue:
             ("claude", "claude-haiku-4-5-20251001"), # Primary: Claude Haiku 4.5 ($1/$5)
             ("openai", "gpt-5-mini-2025-08-07"),     # Secondary: GPT-5 Mini
             ("gemini", "gemini-2.5-flash"),          # Tertiary: Gemini 2.5 Flash (FREE)
-            ("groq", "mixtral-8x7b-32768"),          # Backup: Fast Mixtral
+            ("groq", "llama-3.3-70b-versatile"),     # Backup: Fast Llama 3.3
         ],
 
         ModelPriority.LOW: [
-            ("groq", "mixtral-8x7b-32768"),          # Primary: Fast and cheap
+            ("groq", "llama-3.3-70b-versatile"),     # Primary: Fast and cheap
             ("gemini", "gemini-2.5-flash-lite"),     # Secondary: Gemini 2.5 Flash Lite (FREE)
             ("openai", "gpt-5-nano-2025-08-07"),     # Tertiary: GPT-5 Nano (ultra-fast)
             ("deepseek", "deepseek-reasoner"),       # Backup 1: DeepSeek
