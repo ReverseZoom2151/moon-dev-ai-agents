@@ -1,7 +1,7 @@
 """
 Multi-Exchange Manager V2
 Unified interface for trading across multiple exchanges simultaneously
-Supports: Solana, HyperLiquid, Binance, Bitfinex
+Supports: Solana, HyperLiquid, Binance, Bitfinex, CoinGecko (data), Birdeye (data)
 """
 
 # Standard library imports
@@ -91,6 +91,13 @@ class MultiExchangeManager:
         if os.getenv('HYPER_LIQUID_KEY'):
             available.append('hyperliquid')
 
+        # CoinGecko always available (free tier works without API key)
+        available.append('coingecko')
+
+        # Check for Birdeye credentials (Solana token data)
+        if os.getenv('BIRDEYE_API_KEY'):
+            available.append('birdeye')
+
         return available
 
     def _initialize_exchanges(self, exchange_list: List[str]):
@@ -123,6 +130,14 @@ class MultiExchangeManager:
                         }
                     else:
                         cprint(f"⚠️ HyperLiquid key not found, skipping", "yellow")
+
+                elif exchange_name == 'coingecko':
+                    from src.exchange.coingecko_exchange import CoinGeckoExchange
+                    self.active_exchanges['coingecko'] = CoinGeckoExchange()
+
+                elif exchange_name == 'birdeye':
+                    from src.exchange.birdeye_exchange import BirdeyeExchange
+                    self.active_exchanges['birdeye'] = BirdeyeExchange()
 
             except Exception as e:
                 cprint(f"⚠️ Failed to initialize {exchange_name}: {str(e)}", "yellow")
@@ -408,21 +423,44 @@ class MultiExchangeManager:
             except Exception as e:
                 cprint(f"⚠️ Bitfinex failed: {e}", "yellow")
 
-        # Fallback: Try Birdeye for Solana tokens (if API key available)
-        if len(symbol) > 32 and symbol.isalnum():
+        # Try CoinGecko for general token data (10,000+ tokens, FREE)
+        if 'coingecko' in self.active_exchanges:
             try:
-                birdeye_key = os.getenv('BIRDEYE_API_KEY')
-                if birdeye_key:
-                    cprint(f"📊 Trying Birdeye for Solana token (PAID)", "cyan")
-                    from src.data.ohlcv_collector import collect_token_data
-                    df = collect_token_data(symbol)
-                    if df is not None and not df.empty:
-                        cprint(f"✅ Got data from Birdeye", "green")
-                        return df
-            except:
-                pass
+                coingecko_exchange = self.active_exchanges['coingecko']
 
-        cprint(f"❌ No data available for {symbol}", "red")
+                # CoinGecko works with trading symbols (e.g., 'BTC', 'ETH', 'SOL')
+                # Skip if it looks like a Solana address (use Birdeye for those)
+                if not (len(symbol) > 32 and symbol.isalnum()):
+                    cprint(f"📊 Fetching {symbol} from CoinGecko (FREE)", "cyan")
+                    ohlcv_data = coingecko_exchange.get_ohlcv(symbol, timeframe, limit)
+
+                    if ohlcv_data:
+                        df = pd.DataFrame(ohlcv_data, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+                        df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+                        cprint(f"✅ Got {len(df)} candles from CoinGecko", "green")
+                        return df
+            except Exception as e:
+                cprint(f"⚠️ CoinGecko failed: {e}", "yellow")
+
+        # Final fallback: Try Birdeye for Solana tokens (PAID)
+        if 'birdeye' in self.active_exchanges:
+            try:
+                birdeye_exchange = self.active_exchanges['birdeye']
+
+                # Birdeye is for Solana token addresses (long alphanumeric strings)
+                if len(symbol) > 32 and symbol.isalnum():
+                    cprint(f"📊 Fetching Solana token from Birdeye (PAID)", "cyan")
+                    ohlcv_data = birdeye_exchange.get_ohlcv(symbol, timeframe, limit)
+
+                    if ohlcv_data:
+                        df = pd.DataFrame(ohlcv_data, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+                        df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+                        cprint(f"✅ Got {len(df)} candles from Birdeye", "green")
+                        return df
+            except Exception as e:
+                cprint(f"⚠️ Birdeye failed: {e}", "yellow")
+
+        cprint(f"❌ No data available for {symbol} from any source", "red")
         return None
 
     def __str__(self):
