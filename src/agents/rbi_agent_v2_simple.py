@@ -278,7 +278,7 @@ def main():
         cprint("❌ ideas.txt not found!", "red")
         return
     
-    with open(IDEAS_FILE, 'r') as f:
+    with open(IDEAS_FILE, 'r', encoding='utf-8') as f:
         ideas = [line.strip() for line in f if line.strip() and not line.startswith('#')]
     
     if not ideas:
