@@ -495,7 +495,8 @@ class FocusAgent:
 
     def _announce_model(self):
         """Announce current model with eye-catching formatting"""
-        model_msg = f"🤖 TESTING MODEL: {MODEL_TYPE.upper()} - {MODEL_NAME} 🤖"
+        model_name_display = MODEL_NAME if MODEL_NAME else "default"
+        model_msg = f"🤖 TESTING MODEL: {MODEL_TYPE.upper()} - {model_name_display} 🤖"
         border = "=" * (len(model_msg) + 4)
         
         cprint(border, 'white', 'on_green', attrs=['bold'])
