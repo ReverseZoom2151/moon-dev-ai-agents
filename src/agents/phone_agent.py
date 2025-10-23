@@ -157,14 +157,14 @@ Frequently Asked Questions
 """
 
 # Create response directory
-RESPONSES_DIR = Path(project_root) / "responses"
+RESPONSES_DIR = Path(PROJECT_ROOT) / "responses"
 RESPONSES_DIR.mkdir(parents=True, exist_ok=True)
 
 # Add after other constants
-UNKNOWN_QUESTIONS_FILE = Path(project_root) / "src/data/phone_agent/unknown_questions.csv"
+UNKNOWN_QUESTIONS_FILE = Path(PROJECT_ROOT) / "src/data/phone_agent/unknown_questions.csv"
 
 # Create phone agent data directory
-PHONE_AGENT_DATA_DIR = Path(project_root) / "src/data/phone_agent"
+PHONE_AGENT_DATA_DIR = Path(PROJECT_ROOT) / "src/data/phone_agent"
 PHONE_AGENT_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 class VoiceRecorder:
@@ -811,7 +811,7 @@ def start_server():
             # Run Streamlit web interface
             cprint("🌐 Running in web mode - starting Streamlit server...", "green")
             import subprocess
-            web_interface_path = Path(project_root) / "src/web/chat_interface.py"
+            web_interface_path = Path(PROJECT_ROOT) / "src/web/chat_interface.py"
             subprocess.run(["streamlit", "run", str(web_interface_path)])
         else:
             # Run Flask server for Twilio
