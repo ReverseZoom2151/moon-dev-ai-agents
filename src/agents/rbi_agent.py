@@ -64,22 +64,22 @@ Remember: Past performance doesn't guarantee future results!
 # New OpenAI presets using GPT-5 for all agents 🌙🚀
 RESEARCH_CONFIG = {
     "type": "openai",
-    "name": "gpt-5"
+    "name": "gpt-5-2025-08-07"
 }
 
 BACKTEST_CONFIG = {
     "type": "openai",
-    "name": "gpt-5"
+    "name": "gpt-5-2025-08-07"
 }
 
 DEBUG_CONFIG = {
     "type": "openai",
-    "name": "gpt-5"
+    "name": "gpt-5-2025-08-07"
 }
 
 PACKAGE_CONFIG = {
     "type": "openai",
-    "name": "gpt-5"
+    "name": "gpt-5-2025-08-07"
 }
 
 
