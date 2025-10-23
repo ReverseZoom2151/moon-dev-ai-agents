@@ -8,9 +8,13 @@ Set up a knowledge base in the data folder called million_agent.
 # Standard library imports
 import glob
 import os
-
-# Standard library from imports
+import sys
 from pathlib import Path
+
+# Add project root to path for imports
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 # Third-party from imports
 from termcolor import cprint
