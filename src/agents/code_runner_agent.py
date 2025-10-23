@@ -23,23 +23,46 @@ Moves to position, executes code, and captures screenshot
 # Standard library imports
 import base64
 import os
+import platform
 import subprocess
 import sys
 import time
 import traceback
 
-# Third-party imports
-import AppKit
-import pyautogui
-import Quartz
-
 # Standard library from imports
 from datetime import datetime
 from pathlib import Path
 
-# Third-party from imports
-from Cocoa import NSURL
-from Quartz import CoreGraphics as CG
+# Platform check - this agent only works on macOS
+IS_MACOS = platform.system() == "Darwin"
+
+if not IS_MACOS:
+    print("\n" + "=" * 80)
+    print("❌ PLATFORM NOT SUPPORTED")
+    print("=" * 80)
+    print(f"\nThis agent (code_runner_agent.py) is designed specifically for macOS.")
+    print(f"Current platform: {platform.system()}")
+    print("\nReason: This agent uses macOS-specific frameworks:")
+    print("  - AppKit (for application control)")
+    print("  - Quartz/CoreGraphics (for mouse/keyboard automation)")
+    print("  - Cocoa (for screenshot capture)")
+    print("\nThese frameworks are not available on Windows or Linux.")
+    print("\nIf you need similar functionality on Windows, you would need to:")
+    print("  - Use pywin32 or ctypes for Windows API calls")
+    print("  - Rewrite the mouse/keyboard automation")
+    print("  - Use different screenshot methods")
+    print("=" * 80 + "\n")
+    sys.exit(1)
+
+# Third-party imports (macOS-specific - only imported if on macOS)
+if IS_MACOS:
+    import AppKit
+    import pyautogui
+    import Quartz
+    from Cocoa import NSURL
+    from Quartz import CoreGraphics as CG
+
+# Third-party imports (cross-platform)
 from termcolor import cprint
 
 # Local from imports
