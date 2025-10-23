@@ -41,15 +41,6 @@ from anthropic import Anthropic
 from dotenv import load_dotenv
 from termcolor import cprint
 
-# Optional: Google Cloud Speech-to-Text (install: pip install google-cloud-speech)
-try:
-    from google.cloud import speech_v1p1beta1 as speech
-    SPEECH_AVAILABLE = True
-except ImportError:
-    SPEECH_AVAILABLE = False
-    cprint("⚠️ Google Cloud Speech-to-Text not available", "yellow")
-    cprint("   Install with: pip install google-cloud-speech", "cyan")
-
 # Add project root to Python path for imports
 project_root = str(Path(__file__).parent.parent.parent)
 if project_root not in sys.path:
@@ -192,20 +183,7 @@ class FocusAgent(BaseAgent):
             raise ValueError("🚨 ANTHROPIC_KEY not found in environment variables!")
         self.anthropic_client = Anthropic(api_key=anthropic_key)
 
-        # Initialize Google Speech client (optional)
-        self.speech_client = None
-        if SPEECH_AVAILABLE:
-            google_creds = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-            if google_creds:
-                try:
-                    self.speech_client = speech.SpeechClient()
-                    cprint("✅ Google Speech-to-Text initialized", "green")
-                except Exception as e:
-                    cprint(f"⚠️ Could not initialize Google Speech client: {e}", "yellow")
-            else:
-                cprint("⚠️ GOOGLE_APPLICATION_CREDENTIALS not set - speech features disabled", "yellow")
-                cprint("   Set this to a Google Cloud service account JSON key path", "cyan")
-
+        cprint("✅ Using OpenAI Whisper for speech-to-text transcription", "green")
         cprint("🎯 Moon Dev's Focus Agent initialized!", "green")
         
         self.is_recording = False
@@ -237,27 +215,17 @@ class FocusAgent(BaseAgent):
         return uniform(MIN_INTERVAL_MINUTES * 60, MAX_INTERVAL_MINUTES * 60)
         
     def record_audio(self):
-        """Record audio for specified duration"""
-        # Check if speech recognition is available
-        if not SPEECH_AVAILABLE or not self.speech_client:
-            cprint("⚠️ Speech recognition not available - skipping audio recording", "yellow")
-            cprint("   Install google-cloud-speech and set GOOGLE_APPLICATION_CREDENTIALS to enable", "cyan")
-            return None
+        """Record audio for specified duration and transcribe with OpenAI Whisper"""
+        import wave
 
-        config = speech.RecognitionConfig(
-            encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
-            sample_rate_hertz=SAMPLE_RATE,
-            language_code="en-US",
-            enable_automatic_punctuation=True,  # Add punctuation
-            model="latest_long",  # Use long-form model
-            use_enhanced=True  # Use enhanced model
-        )
-        streaming_config = speech.StreamingRecognitionConfig(
-            config=config,
-            interim_results=True  # Get interim results for better completeness
-        )
-        
-        def audio_generator():
+        temp_audio_path = None
+        try:
+            self.is_recording = True
+            self.current_transcript = []
+
+            cprint(f"🎤 Recording audio for {RECORDING_DURATION} seconds...", "cyan")
+
+            # Record audio to temporary WAV file
             audio = pyaudio.PyAudio()
             stream = audio.open(
                 format=pyaudio.paInt16,
@@ -266,44 +234,47 @@ class FocusAgent(BaseAgent):
                 input=True,
                 frames_per_buffer=AUDIO_CHUNK_SIZE
             )
-            
+
+            frames = []
             start_time = time_lib.time()
-            try:
-                while time_lib.time() - start_time < RECORDING_DURATION:
-                    data = stream.read(AUDIO_CHUNK_SIZE, exception_on_overflow=False)
-                    yield data
-                # Add a small silence at the end to ensure we get the last word
-                yield b'\x00' * AUDIO_CHUNK_SIZE
-            finally:
-                stream.stop_stream()
-                stream.close()
-                audio.terminate()
-        
-        try:
-            self.is_recording = True
-            self.current_transcript = []
-            
-            requests = (speech.StreamingRecognizeRequest(audio_content=chunk)
-                      for chunk in audio_generator())
-            
-            responses = self.speech_client.streaming_recognize(
-                config=streaming_config,
-                requests=requests
-            )
-            
-            for response in responses:
-                if response.results:
-                    for result in response.results:
-                        if result.is_final:
-                            self.current_transcript.append(result.alternatives[0].transcript)
-            
-            # Small delay to ensure we get the complete transcript
-            time_lib.sleep(0.5)
-                            
+
+            while time_lib.time() - start_time < RECORDING_DURATION:
+                data = stream.read(AUDIO_CHUNK_SIZE, exception_on_overflow=False)
+                frames.append(data)
+
+            stream.stop_stream()
+            stream.close()
+            audio.terminate()
+
+            # Save to temporary WAV file
+            temp_audio_path = tempfile.mktemp(suffix='.wav')
+            with wave.open(temp_audio_path, 'wb') as wf:
+                wf.setnchannels(1)
+                wf.setsampwidth(audio.get_sample_size(pyaudio.paInt16))
+                wf.setframerate(SAMPLE_RATE)
+                wf.writeframes(b''.join(frames))
+
+            cprint("🧠 Transcribing with OpenAI Whisper...", "cyan")
+
+            # Transcribe with OpenAI Whisper
+            with open(temp_audio_path, 'rb') as audio_file:
+                transcript = self.openai_client.audio.transcriptions.create(
+                    model="whisper-1",
+                    file=audio_file,
+                    language="en"
+                )
+
+            # Store the transcript
+            self.current_transcript = [transcript.text]
+            cprint(f"✅ Transcription complete: {transcript.text[:100]}...", "green")
+
         except Exception as e:
-            cprint(f"❌ Error recording audio: {str(e)}", "red")
+            cprint(f"❌ Error recording/transcribing audio: {str(e)}", "red")
         finally:
             self.is_recording = False
+            # Clean up temporary file
+            if temp_audio_path and os.path.exists(temp_audio_path):
+                os.unlink(temp_audio_path)
 
     def _announce(self, message, force_voice=False):
         """Announce message with optional voice"""

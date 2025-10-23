@@ -46,7 +46,7 @@ opencv-python==4.10.0.84
 pillow==10.3.0
 ffmpeg-python==0.2.0
 openai-whisper==20231117
-google-cloud-speech==2.27.0  # Google Cloud Speech-to-Text API for focus_agent
+# google-cloud-speech removed - now using OpenAI Whisper API via openai package
 elevenlabs==0.2.24
 moviepy==2.2.1  # Video editing and clip generation
 
