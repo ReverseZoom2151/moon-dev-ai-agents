@@ -323,7 +323,7 @@ class ChatAgent:
         cprint("\n🤖 Initializing Moon Dev's Chat Agent...", "cyan")
         
         # Remove knowledge base initialization
-        self.data_dir = Path(project_root) / "src" / "data" / "chat_agent"
+        self.data_dir = PROJECT_ROOT / "src" / "data" / "chat_agent"
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self.chat_log_path = self.data_dir / "chat_history.csv"
         self.quotes_file_path = self.data_dir / "quotes_and_verses.txt"
