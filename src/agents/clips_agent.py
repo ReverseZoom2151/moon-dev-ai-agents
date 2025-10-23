@@ -80,27 +80,26 @@ import subprocess
 import sys
 import time
 
-# Third-party imports
-import moviepy.editor as mp
-import openai
-import yt_dlp
-
 # Standard library from imports
 from pathlib import Path
 
-# Third-party from imports
-from moviepy.editor import AudioFileClip, CompositeVideoClip, VideoFileClip
+# Add project root to Python path for imports (MUST be before src imports)
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+# Third-party imports
+import openai
+import yt_dlp
+
+# Third-party from imports - moviepy 2.x uses direct imports from moviepy
+from moviepy import VideoFileClip, AudioFileClip, CompositeVideoClip
 from termcolor import cprint
 from tqdm import tqdm
 from youtube_transcript_api import YouTubeTranscriptApi
 
 # Local from imports
 from src.models import model_factory
-
-# Add project root to Python path for imports
-project_root = str(Path(__file__).parent.parent.parent)
-if project_root not in sys.path:
-    sys.path.append(project_root)
 
 # Constants
 MIN_CLIP_DURATION = 300  # 5 minutes in seconds
