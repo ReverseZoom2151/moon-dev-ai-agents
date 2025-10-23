@@ -15,22 +15,32 @@ import sys
 import threading
 import time
 
-# Third-party imports
-import cv2
-import numpy as np
-import whisper
+# Fix Windows console encoding for emojis
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+        sys.stderr.reconfigure(encoding='utf-8')
+    except (AttributeError, OSError):
+        pass
 
 # Standard library from imports
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
+# Setup sys.path before importing from src
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+# Third-party imports
+import cv2
+import numpy as np
+import whisper
+
 # Third-party from imports
 from termcolor import colored, cprint
 from tqdm import tqdm
-
-# Add parent directory to path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Local from imports
 from src.models import model_factory
@@ -42,11 +52,10 @@ MODEL_CONFIG = {
     "reasoning_effort": "high"  # Maximum reasoning for compliance checks
 }
 
-# Paths
-PROJECT_ROOT = Path(__file__).parent.parent.parent
+# Paths (PROJECT_ROOT already defined above)
 DATA_DIR = PROJECT_ROOT / "src" / "data" / "compliance"
 GUIDELINES_PATH = DATA_DIR / "fb_guidelines.txt"
-VIDEOS_DIR = Path("/Users/md/Dropbox/dev/github/search-arbitrage/bots/compliance/tiktok_ads")
+VIDEOS_DIR = PROJECT_ROOT / "src" / "data" / "videos" / "tiktok_ads"  # Cross-platform path
 OUTPUT_DIR = DATA_DIR / "analysis"
 FRAMES_DIR = OUTPUT_DIR / "frames"
 TRANSCRIPTS_DIR = OUTPUT_DIR / "transcripts"
