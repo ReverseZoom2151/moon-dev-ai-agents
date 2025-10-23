@@ -24,12 +24,17 @@ if sys.platform == 'win32':
     except (AttributeError, OSError):
         pass
 
-# Third-party imports
-import pandas as pd
-
 # Standard library from imports
 from datetime import datetime, timedelta
 from pathlib import Path
+
+# Setup PROJECT_ROOT and sys.path BEFORE importing from src
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+# Third-party imports
+import pandas as pd
 
 # Third-party from imports
 from dotenv import load_dotenv
