@@ -43,7 +43,7 @@ from termcolor import cprint
 # Local from imports
 from src import nice_funcs as n
 from src.config import *
-from src.data.ohlcv_collector import collect_token_data
+from src.multi_exchange_manager import MultiExchangeManager
 from src.models.model_priority import ModelPriority, model_priority_queue
 
 # Data path for current copybot portfolio
@@ -88,16 +88,25 @@ Remember:
 
 class CopyBotAgent:
     """Moon Dev's CopyBot Agent 🤖"""
-    
+
     def __init__(self):
-        """Initialize the CopyBot agent with LLM"""
+        """Initialize the CopyBot agent with LLM and exchange orchestrator"""
         load_dotenv()
+
+        # Initialize model priority system
         self.model_priority = model_priority_queue
         if not self.model_priority:
             raise ValueError("Could not initialize model_priority system!")
+
+        # Initialize multi-exchange manager for data fetching
+        print("\n🔄 Initializing Multi-Exchange Manager...")
+        self.exchange_manager = MultiExchangeManager()
+        print(f"✅ Active exchanges: {list(self.exchange_manager.active_exchanges.keys())}")
+
         self.recommendations_df = pd.DataFrame(columns=['token', 'action', 'confidence', 'reasoning'])
-        print("🤖 Moon Dev's CopyBot Agent initialized!")
+        print("\n🤖 Moon Dev's CopyBot Agent initialized!")
         print("🎯 Using model_priority system with MEDIUM priority")
+        print("💰 Using multi-exchange orchestrator for cost-optimized data fetching")
         
     def load_portfolio_data(self):
         """Load current copybot portfolio data"""
@@ -131,13 +140,15 @@ class CopyBotAgent:
             print(f"💰 Current Amount: {position_data['Amount'].values[0]}")
             print(f"💵 USD Value: ${position_data['USD Value'].values[0]:.2f}")
                 
-            # Get OHLCV data - Use collect_token_data instead of collect_all_tokens
-            print("\n📊 Fetching OHLCV data...")
+            # Get OHLCV data using multi-exchange orchestrator
+            print("\n📊 Fetching OHLCV data using exchange orchestrator...")
             try:
-                token_market_data = collect_token_data(token)
+                # Use orchestrator's smart routing (tries free sources first)
+                token_market_data = self.exchange_manager.get_ohlcv(token, timeframe='15m', limit=100)
+
                 print("\n🔍 OHLCV Data Retrieved:")
                 if token_market_data is None or token_market_data.empty:
-                    print("❌ No OHLCV data found")
+                    print("❌ No OHLCV data found from any source")
                     token_market_data = "No market data available"
                 else:
                     print("✅ OHLCV data found:")

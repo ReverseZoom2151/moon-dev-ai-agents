@@ -357,6 +357,74 @@ class MultiExchangeManager:
             balances.update(self.get_balance(exch))
         return balances
 
+    def get_ohlcv(self, symbol: str, timeframe: str = '1h', limit: int = 100) -> Optional[pd.DataFrame]:
+        """
+        Unified OHLCV data fetching with intelligent routing and fallback
+
+        Args:
+            symbol: Token address (Solana) or trading symbol (CEX)
+            timeframe: Candle timeframe ('1m', '5m', '15m', '1h', '4h', '1d')
+            limit: Number of candles to fetch
+
+        Returns:
+            DataFrame with columns: [timestamp, open, high, low, close, volume]
+            Or None if no data available
+        """
+        # Priority order: Binance → Bitfinex → CoinGecko → Birdeye
+
+        # Try Binance first for USDT pairs
+        if 'binance' in self.active_exchanges:
+            try:
+                test_symbol = symbol if '/' in symbol else f"{symbol}/USDT"
+                binance_exchange = self.active_exchanges['binance']
+
+                if binance_exchange.supports_symbol(test_symbol):
+                    cprint(f"📊 Fetching {test_symbol} from Binance (FREE)", "cyan")
+                    ohlcv_data = binance_exchange.get_ohlcv(test_symbol, timeframe, limit)
+
+                    if ohlcv_data:
+                        df = pd.DataFrame(ohlcv_data, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+                        df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+                        cprint(f"✅ Got {len(df)} candles from Binance", "green")
+                        return df
+            except Exception as e:
+                cprint(f"⚠️ Binance failed: {e}", "yellow")
+
+        # Try Bitfinex for USD pairs
+        if 'bitfinex' in self.active_exchanges:
+            try:
+                test_symbol = symbol if '/' in symbol else f"{symbol}/USD"
+                bitfinex_exchange = self.active_exchanges['bitfinex']
+
+                if bitfinex_exchange.supports_symbol(test_symbol):
+                    cprint(f"📊 Fetching {test_symbol} from Bitfinex (FREE)", "cyan")
+                    ohlcv_data = bitfinex_exchange.get_ohlcv(test_symbol, timeframe, limit)
+
+                    if ohlcv_data:
+                        df = pd.DataFrame(ohlcv_data, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+                        df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+                        cprint(f"✅ Got {len(df)} candles from Bitfinex", "green")
+                        return df
+            except Exception as e:
+                cprint(f"⚠️ Bitfinex failed: {e}", "yellow")
+
+        # Fallback: Try Birdeye for Solana tokens (if API key available)
+        if len(symbol) > 32 and symbol.isalnum():
+            try:
+                birdeye_key = os.getenv('BIRDEYE_API_KEY')
+                if birdeye_key:
+                    cprint(f"📊 Trying Birdeye for Solana token (PAID)", "cyan")
+                    from src.data.ohlcv_collector import collect_token_data
+                    df = collect_token_data(symbol)
+                    if df is not None and not df.empty:
+                        cprint(f"✅ Got data from Birdeye", "green")
+                        return df
+            except:
+                pass
+
+        cprint(f"❌ No data available for {symbol}", "red")
+        return None
+
     def __str__(self):
         return f"MultiExchangeManager(exchanges={list(self.active_exchanges.keys())})"
 

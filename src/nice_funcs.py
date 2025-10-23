@@ -52,11 +52,16 @@ load_dotenv()
 # Get API keys from environment
 BIRDEYE_API_KEY = os.getenv("BIRDEYE_API_KEY")
 if not BIRDEYE_API_KEY:
-    raise ValueError("🚨 BIRDEYE_API_KEY not found in environment variables!")
+    cprint("⚠️ BIRDEYE_API_KEY not found - Solana token data will use alternative sources", "yellow")
+    cprint("   💡 Set BIRDEYE_API_KEY in .env for full Solana token support", "cyan")
 
 sample_address = "2yXTyarttn2pTZ6cwt4DqmrRuBw1G7pmFv9oT6MStdKP"
 
 BASE_URL = "https://public-api.birdeye.so/defi"
+
+def is_birdeye_available():
+    """Check if Birdeye API key is available"""
+    return BIRDEYE_API_KEY is not None and BIRDEYE_API_KEY != ""
 
 # Create temp directory and register cleanup
 os.makedirs('temp_data', exist_ok=True)
