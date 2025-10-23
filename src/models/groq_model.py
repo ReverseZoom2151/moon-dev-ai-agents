@@ -76,7 +76,7 @@ class GroqModel(BaseModel):
         }
     }
     
-    def __init__(self, api_key: str, model_name: str = "mixtral-8x7b-32768", **kwargs):
+    def __init__(self, api_key: str, model_name: str = "llama-3.3-70b-versatile", **kwargs):
         try:
             cprint(f"\n🌙 Moon Dev's Groq Model Initialization", "cyan")
             
