@@ -10,6 +10,7 @@ Need an API key? for a limited time, bootcamp members get free api keys for clau
 # Standard library imports
 import os
 import re
+import sys
 import time
 import traceback
 
@@ -24,7 +25,12 @@ from pathlib import Path
 # Third-party from imports
 from dotenv import load_dotenv
 
-# Local from imports
+# Get the project root directory and add to path
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+# Local from imports (after adding PROJECT_ROOT to path)
 from src.agents.base_agent import BaseAgent
 from src.config import AI_MODEL, AI_TEMPERATURE, AI_MAX_TOKENS
 from src.models.model_priority import ModelPriority
