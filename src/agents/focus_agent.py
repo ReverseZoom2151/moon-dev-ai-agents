@@ -210,13 +210,21 @@ class FocusAgent:
         if not anthropic_key:
             raise ValueError("🚨 ANTHROPIC_KEY not found in environment variables!")
         self.anthropic_client = Anthropic(api_key=anthropic_key)
-        
-        # Initialize Google Speech client
-        google_creds = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-        if not google_creds:
-            raise ValueError("🚨 GOOGLE_APPLICATION_CREDENTIALS not found!")
-        self.speech_client = speech.SpeechClient()
-        
+
+        # Initialize Google Speech client (optional)
+        self.speech_client = None
+        if SPEECH_AVAILABLE:
+            google_creds = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+            if google_creds:
+                try:
+                    self.speech_client = speech.SpeechClient()
+                    cprint("✅ Google Speech-to-Text initialized", "green")
+                except Exception as e:
+                    cprint(f"⚠️ Could not initialize Google Speech client: {e}", "yellow")
+            else:
+                cprint("⚠️ GOOGLE_APPLICATION_CREDENTIALS not set - speech features disabled", "yellow")
+                cprint("   Set this to a Google Cloud service account JSON key path", "cyan")
+
         cprint("🎯 Moon Dev's Focus Agent initialized!", "green")
         
         self.is_recording = False
@@ -249,6 +257,12 @@ class FocusAgent:
         
     def record_audio(self):
         """Record audio for specified duration"""
+        # Check if speech recognition is available
+        if not SPEECH_AVAILABLE or not self.speech_client:
+            cprint("⚠️ Speech recognition not available - skipping audio recording", "yellow")
+            cprint("   Install google-cloud-speech and set GOOGLE_APPLICATION_CREDENTIALS to enable", "cyan")
+            return None
+
         config = speech.RecognitionConfig(
             encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
             sample_rate_hertz=SAMPLE_RATE,
