@@ -21,6 +21,8 @@ print(f"📂 Loading data from: {data_path}")
 data = pd.read_csv(data_path)
 data['datetime'] = pd.to_datetime(data['datetime'])
 data.set_index('datetime', inplace=True)
+# Drop any empty columns (from trailing commas)
+data = data.dropna(axis=1, how='all')
 data.columns = ['Open', 'High', 'Low', 'Close', 'Volume']
 
 print("🚀 Running backtest...")

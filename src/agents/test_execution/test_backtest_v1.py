@@ -16,6 +16,8 @@ data_path = Path(__file__).parent.parent.parent / 'data' / 'rbi' / 'BTC-USD-15m.
 data = pd.read_csv(data_path)
 data['datetime'] = pd.to_datetime(data['datetime'])
 data.set_index('datetime', inplace=True)
+# Drop any empty columns (from trailing commas)
+data = data.dropna(axis=1, how='all')
 data.columns = ['Open', 'High', 'Low', 'Close', 'Volume']
 
 bt = Backtest(data, TestStrategy, cash=1000000)
