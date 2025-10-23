@@ -18,6 +18,20 @@ import tempfile
 import threading
 import time
 import wave
+from datetime import datetime
+from pathlib import Path
+
+# Add project root to Python path for imports (BEFORE importing from src)
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+# Set UTF-8 encoding for Windows console
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except:
+        pass
 
 # Third-party imports
 import langdetect
@@ -25,10 +39,6 @@ import numpy as np
 import openai
 import pandas as pd
 import sounddevice as sd
-
-# Standard library from imports
-from datetime import datetime
-from pathlib import Path
 
 # Third-party from imports
 from dotenv import load_dotenv
@@ -41,11 +51,6 @@ from src.models.model_priority import ModelPriority
 
 # Testing mode flag - set to True to test in terminal without Twilio
 TESTING_MODE = True
-
-# Add project root to Python path for imports
-project_root = str(Path(__file__).parent.parent.parent)
-if project_root not in sys.path:
-    sys.path.append(project_root)
 
 # Load environment variables
 if not TESTING_MODE:
