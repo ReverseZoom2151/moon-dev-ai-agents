@@ -98,7 +98,7 @@ class UnifiedTradingAgent:
                 cprint(f"Error checking {token}: {str(e)}", "red")
 
         if not positions_found:
-            cprint("No open positions found", "gray")
+            cprint("No open positions found", "grey")
 
     def execute_test_trade(self):
         """Execute a small test trade (DO NOT RUN WITH REAL MONEY)"""
