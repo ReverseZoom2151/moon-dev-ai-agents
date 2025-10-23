@@ -19,6 +19,7 @@ DEEPSEEK_BASE_URL = "https://api.deepseek.com"  # Base URL for DeepSeek API
 # Standard library imports
 import os
 import re
+import sys
 import time
 import traceback
 
@@ -36,14 +37,16 @@ from pathlib import Path
 from dotenv import load_dotenv
 from termcolor import cprint
 
-# Local from imports
+# Get the project root directory and add to path
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+# Local from imports (after adding PROJECT_ROOT to path)
 from src import config
 from src import nice_funcs_hl as hl
 from src.agents.api import MoonDevAPI
 from src.agents.base_agent import BaseAgent
-
-# Get the project root directory
-PROJECT_ROOT = Path(__file__).parent.parent.parent
 
 # Configuration
 CHECK_INTERVAL_MINUTES = 15  # How often to check funding rates
