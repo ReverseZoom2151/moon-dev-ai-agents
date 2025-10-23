@@ -69,10 +69,12 @@ from termcolor import cprint
 
 # Local from imports
 from src.models import model_factory
-from src.models.model_priority import ModelPriority
 
-# Initialize model_priority system
-model_priority = ModelPriority(model_factory)
+# Note: This agent uses model_factory directly for vision API functionality
+# model_priority is not used here because:
+# 1. This is a procedural script (not class-based like other agents)
+# 2. It only uses OpenAI's vision API for screenshot analysis
+# 3. Vision API requires OpenAI-specific message format with base64 images
 
 # Keyboard modifiers (cross-platform)
 if IS_MACOS:
