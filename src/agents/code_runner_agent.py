@@ -33,6 +33,11 @@ import traceback
 from datetime import datetime
 from pathlib import Path
 
+# Add project root to Python path for imports (MUST be before src imports)
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 # Platform check - now supports Windows and macOS
 IS_MACOS = platform.system() == "Darwin"
 IS_WINDOWS = platform.system() == "Windows"
