@@ -157,54 +157,62 @@ def get_display_bounds():
         return []
 
 def move_mouse_cg(x, y, debug=True):
-    """Move mouse using CoreGraphics with display bounds checking"""
+    """Move mouse (cross-platform: CoreGraphics on macOS, pyautogui on Windows/Linux)"""
     try:
-        if debug:
-            displays = get_display_bounds()
-            cprint("\n🖥️ Display Information:", "cyan")
-            for i, display in enumerate(displays, 1):
-                cprint(f"  ├─ Display {i}: Origin({display['x']}, {display['y']}) Size({display['width']}x{display['height']})", "cyan")
-        
-        # Get current position for verification
-        current = CG.CGEventGetLocation(CG.CGEventCreate(None))
-        cprint(f"\n📍 Starting position: ({int(current.x)}, {int(current.y)})", "yellow")
-        
-         # Create smooth movement
-        steps = 20
-        start_x, start_y = current.x, current.y
-        
-        for i in range(steps + 1):
-            # Calculate intermediate position
-            current_x = start_x + (x - start_x) * i / steps
-            current_y = start_y + (y - start_y) * i / steps
-            
-            # Create point for movement
-            point = CG.CGPoint(current_x, current_y)
-            
-            # Move cursor
-            CG.CGWarpMouseCursorPosition(point)
-            
-            # Small pause between movements
-            time.sleep(MOVEMENT_SPEED / steps)
-            
-            if debug and i % 5 == 0:
-                pos = CG.CGEventGetLocation(CG.CGEventCreate(None))
-                cprint(f"  ├─ Step {i}: Moving to ({int(current_x)}, {int(current_y)}) At: ({int(pos.x)}, {int(pos.y)})", "cyan")
-        
-        # Final position check
-        final_pos = CG.CGEventGetLocation(CG.CGEventCreate(None))
-        cprint(f"📍 Final position: ({int(final_pos.x)}, {int(final_pos.y)})", "yellow")
-        
-        # Create and post a mouse moved event
-        point = CG.CGPoint(x, y)
-        event = CG.CGEventCreateMouseEvent(None, CG.kCGEventMouseMoved, point, CG.kCGMouseButtonLeft)
-        CG.CGEventPost(CG.kCGHIDEventTap, event)
-        
-        success = abs(final_pos.x - x) <= 10 and abs(final_pos.y - y) <= 10
-        if not success:
-            cprint(f"⚠️ Warning: Expected ({x}, {y}) but got ({int(final_pos.x)}, {int(final_pos.y)})", "yellow")
-        
-        return success
+        # Use platform-specific mouse movement
+        if IS_MACOS and HAS_MACOS_FRAMEWORKS:
+            # macOS - use CoreGraphics for precise control
+            if debug:
+                displays = get_display_bounds()
+                cprint("\n🖥️ Display Information:", "cyan")
+                for i, display in enumerate(displays, 1):
+                    cprint(f"  ├─ Display {i}: Origin({display['x']}, {display['y']}) Size({display['width']}x{display['height']})", "cyan")
+
+            current = CG.CGEventGetLocation(CG.CGEventCreate(None))
+            cprint(f"\n📍 Starting position: ({int(current.x)}, {int(current.y)})", "yellow")
+
+            # Create smooth movement
+            steps = 20
+            start_x, start_y = current.x, current.y
+
+            for i in range(steps + 1):
+                current_x = start_x + (x - start_x) * i / steps
+                current_y = start_y + (y - start_y) * i / steps
+                point = CG.CGPoint(current_x, current_y)
+                CG.CGWarpMouseCursorPosition(point)
+                time.sleep(MOVEMENT_SPEED / steps)
+
+                if debug and i % 5 == 0:
+                    pos = CG.CGEventGetLocation(CG.CGEventCreate(None))
+                    cprint(f"  ├─ Step {i}: Moving to ({int(current_x)}, {int(current_y)}) At: ({int(pos.x)}, {int(pos.y)})", "cyan")
+
+            final_pos = CG.CGEventGetLocation(CG.CGEventCreate(None))
+            cprint(f"📍 Final position: ({int(final_pos.x)}, {int(final_pos.y)})", "yellow")
+
+            # Post mouse moved event
+            point = CG.CGPoint(x, y)
+            event = CG.CGEventCreateMouseEvent(None, CG.kCGEventMouseMoved, point, CG.kCGMouseButtonLeft)
+            CG.CGEventPost(CG.kCGHIDEventTap, event)
+
+            success = abs(final_pos.x - x) <= 10 and abs(final_pos.y - y) <= 10
+            if not success:
+                cprint(f"⚠️ Warning: Expected ({x}, {y}) but got ({int(final_pos.x)}, {int(final_pos.y)})", "yellow")
+            return success
+        else:
+            # Windows/Linux - use pyautogui
+            current = pyautogui.position()
+            cprint(f"\n📍 Starting position: ({current.x}, {current.y})", "yellow")
+
+            # Smooth movement with pyautogui
+            pyautogui.moveTo(x, y, duration=MOVEMENT_SPEED)
+
+            final_pos = pyautogui.position()
+            cprint(f"📍 Final position: ({final_pos.x}, {final_pos.y})", "yellow")
+
+            success = abs(final_pos.x - x) <= 10 and abs(final_pos.y - y) <= 10
+            if not success:
+                cprint(f"⚠️ Warning: Expected ({x}, {y}) but got ({final_pos.x}, {final_pos.y})", "yellow")
+            return success
         
     except Exception as e:
         cprint(f"❌ Error moving mouse: {e}", "red")
@@ -291,25 +299,27 @@ def click_with_applescript():
         return False
 
 def quick_click():
-    """Quick and direct click using CoreGraphics"""
+    """Quick and direct click (cross-platform: CoreGraphics on macOS, pyautogui on Windows/Linux)"""
     try:
-        # First try CoreGraphics click
         cprint("🖱️ Attempting click...", "cyan")
-        
-        # Get current position
-        pos = CG.CGEventGetLocation(CG.CGEventCreate(None))
-        
-        # Create and post mouse events
-        mouse_down = CG.CGEventCreateMouseEvent(None, CG.kCGEventLeftMouseDown, pos, CG.kCGMouseButtonLeft)
-        mouse_up = CG.CGEventCreateMouseEvent(None, CG.kCGEventLeftMouseUp, pos, CG.kCGMouseButtonLeft)
-        
-        # Click with proper timing
-        time.sleep(0.3)  # Small pause before
-        CG.CGEventPost(CG.kCGHIDEventTap, mouse_down)
-        time.sleep(0.2)  # Hold the click
-        CG.CGEventPost(CG.kCGHIDEventTap, mouse_up)
-        time.sleep(0.3)  # Pause after
-        
+
+        if IS_MACOS and HAS_MACOS_FRAMEWORKS:
+            # macOS - use CoreGraphics for precise control
+            pos = CG.CGEventGetLocation(CG.CGEventCreate(None))
+            mouse_down = CG.CGEventCreateMouseEvent(None, CG.kCGEventLeftMouseDown, pos, CG.kCGMouseButtonLeft)
+            mouse_up = CG.CGEventCreateMouseEvent(None, CG.kCGEventLeftMouseUp, pos, CG.kCGMouseButtonLeft)
+
+            time.sleep(0.3)
+            CG.CGEventPost(CG.kCGHIDEventTap, mouse_down)
+            time.sleep(0.2)
+            CG.CGEventPost(CG.kCGHIDEventTap, mouse_up)
+            time.sleep(0.3)
+        else:
+            # Windows/Linux - use pyautogui
+            time.sleep(0.3)
+            pyautogui.click()
+            time.sleep(0.3)
+
         return True
     except Exception as e:
         cprint(f"❌ Error clicking: {e}", "red")
@@ -742,9 +752,12 @@ def execute_and_capture():
     """Move to position, execute code, and capture screenshot"""
     try:
         cprint("\n🎯 Moon Dev's Code Executor Starting...", "cyan")
-        
-        # Store initial position
-        initial_pos = CG.CGEventGetLocation(CG.CGEventCreate(None))
+
+        # Store initial position (cross-platform)
+        if IS_MACOS and HAS_MACOS_FRAMEWORKS:
+            initial_pos = CG.CGEventGetLocation(CG.CGEventCreate(None))
+        else:
+            initial_pos = pyautogui.position()  # Returns Point(x, y)
         
         # Add first run flag
         first_run = True
