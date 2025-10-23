@@ -12,8 +12,8 @@ import traceback
 # Third-party imports
 import numpy as np
 import pandas as pd
-import pandas_ta as ta
 import requests
+import talib
 
 # Standard library from imports
 from datetime import datetime, timedelta
@@ -134,20 +134,22 @@ def add_technical_indicators(df):
         numeric_cols = ['open', 'high', 'low', 'close', 'volume']
         df[numeric_cols] = df[numeric_cols].astype('float64')
 
-        # Add basic indicators using pandas_ta function API
-        df['sma_20'] = ta.sma(df['close'], length=20)
-        df['sma_50'] = ta.sma(df['close'], length=50)
-        df['rsi'] = ta.rsi(df['close'], length=14)
+        # Add basic indicators using talib (more reliable than pandas_ta)
+        df['sma_20'] = talib.SMA(df['close'].values, timeperiod=20)
+        df['sma_50'] = talib.SMA(df['close'].values, timeperiod=50)
+        df['rsi'] = talib.RSI(df['close'].values, timeperiod=14)
 
         # Add MACD
-        macd_df = ta.macd(df['close'])
-        if macd_df is not None:
-            df = pd.concat([df, macd_df], axis=1)
+        macd, macd_signal, macd_hist = talib.MACD(df['close'].values)
+        df['MACD_12_26_9'] = macd
+        df['MACDs_12_26_9'] = macd_signal
+        df['MACDh_12_26_9'] = macd_hist
 
         # Add Bollinger Bands
-        bbands_df = ta.bbands(df['close'])
-        if bbands_df is not None:
-            df = pd.concat([df, bbands_df], axis=1)
+        upper, middle, lower = talib.BBANDS(df['close'].values, timeperiod=20)
+        df['BBU_20_2.0'] = upper
+        df['BBM_20_2.0'] = middle
+        df['BBL_20_2.0'] = lower
         
         print("✅ Technical indicators added successfully")
         return df
