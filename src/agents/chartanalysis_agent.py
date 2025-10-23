@@ -7,6 +7,7 @@ Chuck the Chart Agent generates and analyzes trading charts using AI vision capa
 
 # Standard library imports
 import os
+import platform
 import re
 import sys
 import time
@@ -311,9 +312,18 @@ class ChartAnalysisAgent(BaseAgent):
             audio_file = self.audio_dir / f"chart_alert_{timestamp}.mp3"
             
             response.stream_to_file(str(audio_file))
-            
-            # Play audio
-            os.system(f"afplay {audio_file}")
+
+            # Play audio (cross-platform)
+            try:
+                system = platform.system()
+                if system == "Darwin":  # macOS
+                    os.system(f"afplay {audio_file}")
+                elif system == "Windows":
+                    os.system(f"start {audio_file}")
+                elif system == "Linux":
+                    os.system(f"mpg123 {audio_file}")
+            except Exception as play_error:
+                print(f"⚠️ Could not play audio: {play_error}")
             
         except Exception as e:
             print(f"❌ Error in announcement: {str(e)}")
@@ -356,9 +366,12 @@ class ChartAnalysisAgent(BaseAgent):
             
             # Print last 5 candles with proper timestamp formatting
             last_5 = data.tail(5)
-            last_5.index = pd.to_datetime(last_5.index)
             for idx, row in last_5.iterrows():
-                time_str = idx.strftime('%Y-%m-%d %H:%M')  # Include date and time
+                # Use timestamp column if available, otherwise use index
+                if 'timestamp' in row:
+                    time_str = pd.to_datetime(row['timestamp']).strftime('%Y-%m-%d %H:%M')
+                else:
+                    time_str = pd.to_datetime(idx).strftime('%Y-%m-%d %H:%M')
                 print(f"║ {time_str} │ {row['open']:.2f} │ {row['high']:.2f} │ {row['low']:.2f} │ {row['close']:.2f} │ {row['volume']:.0f} │")
             
             print("\n║ Technical Indicators:")

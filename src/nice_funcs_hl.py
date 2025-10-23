@@ -133,19 +133,17 @@ def add_technical_indicators(df):
         # Ensure numeric columns are float64
         numeric_cols = ['open', 'high', 'low', 'close', 'volume']
         df[numeric_cols] = df[numeric_cols].astype('float64')
-        
-        # Add basic indicators
-        df['sma_20'] = ta.sma(df['close'], length=20)
-        df['sma_50'] = ta.sma(df['close'], length=50)
-        df['rsi'] = ta.rsi(df['close'], length=14)
-        
+
+        # Add basic indicators using pandas_ta DataFrame extension
+        df.ta.sma(close='close', length=20, append=True, col_names=('sma_20',))
+        df.ta.sma(close='close', length=50, append=True, col_names=('sma_50',))
+        df.ta.rsi(close='close', length=14, append=True)
+
         # Add MACD
-        macd = ta.macd(df['close'])
-        df = pd.concat([df, macd], axis=1)
-        
+        df.ta.macd(close='close', append=True)
+
         # Add Bollinger Bands
-        bbands = ta.bbands(df['close'])
-        df = pd.concat([df, bbands], axis=1)
+        df.ta.bbands(close='close', append=True)
         
         print("✅ Technical indicators added successfully")
         return df
