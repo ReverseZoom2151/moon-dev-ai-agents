@@ -95,7 +95,23 @@ Main Agent Code Below
 import json
 import os
 import random
+import sys
 import time
+from datetime import datetime
+from pathlib import Path
+from typing import Dict, List
+
+# Add project root to path for imports
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+# Set UTF-8 encoding for Windows console
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except:
+        pass
 
 # Third-party imports
 import anthropic
@@ -103,11 +119,6 @@ import openai
 import pandas as pd
 import requests
 import src.config as config
-
-# Standard library from imports
-from datetime import datetime
-from pathlib import Path
-from typing import Dict, List
 
 # Third-party from imports
 from dotenv import load_dotenv
@@ -133,7 +144,7 @@ AI_MODEL = MODEL_OVERRIDE if MODEL_OVERRIDE != "0" else config.AI_MODEL
 # Configuration
 COINGECKO_API_KEY = os.getenv("COINGECKO_API_KEY")
 BASE_URL = "https://pro-api.coingecko.com/api/v3"
-RESULTS_DIR = Path("src/data/coingecko_results")
+RESULTS_DIR = PROJECT_ROOT / "src" / "data" / "coingecko_results"
 DELAY_BETWEEN_REQUESTS = 1  # Seconds between API calls
 
 # Output files
