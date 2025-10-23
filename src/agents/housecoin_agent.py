@@ -44,9 +44,10 @@ if project_root not in sys.path:
     sys.path.append(project_root)
 
 # Local from imports
+from src.agents.base_agent import BaseAgent
 from src.config import EXCHANGE, MONITORED_TOKENS
 from src import nice_funcs as n
-from src.models.model_factory import model_factory
+from src.models.model_priority import ModelPriority
 
 # Load environment variables
 load_dotenv()
@@ -124,20 +125,19 @@ THESIS_STATEMENTS = [
     "Real estate is a $300+ trillion market. Housecoin captures this digitally",
 ]
 
-class HousecoinAgent:
+class HousecoinAgent(BaseAgent):
     def __init__(self):
         """Initialize the Housecoin DCA Agent"""
         cprint("\n🏠 Initializing Housecoin DCA Agent with AI Decision Layer 🏠", "cyan", attrs=['bold'])
 
-        # Initialize AI model
-        cprint(f"🤖 Loading {AI_MODEL_TYPE} model: {AI_MODEL_NAME}", "yellow")
-        self.model = model_factory.get_model(AI_MODEL_TYPE, AI_MODEL_NAME)
+        # Initialize BaseAgent with model_priority
+        super().__init__('housecoin_agent', use_model_priority=True)
 
-        if not self.model:
-            cprint(f"❌ Failed to initialize {AI_MODEL_TYPE} model!", "red")
-            raise ValueError("Model initialization failed")
+        if not self.model_priority:
+            raise ValueError("🚨 Model priority system not initialized!")
 
-        cprint(f"✅ AI Model ready: {self.model.model_name}", "green")
+        cprint("✅ Using model_priority with MEDIUM priority for DCA decisions", "green")
+        cprint(f"   Priority order: GPT-5 → Claude Sonnet 4.5 → Gemini 2.5 Pro", "yellow")
 
         # Load state
         self.state = self.load_state()
@@ -386,14 +386,19 @@ class HousecoinAgent:
                 buy_reason=buy_reason
             )
 
-            # Get AI decision
+            # Get AI decision using model_priority with MEDIUM priority
             cprint("\n🤖 Consulting AI for trade confirmation...", "cyan")
-            response = self.model.generate_response(
+            model_response, provider, model_used = self.model_priority.get_model(
+                priority=ModelPriority.MEDIUM,
                 system_prompt="You are a trading assistant that must respond with either 'BUY' or 'DONT BUY' followed by a brief explanation.",
                 user_content=prompt,
                 temperature=AI_TEMPERATURE,
                 max_tokens=AI_MAX_TOKENS
             )
+
+            # Extract text from ModelResponse object
+            response = model_response.content if hasattr(model_response, 'content') else str(model_response)
+            cprint(f"   ✅ Response from {provider}:{model_used}", "green")
 
             # Parse response
             if response:
