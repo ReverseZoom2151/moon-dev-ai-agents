@@ -471,6 +471,11 @@ def chat_with_model(system_prompt, user_content, priority=ModelPriority.HIGH):
     if not response:
         raise ValueError("❌ All AI models failed!")
 
+    # Check if response has valid content
+    if not response.content or len(response.content.strip()) == 0:
+        cprint(f"⚠️ Model {provider}:{model} returned empty content", "yellow")
+        return None
+
     cprint(f"✅ Used model: {provider}:{model}", "green")
     return response.content
 
