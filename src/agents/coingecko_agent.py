@@ -658,16 +658,9 @@ class MultiAgentSystem:
         cprint("🎮 Moon Dev's Trading Game System Ready! 🎮", "white", "on_green", attrs=["bold"])
         
     def generate_round_synopsis(self, agent_one_response: str, agent_two_response: str) -> str:
-        """Generate a brief synopsis of the round's key points using Synopsis Agent"""
+        """Generate a brief synopsis of the round's key points using model_priority"""
         try:
-            message = self.agent_one.client.messages.create(
-                model="claude-3-haiku-20240307",
-                max_tokens=SYNOPSIS_MAX_TOKENS,
-                temperature=SYNOPSIS_TEMP,
-                system=SYNOPSIS_AGENT_PROMPT,  # Use the synopsis agent prompt
-                messages=[{
-                    "role": "user",
-                    "content": f"""
+            user_content = f"""
 Agent One said:
 {agent_one_response}
 
@@ -676,12 +669,23 @@ Agent Two said:
 
 Create a brief synopsis of this trading round.
 """
-                }]
+
+            # Use agent_one's model_priority with LOW priority for simple synopsis
+            model_response, provider, model_used = self.agent_one.model_priority.get_model(
+                priority=ModelPriority.LOW,
+                system_prompt=SYNOPSIS_AGENT_PROMPT,
+                user_content=user_content,
+                temperature=SYNOPSIS_TEMP,
+                max_tokens=SYNOPSIS_MAX_TOKENS
             )
-            
-            synopsis = str(message.content).strip()
+
+            # Extract text from ModelResponse object
+            synopsis = model_response.content if hasattr(model_response, 'content') else str(model_response)
+            synopsis = synopsis.strip()
+
+            cprint(f"   ✅ Synopsis generated using {provider}:{model_used}", "cyan")
             return synopsis
-            
+
         except Exception as e:
             cprint(f"⚠️ Error generating synopsis: {e}", "white", "on_yellow")
             return "Synopsis generation failed"
