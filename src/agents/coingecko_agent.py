@@ -422,14 +422,23 @@ class CoinGeckoAPI:
     
     def __init__(self):
         self.api_key = os.getenv("COINGECKO_API_KEY")
+
+        # Use FREE API if no key, PRO API if key provided
         if not self.api_key:
-            print("⚠️ Warning: COINGECKO_API_KEY not found in environment variables!")
-        self.base_url = "https://pro-api.coingecko.com/api/v3"
-        self.headers = {
-            "x-cg-pro-api-key": self.api_key,
-            "Content-Type": "application/json"
-        }
-        print("🦎 Moon Dev's CoinGecko API initialized!")
+            print("⚠️ COINGECKO_API_KEY not found - using FREE API (rate limited)")
+            self.base_url = "https://api.coingecko.com/api/v3"
+            self.headers = {
+                "Content-Type": "application/json"
+            }
+        else:
+            print(f"✅ COINGECKO_API_KEY found - using PRO API")
+            self.base_url = "https://pro-api.coingecko.com/api/v3"
+            self.headers = {
+                "x-cg-pro-api-key": self.api_key,
+                "Content-Type": "application/json"
+            }
+
+        print(f"🦎 Moon Dev's CoinGecko API initialized! (Endpoint: {self.base_url})")
         
     def _make_request(self, endpoint: str, params: Optional[Dict] = None) -> Dict:
         """Make API request with rate limiting and error handling"""
