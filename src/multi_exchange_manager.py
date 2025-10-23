@@ -1,7 +1,9 @@
 """
-Multi-Exchange Manager V2
+Multi-Exchange Manager V3
 Unified interface for trading across multiple exchanges simultaneously
-Supports: Solana, HyperLiquid, Binance, Bitfinex, CoinGecko (data), Birdeye (data)
+Supports:
+- Trading: Binance (spot), Bitfinex (spot), HyperLiquid (perps), Jupiter (Solana DEX), Solana (direct)
+- Data: CoinGecko (10K+ tokens, FREE), Birdeye (Solana tokens, PAID), MoonDev (signals/analytics)
 """
 
 # Standard library imports
@@ -87,9 +89,13 @@ class MultiExchangeManager:
         if os.getenv('SOLANA_PRIVATE_KEY') or os.getenv('address'):
             available.append('solana')
 
-        # Check for HyperLiquid credentials
+        # Check for HyperLiquid credentials (perpetuals trading)
         if os.getenv('HYPER_LIQUID_KEY'):
             available.append('hyperliquid')
+
+        # Check for Jupiter/Solana credentials (DEX swaps)
+        if os.getenv('SOLANA_PRIVATE_KEY') or os.getenv('address'):
+            available.append('jupiter')
 
         # CoinGecko always available (free tier works without API key)
         available.append('coingecko')
@@ -97,6 +103,10 @@ class MultiExchangeManager:
         # Check for Birdeye credentials (Solana token data)
         if os.getenv('BIRDEYE_API_KEY'):
             available.append('birdeye')
+
+        # Check for MoonDev API (signals and analytics)
+        if os.getenv('MOONDEV_API_KEY'):
+            available.append('moondev')
 
         return available
 
@@ -119,17 +129,16 @@ class MultiExchangeManager:
                     self.active_exchanges['solana'] = solana
 
                 elif exchange_name == 'hyperliquid':
-                    import eth_account
-                    from src import nice_funcs_hyperliquid as hl
-                    hl_key = os.getenv('HYPER_LIQUID_KEY')
-                    if hl_key:
-                        account = eth_account.Account.from_key(hl_key)
-                        self.active_exchanges['hyperliquid'] = {
-                            'module': hl,
-                            'account': account
-                        }
-                    else:
-                        cprint(f"⚠️ HyperLiquid key not found, skipping", "yellow")
+                    # Use new exchange adapter (replaces old module approach)
+                    from src.exchange.hyperliquid_exchange import HyperLiquidExchange
+                    try:
+                        self.active_exchanges['hyperliquid'] = HyperLiquidExchange()
+                    except ValueError as e:
+                        cprint(f"⚠️ HyperLiquid: {str(e)}", "yellow")
+
+                elif exchange_name == 'jupiter':
+                    from src.exchange.jupiter_exchange import JupiterExchange
+                    self.active_exchanges['jupiter'] = JupiterExchange()
 
                 elif exchange_name == 'coingecko':
                     from src.exchange.coingecko_exchange import CoinGeckoExchange
@@ -138,6 +147,10 @@ class MultiExchangeManager:
                 elif exchange_name == 'birdeye':
                     from src.exchange.birdeye_exchange import BirdeyeExchange
                     self.active_exchanges['birdeye'] = BirdeyeExchange()
+
+                elif exchange_name == 'moondev':
+                    from src.exchange.moondev_exchange import MoonDevExchange
+                    self.active_exchanges['moondev'] = MoonDevExchange()
 
             except Exception as e:
                 cprint(f"⚠️ Failed to initialize {exchange_name}: {str(e)}", "yellow")
@@ -385,16 +398,16 @@ class MultiExchangeManager:
             DataFrame with columns: [timestamp, open, high, low, close, volume]
             Or None if no data available
         """
-        # Priority order: Binance → Bitfinex → CoinGecko → Birdeye
+        # Priority order: Binance → Bitfinex → HyperLiquid → CoinGecko → Birdeye
 
-        # Try Binance first for USDT pairs
+        # Try Binance first for USDT pairs (spot trading)
         if 'binance' in self.active_exchanges:
             try:
                 test_symbol = symbol if '/' in symbol else f"{symbol}/USDT"
                 binance_exchange = self.active_exchanges['binance']
 
                 if binance_exchange.supports_symbol(test_symbol):
-                    cprint(f"📊 Fetching {test_symbol} from Binance (FREE)", "cyan")
+                    cprint(f"📊 Fetching {test_symbol} from Binance (FREE, spot)", "cyan")
                     ohlcv_data = binance_exchange.get_ohlcv(test_symbol, timeframe, limit)
 
                     if ohlcv_data:
@@ -405,14 +418,14 @@ class MultiExchangeManager:
             except Exception as e:
                 cprint(f"⚠️ Binance failed: {e}", "yellow")
 
-        # Try Bitfinex for USD pairs
+        # Try Bitfinex for USD pairs (spot trading)
         if 'bitfinex' in self.active_exchanges:
             try:
                 test_symbol = symbol if '/' in symbol else f"{symbol}/USD"
                 bitfinex_exchange = self.active_exchanges['bitfinex']
 
                 if bitfinex_exchange.supports_symbol(test_symbol):
-                    cprint(f"📊 Fetching {test_symbol} from Bitfinex (FREE)", "cyan")
+                    cprint(f"📊 Fetching {test_symbol} from Bitfinex (FREE, spot)", "cyan")
                     ohlcv_data = bitfinex_exchange.get_ohlcv(test_symbol, timeframe, limit)
 
                     if ohlcv_data:
@@ -422,6 +435,25 @@ class MultiExchangeManager:
                         return df
             except Exception as e:
                 cprint(f"⚠️ Bitfinex failed: {e}", "yellow")
+
+        # Try HyperLiquid for perpetuals (100+ symbols, high quality data)
+        if 'hyperliquid' in self.active_exchanges:
+            try:
+                # HyperLiquid uses symbols without slashes (BTC, ETH, etc.)
+                clean_symbol = symbol.replace('/USD', '').replace('/USDT', '')
+                hyperliquid_exchange = self.active_exchanges['hyperliquid']
+
+                if hyperliquid_exchange.supports_symbol(clean_symbol):
+                    cprint(f"📊 Fetching {clean_symbol} from HyperLiquid (FREE, perps)", "cyan")
+                    ohlcv_data = hyperliquid_exchange.get_ohlcv(clean_symbol, timeframe, limit)
+
+                    if ohlcv_data:
+                        df = pd.DataFrame(ohlcv_data, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+                        df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+                        cprint(f"✅ Got {len(df)} candles from HyperLiquid", "green")
+                        return df
+            except Exception as e:
+                cprint(f"⚠️ HyperLiquid failed: {e}", "yellow")
 
         # Try CoinGecko for general token data (10,000+ tokens, FREE)
         if 'coingecko' in self.active_exchanges:
@@ -461,6 +493,59 @@ class MultiExchangeManager:
                 cprint(f"⚠️ Birdeye failed: {e}", "yellow")
 
         cprint(f"❌ No data available for {symbol} from any source", "red")
+        return None
+
+    # ============================================================================
+    # MOON DEV API - Specialized Signal/Analytics Methods
+    # ============================================================================
+
+    def get_liquidations(self, limit: int = 10000) -> Optional[pd.DataFrame]:
+        """Get liquidation data from Moon Dev API"""
+        if 'moondev' in self.active_exchanges:
+            return self.active_exchanges['moondev'].get_liquidation_data(limit)
+        cprint("⚠️ MoonDev API not available (set MOONDEV_API_KEY)", "yellow")
+        return None
+
+    def get_funding_rates(self) -> Optional[pd.DataFrame]:
+        """Get funding rate data from Moon Dev API"""
+        if 'moondev' in self.active_exchanges:
+            return self.active_exchanges['moondev'].get_funding_data()
+        cprint("⚠️ MoonDev API not available (set MOONDEV_API_KEY)", "yellow")
+        return None
+
+    def get_open_interest(self) -> Optional[pd.DataFrame]:
+        """Get detailed open interest data from Moon Dev API"""
+        if 'moondev' in self.active_exchanges:
+            return self.active_exchanges['moondev'].get_open_interest_data()
+        cprint("⚠️ MoonDev API not available (set MOONDEV_API_KEY)", "yellow")
+        return None
+
+    def get_open_interest_total(self) -> Optional[pd.DataFrame]:
+        """Get total open interest data from Moon Dev API"""
+        if 'moondev' in self.active_exchanges:
+            return self.active_exchanges['moondev'].get_open_interest_total()
+        cprint("⚠️ MoonDev API not available (set MOONDEV_API_KEY)", "yellow")
+        return None
+
+    def get_new_token_addresses(self) -> Optional[pd.DataFrame]:
+        """Get new Solana token launches from Moon Dev API"""
+        if 'moondev' in self.active_exchanges:
+            return self.active_exchanges['moondev'].get_token_addresses()
+        cprint("⚠️ MoonDev API not available (set MOONDEV_API_KEY)", "yellow")
+        return None
+
+    def get_copybot_signals(self) -> Optional[pd.DataFrame]:
+        """Get copy trading follow list from Moon Dev API"""
+        if 'moondev' in self.active_exchanges:
+            return self.active_exchanges['moondev'].get_copybot_follow_list()
+        cprint("⚠️ MoonDev API not available (set MOONDEV_API_KEY)", "yellow")
+        return None
+
+    def get_copybot_recent_trades(self) -> Optional[pd.DataFrame]:
+        """Get recent copy trading transactions from Moon Dev API"""
+        if 'moondev' in self.active_exchanges:
+            return self.active_exchanges['moondev'].get_copybot_recent_txs()
+        cprint("⚠️ MoonDev API not available (set MOONDEV_API_KEY)", "yellow")
         return None
 
     def __str__(self):
