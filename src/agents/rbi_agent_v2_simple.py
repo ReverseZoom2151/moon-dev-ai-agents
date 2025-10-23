@@ -40,7 +40,7 @@ from src.models.model_priority import ModelPriority, model_priority_queue
 load_dotenv()
 
 # Configuration
-CONDA_ENV = "tflow"
+# CONDA_ENV = "tflow"  # No longer needed - using sys.executable directly
 MAX_DEBUG_ITERATIONS = 3
 EXECUTION_TIMEOUT = 300
 AI_TEMPERATURE = 0.7
@@ -229,11 +229,12 @@ def create_backtest(strategy, strategy_name="UnknownStrategy"):
     return output
 
 def execute_backtest(file_path: str, strategy_name: str) -> dict:
-    """Execute backtest in conda environment"""
+    """Execute backtest using current Python interpreter"""
     cprint(f"\n🚀 Executing backtest: {strategy_name}", "cyan")
-    
-    cmd = ["conda", "run", "-n", CONDA_ENV, "python", str(file_path)]
-    
+
+    # Use sys.executable for cross-platform compatibility (works without conda)
+    cmd = [sys.executable, str(file_path)]
+
     result = subprocess.run(
         cmd,
         capture_output=True,
