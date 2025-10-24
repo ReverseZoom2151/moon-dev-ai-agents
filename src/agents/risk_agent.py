@@ -45,18 +45,22 @@ RESPECT_LIMIT: <detailed reason for each position>
 import json
 import os
 import re
+import sys
 import time
 import traceback
+from datetime import datetime, timedelta
+from pathlib import Path
 
 # Third-party imports
 import pandas as pd
 
-# Standard library from imports
-from datetime import datetime, timedelta
-
 # Third-party from imports
 from dotenv import load_dotenv
 from termcolor import cprint
+
+# Add project root to Python path for imports
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
 
 # Local from imports
 from src import config
