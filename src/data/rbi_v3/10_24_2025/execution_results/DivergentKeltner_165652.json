@@ -1,0 +1,8 @@
+{
+  "success": false,
+  "return_code": 1,
+  "stdout": "?? Data file located: C:\\Users\\adria\\Downloads\\personal-wall-street\\moon-dev-ai-agents\\src\\data\\rbi\\BTC-USD-15m.csv\n? Loading CSV from: C:\\Users\\adria\\Downloads\\personal-wall-street\\moon-dev-ai-agents\\src\\data\\rbi\\BTC-USD-15m.csv\n?? Data loaded | Rows=31066 | Columns=['Datetime', 'Open', 'High', 'Low', 'Close', 'Volume'] | Start=2023-01-01 00:00:00 | End=2023-11-20 19:15:00\n? Running backtest... ?\n",
+  "stderr": "\nBacktest.run:   0%|          | 0/30866 [00:00<?, ?it/s]\n                                                       \nTraceback (most recent call last):\n  File \"C:\\Users\\adria\\Downloads\\personal-wall-street\\moon-dev-ai-agents\\src\\data\\rbi_v3\\10_24_2025\\backtests_final\\DivergentKeltner_BTFinal_v2.py\", line 519, in <module>\n    stats = bt.run()\n            ^^^^^^^^\n  File \"C:\\Users\\adria\\AppData\\Roaming\\Python\\Python312\\site-packages\\backtesting\\backtesting.py\", line 1326, in run\n    strategy.next()\n  File \"C:\\Users\\adria\\Downloads\\personal-wall-street\\moon-dev-ai-agents\\src\\data\\rbi_v3\\10_24_2025\\backtests_final\\DivergentKeltner_BTFinal_v2.py\", line 203, in next\n    volume = float(self.data.Volume[-1]) if 'Volume' in self.data._fields else np.nan\n                                                        ^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\adria\\AppData\\Roaming\\Python\\Python312\\site-packages\\backtesting\\_util.py\", line 178, in __getattr__\n    raise AttributeError(f\"Column '{item}' not in data\") from None\nAttributeError: Column '_fields' not in data\n",
+  "execution_time": 3.758974,
+  "timestamp": "2025-10-24T16:56:52.117757"
+}

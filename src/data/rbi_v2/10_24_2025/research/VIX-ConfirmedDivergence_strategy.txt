@@ -1,0 +1,107 @@
+STRATEGY_NAME: VIX-Confirmed Divergence
+
+STRATEGY_DETAILS:
+Overview
+A trend-continuation system that goes long on hidden bullish RSI divergence during established uptrends, but only when VIX is rising (fear backdrop). Exits and position sizing are governed by ATR multiples. The VIX filter aims to enter after shakeouts when crowd fear is elevated but the dominant trend remains intact.
+
+1) Key Strategy Components
+- Trend filter:
+  - Direction: Only trade long when the higher-timeframe trend is up.
+  - Implementation: Close > 200-EMA and 50-EMA > 200-EMA, and/or 200-EMA slope > 0.
+- Divergence engine (hidden bullish):
+  - Price makes a higher low (HL2 > HL1) while RSI makes a lower low (RSI_L2 < RSI_L1).
+  - This signals trend continuation after a pullback.
+- Volatility confirmation (VIX rising):
+  - Rising VIX confirms a fear-driven pullback; use a rules-based VIX regime signal.
+- ATR-based risk and exits:
+  - Initial stop, trailing stop, and profit targets all derived from ATR to adapt to volatility.
+
+2) Entry Rules (Long)
+- Market/trend filter (all must be true):
+  - Close > 200-EMA.
+  - 50-EMA > 200-EMA (optional: ADX(14) > 18 to confirm trend strength).
+- Hidden bullish RSI divergence:
+  - Identify two swing lows within the last 5–30 bars:
+    - Price: HL2 > HL1 (higher low).
+    - RSI(14): RSI_L2 < RSI_L1 by at least 2–5 RSI points.
+    - Both lows defined via pivot logic (e.g., 3–5-bar swing lows).
+- VIX regime (fear-on confirmation):
+  - VIX close > VIX SMA(10), and
+  - VIX ROC(5) > 0, and/or
+  - VIX z-score(20) > +0.3 (choose any two for robustness).
+  - Optional: Cap extreme stress. If VIX z-score > +2.0 or VIX > 35, reduce size by 50% or skip.
+- Trigger:
+  - After divergence bar completes, enter on:
+    - Break of signal-bar high (stop-market) OR first close above signal-bar high.
+  - Optional confirmation: RSI crosses back above 50 by entry bar.
+
+3) Exit Rules
+- Initial stop-loss (volatility-adjusted):
+  - Place at min(swing low of HL2 - 0.5*ATR(14), entry - 2.0*ATR(14)).
+  - If swing structure is tight, use at least 1.2*ATR(14) below entry to avoid noise.
+- Profit-taking and trailing:
+  - Scale-out 50% at +1.5R (R = initial risk). Move stop to breakeven at first scale.
+  - Trail remainder with a Chandelier Exit:
+    - Stop = HighestHighSinceEntry - 3.0*ATR(14).
+  - Hard exit if price closes below 50-EMA or if RSI crosses below 40 after entry and trade is not at breakeven.
+- Time stop:
+  - If no scale-out in 20 bars, exit at market (reduces capital tie-up).
+
+4) Risk Management
+- Position sizing:
+  - Risk per trade: 0.5%–1.0% of equity.
+  - Position size = (Account_Risk) / (Entry - Initial_Stop).
+- Portfolio constraints:
+  - Max 3 concurrent positions that are >0.7 correlated (e.g., SPY, QQQ, big tech) when VIX is rising.
+  - Max total exposure: 60% of equity when VIX z-score > +1.
+- Volatility regime adaptation:
+  - If VIX z-score between +1 and +2, increase ATR multiples by +0.5 (e.g., Chandelier 3.5*ATR) to avoid whipsaws.
+  - If VIX z-score > +2, either skip new entries or cut size by 50% and widen stops by +0.5*ATR.
+- Event/market hygiene:
+  - For single stocks, skip entries within T-1 to T+1 of earnings/dividends.
+  - Ensure VIX data timing alignment; use VX1 futures (or VIX9D) for intraday systems to avoid cash-session mismatch.
+  - No lookahead: reference only completed bars for RSI, swings, ATR, and VIX.
+
+5) Required Indicators and Data
+- RSI(14): divergence engine (hidden bullish).
+- ATR(14): initial stop, trailing stop, and target calibration.
+- EMAs: 50-EMA and 200-EMA (trend filter).
+- VIX and transforms:
+  - VIX close, SMA(10), ROC(5), z-score(20).
+  - For non-US assets:
+    - Crypto: BVOL or DVOL as a proxy.
+    - FX/CFD: Use implied vol indices if available; otherwise, create a synthetic vol proxy (e.g., ATR percentile).
+- Swing/pivot detector:
+  - 3–5 bar pivot logic to mark HL1 and HL2 in price and corresponding RSI lows.
+
+6) Parameter Ranges for Optimization (with suggested defaults)
+- RSI length: 10–21 (default 14).
+- Pivot lookback (swing lows): 3–7 bars (default 5).
+- VIX SMA: 5–20 (default 10).
+- VIX ROC window: 3–10 (default 5).
+- VIX z-score lookback: 10–30 (default 20).
+- ATR multiples:
+  - Initial buffer below swing low: 0.5–1.0 ATR (default 0.5).
+  - Minimum ATR stop width: 1.2–2.5 ATR (default 2.0 from entry).
+  - Chandelier: 2.5–4.0 ATR (default 3.0).
+  - First scale target: 1.0–2.0 R (default 1.5 R).
+
+7) Pseudocode (daily bars example)
+- If Close > EMA200 and EMA50 > EMA200:
+  - Find last two swing lows (HL1 at t1, HL2 at t2 > t1).
+  - If Price[t2] > Price[t1] AND RSI[t2] < RSI[t1] - 2:
+    - If VIX > SMA(VIX,10) AND ROC(VIX,5) > 0:
+      - EntrySignal = High[t2] break (stop order at High[t2] + 0.1%).
+      - InitialStop = min(SwingLow[t2] - 0.5*ATR, Entry - 2.0*ATR).
+      - Size = RiskPerTrade / (Entry - InitialStop).
+      - After fill:
+        - TakeProfit1 = Entry + 1.5*(Entry - InitialStop).
+        - TrailStop = HighestSinceEntry - 3.0*ATR (update each bar).
+        - Move stop to breakeven after TP1 fill.
+        - Exit on TrailStop hit, Close < EMA50, RSI < 40 without TP1, or time stop (20 bars).
+
+8) Notes and Extensions
+- Short side (optional): Mirror for downtrends using hidden bearish divergence with VIX rising; consider stricter filters due to positive volatility skew.
+- Multi-timeframe: Confirm uptrend on higher timeframe (e.g., weekly EMA200 slope up) while trading signals on daily.
+- Robustness checks: Walk-forward optimization, Monte Carlo on trade sequences, and test across bull/bear regimes (including high-VIX windows).
+- Data integrity: Use next-bar execution for all signals; align VIX session with instrument to avoid lookahead bias.

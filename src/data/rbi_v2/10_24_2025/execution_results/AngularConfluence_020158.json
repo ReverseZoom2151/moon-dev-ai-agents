@@ -1,0 +1,8 @@
+{
+  "success": false,
+  "return_code": 1,
+  "stdout": "",
+  "stderr": "Traceback (most recent call last):\n  File \"C:\\Users\\adria\\Downloads\\personal-wall-street\\moon-dev-ai-agents\\src\\data\\rbi_v2\\10_24_2025\\backtests_final\\AngularConfluence_BTFinal_v1.py\", line 421, in <module>\n    data = load_data(data_path)\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\adria\\Downloads\\personal-wall-street\\moon-dev-ai-agents\\src\\data\\rbi_v2\\10_24_2025\\backtests_final\\AngularConfluence_BTFinal_v1.py\", line 354, in load_data\n    path = _resolve_data_path(path, filename_hint=os.path.basename(path) if path else \"BTC-USD-15m.csv\")\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\adria\\Downloads\\personal-wall-street\\moon-dev-ai-agents\\src\\data\\rbi_v2\\10_24_2025\\backtests_final\\AngularConfluence_BTFinal_v1.py\", line 308, in _resolve_data_path\n    print(f\"\\U0001f319 [Moon Dev Loader] Attempting to load data from: {preferred_path}\")\n  File \"C:\\Python312\\Lib\\encodings\\cp1252.py\", line 19, in encode\n    return codecs.charmap_encode(input,self.errors,encoding_table)[0]\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nUnicodeEncodeError: 'charmap' codec can't encode character '\\U0001f319' in position 0: character maps to <undefined>\n",
+  "execution_time": 1.303476,
+  "timestamp": "2025-10-24T02:01:58.568507"
+}

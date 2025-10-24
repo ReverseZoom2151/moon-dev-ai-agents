@@ -1,0 +1,82 @@
+STRATEGY_NAME: KeltnerDivergence
+
+STRATEGY_DETAILS:
+Overview:
+- A trend-following, long-only system that requires three alignments before entry:
+  1) Bullish divergence to signal exhaustion of pullbacks,
+  2) A confirmed breakout above the upper Keltner Channel to validate trend continuation,
+  3) Expanded Bollinger Band volatility to confirm regime expansion and reduce false breakouts.
+- Exit occurs on a corrective move that pushes price below the Keltner Channel.
+
+Required Indicators and Settings:
+- Keltner Channel: EMA length = 20, ATR length = 20, multiplier = 1.5 (test 1.5–2.0)
+- Bollinger Bands: Period = 20, Std Dev = 2; compute BBWidth = (UpperBB − LowerBB)
+- RSI: Period = 14 (for divergence)
+- EMA(200): Trend filter
+- ATR(14): Position sizing and stop buffers
+
+Key Components:
+- Trend Filter: Only take longs when close > EMA(200) and EMA(200) slope > 0.
+- Bullish Divergence Engine:
+  - Define swing lows as local minima using a pivot window of 3 bars (low[t] < lows of t-1..t-3 and t+1..t+3).
+  - Identify two most recent swing lows L1 (older) and L2 (newer) within the last 50 bars.
+  - Price condition: low(L2) ≤ low(L1).
+  - RSI condition: RSI(L2) > RSI(L1) by at least 3 RSI points.
+  - Mark divergence_time = bar of L2. A signal remains valid for 20 bars after divergence_time.
+- Volatility Expansion Filter:
+  - BBWidth > SMA(BBWidth, 20) × 1.10, and
+  - BBWidth is above the 60th percentile of BBWidth over the last 100 bars.
+- Breakout Confirmation:
+  - Close > Upper Keltner (KC_upper) on the signal bar.
+
+Entry Rules (Long):
+- Preconditions:
+  1) Trend: close > EMA(200) and EMA(200) slope > 0.
+  2) Valid bullish divergence detected (within 20 bars).
+  3) Volatility expansion filter satisfied.
+- Trigger:
+  - Breakout close above KC_upper.
+- Execution:
+  - Enter at next bar market open, or use a stop order = max(current close, prior high) to avoid immediate fade.
+  - If trigger does not occur within 20 bars after divergence_time, cancel the setup.
+
+Exit Rules:
+- Primary exit (correction below channel):
+  - Full exit when close < KC_lower (Keltner lower band).
+- Protective/early failure exit:
+  - If, within 5 bars of entry, price closes back below KC_mid (Keltner EMA line), exit at market.
+- Volatility contraction scale-out (optional):
+  - If BBWidth < SMA(BBWidth, 20) for 3 consecutive bars and price closes back inside the channel (close < KC_upper), reduce position by 50%.
+- Time stop:
+  - If neither primary nor protective exit is hit within 40 bars and unrealized R < +1, exit at market.
+
+Risk Management:
+- Initial stop:
+  - Place at min(swing low at L2 − 0.5×ATR(14), KC_mid − 1×ATR(14)).
+- Position sizing:
+  - Risk per trade: 0.5%–1.0% of equity.
+  - Position size = (Account_Risk) / (Entry Price − Initial Stop Distance).
+- Trailing logic (once trade reaches +1R):
+  - Move stop to KC_mid − 0.5×ATR(14).
+  - After +2R, trail at KC_lower (no ATR buffer) until exit.
+- Portfolio/filters:
+  - Max 3 concurrent positions in highly correlated instruments.
+  - Avoid entries within 1 full session of major scheduled news (for FX) or 2 days of earnings (for equities).
+
+Quality and Robustness Notes:
+- Timeframes: Works best on 1h, 4h, and Daily.
+- Markets: Liquid FX majors, index futures, large-cap equities.
+- Parameter checks:
+  - Keltner multiplier: 1.5 for tighter follow; 2.0 for fewer trades with higher quality.
+  - Divergence RSI threshold (3 points) can be tuned 2–5 points.
+  - Percentile threshold for BBWidth can be tuned 50%–70%.
+- Signal hygiene:
+  - Ignore divergence that occurs entirely above KC_mid without a retest; prefer divergences formed near or below KC_mid to ensure meaningful pullback exhaustion.
+  - Only one active setup per symbol; wait for exit before new entries.
+
+Implementation Summary:
+- Detect bullish divergence (RSI vs price swing lows).
+- Confirm trend (EMA200 up) and volatility expansion (BBWidth filters).
+- Wait for close above KC_upper; enter next bar.
+- Manage risk with ATR-based stops and Keltner-based trailing.
+- Exit on close below KC_lower, or earlier on failure/contraction conditions.

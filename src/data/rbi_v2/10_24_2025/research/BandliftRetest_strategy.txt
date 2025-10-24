@@ -1,0 +1,64 @@
+STRATEGY_NAME: Bandlift Retest
+
+STRATEGY_DETAILS:
+Objective:
+- Mean-reversion longs only when pullbacks occur in a bullish, compressed regime defined by an “elevated floor” (the Bollinger lower band sits above a separate 20-period moving average), then ride the reversal using a 2x ATR chandelier stop to allow re-test wiggle room without getting shaken out.
+
+Key Strategy Components:
+- Regime filter (the “band-lift”): Only trade when the Bollinger lower band > a standalone 20-period MA. This ensures dips occur above a rising baseline and filters out choppy/sideways conditions.
+- Mean-reversion trigger: Enter on tags of the lower band within that bullish regime.
+- Exit engine: A 2x ATR chandelier-style stop (no fixed profit target) to capture upside while tolerating typical re-tests.
+- Position sizing by stop distance: Size positions so the 2x ATR stop defines the risk per trade.
+
+Required Indicators:
+- Bollinger Bands: period nBB (default 10–20), stdDev k (default 2.0), built on closing price.
+- Moving Average (baseline): SMA(20) as the regime reference (separate from the BB midline).
+- ATR: period nATR (default 14) for initial and trailing stop distance.
+- Optional: Trend qualifier such as slope of SMA(20) > 0 or price above SMA(20) for additional bias.
+
+Entry Rules (Long):
+1) Regime (must be true to enable entries):
+   - LowerBand_BB(t) > SMA20(t).
+   - Optional robustness: require this to hold for M bars (default M = 3) and SMA20 slope > 0.
+2) Trigger:
+   - Price interaction with the lower band:
+     - Conservative: Close(t) <= LowerBand_BB(t).
+     - Aggressive: Low(t) <= LowerBand_BB(t) and Close(t) > LowerBand_BB(t) (intrabar tag with a reclaim).
+3) Entry execution:
+   - Next-bar market entry after a valid trigger; or use a limit at LowerBand_BB(t) if seeking better fills.
+4) Optional multi-touch filter:
+   - If a signal occurs within N bars of a prior entry (default N = 5), ignore unless the prior position is closed.
+
+Exit Rules:
+- Initial stop (protective): StopLoss = EntryPrice − 2 × ATR(nATR) at the time of entry.
+- Trailing stop (chandelier style to allow re-tests):
+  - TrailStop(t) = max[ prior TrailStop, HighestHigh(since entry) − 2 × ATR(t) ].
+  - Exit when price crosses below TrailStop.
+- Optional time-stop: If still open after T bars (default T = 40–60), exit at market to free capital.
+- Optional partial de-risk: Exit 50% on touch of BB midline or SMA20, but strictly speaking this strategy’s primary exit is the 2x ATR stop; keep partials off for a pure stop-based exit.
+
+Risk Management:
+- Risk per trade: 0.25%–1% of equity based on initial stop distance.
+- Position sizing: Shares = (RiskPerTrade × Equity) / (2 × ATR(nATR)).
+- Max concurrent exposure: Limit to 2–3 correlated positions; avoid stacking signals on highly correlated assets.
+- Trading halts: Disable new entries around high-impact events; honor existing stops only.
+- Slippage/fees: Model realistic slippage; widen entry buffer on illiquid instruments.
+- Re-entry logic: If stopped out but the regime still holds and a new valid trigger appears after a cooldown of C bars (default C = 10), allow up to R re-entries (default R = 2).
+
+Implementation Notes and Parameter Guidance:
+- Avoid parameter paradox: Standard BB midline equals SMA of its period. If you set BB period = 20 and use SMA20 as the baseline, the lower band cannot be above its own midline. To maintain the band-lift condition:
+  - Option A: Use BB with a shorter lookback (e.g., BB period = 10, k = 2) and keep SMA20 as the baseline.
+  - Option B: Keep BB period = 20 but use a different 20-period MA type (e.g., EMA20) for the baseline. The logical condition is “LowerBand_BB > Baseline_MA20” where Baseline_MA20 is defined independently from the BB midline.
+- Markets/timeframes: Works best on liquid instruments and intraday to swing timeframes (e.g., 30m–4h–D1). Increase ATR and BB periods as timeframe rises.
+- Data hygiene: Use ATR calculated on True Range; skip signals on bars with abnormal spreads/gaps.
+
+Summary Logic (pseudocode-style):
+- If LowerBand_BB(t) > SMA20(t) [for M bars] and slope(SMA20) > 0:
+  - If Low(t) <= LowerBand_BB(t) and Close(t) >= LowerBand_BB(t): signal = long
+- On signal:
+  - Entry at next open (or limit at LowerBand_BB(t))
+  - InitialStop = Entry − 2 × ATR
+  - TrailStop = HighestHighSinceEntry − 2 × ATR (update every bar)
+- Exit when price <= TrailStop (or time-stop hits)
+
+This Bandlift Retest design isolates bullish pullbacks where the “floor” (lower band) is elevated above a rising 20-period baseline, then uses a 2x ATR chandelier to absorb typical re-tests and hold winners until momentum fades.

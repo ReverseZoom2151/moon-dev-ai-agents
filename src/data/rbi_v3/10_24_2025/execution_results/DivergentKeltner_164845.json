@@ -1,0 +1,8 @@
+{
+  "success": false,
+  "return_code": 1,
+  "stdout": "",
+  "stderr": "Traceback (most recent call last):\n  File \"C:\\Users\\adria\\Downloads\\personal-wall-street\\moon-dev-ai-agents\\src\\data\\rbi_v3\\10_24_2025\\backtests_package\\DivergentKeltner_PKG.py\", line 366, in <module>\n    df = pd.read_csv(data_path)\n         ^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\adria\\AppData\\Roaming\\Python\\Python312\\site-packages\\pandas\\io\\parsers\\readers.py\", line 1026, in read_csv\n    return _read(filepath_or_buffer, kwds)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\adria\\AppData\\Roaming\\Python\\Python312\\site-packages\\pandas\\io\\parsers\\readers.py\", line 620, in _read\n    parser = TextFileReader(filepath_or_buffer, **kwds)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\adria\\AppData\\Roaming\\Python\\Python312\\site-packages\\pandas\\io\\parsers\\readers.py\", line 1620, in __init__\n    self._engine = self._make_engine(f, self.engine)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\adria\\AppData\\Roaming\\Python\\Python312\\site-packages\\pandas\\io\\parsers\\readers.py\", line 1880, in _make_engine\n    self.handles = get_handle(\n                   ^^^^^^^^^^^\n  File \"C:\\Users\\adria\\AppData\\Roaming\\Python\\Python312\\site-packages\\pandas\\io\\common.py\", line 873, in get_handle\n    handle = open(\n             ^^^^^\nFileNotFoundError: [Errno 2] No such file or directory: '/Users/md/Dropbox/dev/github/moon-dev-ai-agents-for-trading/src/data/rbi/BTC-USD-15m.csv'\n",
+  "execution_time": 3.459607,
+  "timestamp": "2025-10-24T16:48:45.980077"
+}

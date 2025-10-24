@@ -1,0 +1,108 @@
+STRATEGY_NAME: DivergentKeltner
+
+STRATEGY_DETAILS:
+Objective:
+- Ride emergent uptrends that begin with bullish momentum divergence, confirmed by a Keltner Channel upside breakout and a concurrent Bollinger Band volatility expansion. Exit when momentum fades and price corrects below the Keltner Channel.
+
+Key Components:
+- Keltner Channel (KC): EMA-based envelope to define trend channel and breakout/exit lines.
+- Bollinger Bands (BB): Volatility expansion filter via Bandwidth.
+- Bullish Divergence: Momentum oscillator vs. price to anticipate trend turn and reduce false breakouts.
+- Trend Filter: Long-only, in the direction of higher-timeframe or major trend.
+- Risk Controls: ATR-based stops, position sizing by risk, and trailing logic tied to KC.
+
+Required Indicators and Settings:
+- Keltner Channel:
+  - Basis EMA length: 20 (range to test: 20–30)
+  - ATR length: 20
+  - Multiplier: 1.5 (range 1.2–2.0)
+  - Lines: KC_upper = EMA20 + 1.5*ATR20, KC_mid = EMA20, KC_lower = EMA20 − 1.5*ATR20
+- Bollinger Bands:
+  - Period: 20, StdDev: 2
+  - Bandwidth (BW) = (BB_upper − BB_lower) / SMA20
+  - Expansion criteria: BW > 75th percentile of last 100 bars AND BW slope > 0 for the last 3 bars (or BW > 1.25 × its 50-bar SMA)
+- Momentum Oscillator for divergence (choose one; be consistent):
+  - RSI(14) with bullish divergence: Price makes a lower swing low while RSI makes a higher swing low (lows 3–20 bars apart). Confirm swing low with a 2-bar pivot definition to avoid look-ahead.
+  - Alternative: MACD histogram higher low against price lower low.
+- Trend Filter:
+  - 200-EMA uptrend filter: Close > EMA200 (alternative: slope(EMA200) > 0)
+- Optional Volume Filter:
+  - Volume > 1.2 × 20-bar average volume on breakout bar (if volume data available)
+
+Entry Rules (Long only):
+1) Trend alignment:
+   - Close > EMA200.
+2) Bullish divergence setup:
+   - Identify two recent swing lows: the second price low is lower than the first; RSI(14) low at the second swing is higher than at the first.
+   - Divergence must complete within the last 5 bars.
+3) Breakout trigger:
+   - Entry signal when price closes above KC_upper.
+4) Volatility expansion confirmation:
+   - On the same bar as the breakout (or within the prior bar), BB Bandwidth meets expansion criteria (see above).
+5) Timing/sequence:
+   - The KC_upper close must occur within 5 bars of the confirmed bullish divergence pivot.
+6) Order execution:
+   - Enter on close of the breakout bar or with a stop order at High + 0.1 × ATR14 (next bar).
+
+Exit Rules:
+Primary exit (strategy-defined):
+- Exit all remaining position on a confirmed correction below the channel:
+  - Close below KC_lower (hard exit).
+Secondary/management exits (recommended enhancements):
+- Reversion warning:
+  - If after breakout price closes back inside the channel (below KC_upper) for 2 consecutive bars, tighten stop to KC_mid or trail via Chandelier Exit (3×ATR14 from highest close).
+- Volatility contraction:
+  - If BB Bandwidth falls below its 50-bar SMA and price fails to make a new 10-bar high within the next 5 bars, reduce position by 50%.
+- Time-based exit:
+  - If neither +2R nor exit conditions are hit within 30 bars, exit at market.
+
+Risk Management:
+- Initial stop:
+  - Place at min(KC_lower, recent swing low − 0.5×ATR14). Add a buffer of 0.1×ATR14 beyond that level to avoid whipsaws.
+- Position sizing:
+  - Risk per trade: 0.5%–1.0% of account equity.
+  - Position size = (Account_Risk) / (Entry − Initial_Stop).
+  - Cap position if notional volatility is extreme: if ATR14/Close > 3%, halve position size.
+- Trailing stop (after trade moves in favor):
+  - Move stop to breakeven at +1.0R.
+  - Then trail by max(KC_lower, Chandelier(3×ATR14)) or a 2×ATR14 stop from the highest close, whichever is tighter.
+- Profit-taking (optional scaling):
+  - Take 30%–50% off at +1.5R; let the remainder run to trend termination (close below KC_lower).
+
+Implementation Notes:
+- Swing low identification:
+  - A swing low is a low preceded and followed by at least 2 higher lows (pivot confirmation) to prevent look-ahead bias in divergence.
+- Divergence lookback:
+  - Consider a 40–60 bar window to find the first low; enforce 3–20 bars separation between lows.
+- Multi-timeframe option:
+  - Confirm EMA200 uptrend on the trade timeframe; optionally require higher timeframe (e.g., daily over 4H) EMA200 slope > 0 for added robustness.
+- Market/asset selection:
+  - Works best on liquid instruments with trending tendencies (index futures, major FX pairs, large-cap equities, crypto majors).
+- Session filter (intraday):
+  - Avoid first/last 5 minutes; avoid major economic releases (FX/futures) unless specifically trading news volatility.
+
+Backtesting and Optimization:
+- Optimize KC multiplier (1.2–2.0), BB expansion thresholds (70th–85th percentile), divergence separation bars (3–20), and R targets.
+- Use walk-forward validation; avoid curve-fitting.
+- Ensure divergence logic is anchored to confirmed pivots to prevent future bar leakage.
+
+Pseudocode Outline:
+- Compute EMA200; require Close > EMA200.
+- Compute KC(EMA20, ATR20, mult=1.5); compute BB(20, 2) and BW.
+- Find RSI(14) swing lows with pivot confirmation; detect bullish divergence (LL in price, HL in RSI).
+- Entry if:
+  - Divergence confirmed within 5 bars AND
+  - Current close > KC_upper AND
+  - BW > 75th percentile(lookback 100) AND slope(BW,3) > 0.
+- Initial stop = min(KC_lower, swingLow − 0.5×ATR14) − 0.1×ATR14.
+- Size to 0.5%–1% risk.
+- Manage with breakeven at +1R, partial at +1.5R, trail via max(KC_lower, Chandelier(3×ATR14)).
+- Full exit on close < KC_lower, or time exit at 30 bars.
+
+Notes on False Signals:
+- Ignore divergence if RSI low > 45 (weak signal).
+- Avoid trades when BW is already extreme (e.g., > 95th percentile) and price is parabolic; require a minor consolidation (inside bar or pullback to KC_mid) before entering add-ons.
+
+Optional Add-Ons:
+- Pyramiding: Add 0.25–0.33 of initial size on each new close above KC_upper while BW rising and price above EMA20; cap at 2 adds; all adds share the same trailing exit.
+- Regime filter: Only trade when VIX (or asset’s ATR/Close) is between its 20th and 90th percentile to avoid dead/super-chaotic regimes.

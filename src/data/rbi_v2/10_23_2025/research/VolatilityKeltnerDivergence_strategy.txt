@@ -1,0 +1,32 @@
+STRATEGY_NAME: Volatility KeltnerDivergence
+
+STRATEGY_DETAILS:
+- Key strategy components:
+  - Trend filter: Trade only in established uptrends to keep the divergence setup aligned with the larger move.
+    - Default: EMA50 > EMA200 on the trading timeframe AND Keltner midline (EMA basis) slope > 0 over the last 5 bars.
+    - Optional confirmation: ADX(14) > 18.
+  - Bullish divergence detector: Identify a momentum higher-low against a price lower-low.
+    - Default oscillator: RSI(14).
+    - Swing identification: Pivot lows defined by a 2-bar fractal or a zigzag with 1.0% threshold (choose one, default fractal).
+    - Divergence rule: Price at the most recent swing low (L2) < prior swing low (L1) within the last 40 bars AND RSI(L2) > RSI(L1).
+    - Quality filter: RSI(L2) between 20 and 45; L2 must be above the 200 EMA to avoid deep countertrend traps.
+  - Volatility expansion filter (Bollinger Bands): Require a “wide” band regime to confirm expansion.
+    - Bollinger Bands: 20-period SMA, 2 standard deviations.
+    - Bandwidth = (UpperBB − LowerBB) / SMA20.
+    - Expansion condition: Bandwidth > 70th percentile of the last 252 bars AND Bandwidth slope positive over the last 3 bars. Alternative: Bandwidth z-score(100) > +0.5.
+  - Breakout confirmation (Keltner): Enter only when price forcefully clears the upper Keltner boundary.
+    - Keltner Channels: EMA length 20; ATR length 20; multiplier 1.5–2.0 (default 1.8).
+    - Breakout test: Close > Upper Keltner + 0.1 × ATR(14) (buffer to avoid marginal pokes).
+
+- Entry rules (Long only):
+  1. Regime filter passes: EMA50 > EMA200 AND Keltner midline slope > 0.
+  2. Bullish RSI divergence confirmed between two recent swing lows (L1 older, L2 newer) within past 40 bars; RSI(L2) > RSI(L1), RSI(L2) ∈ [20,45].
+  3. Volatility expansion active: BB Bandwidth > 70th percentile(252) AND rising over the last 3 bars.
+  4. Breakout trigger: Current bar closes above Upper Keltner + 0.1×ATR(14).
+  5. Timing window: Steps 2–4 must complete within 10 bars of divergence confirmation; otherwise, invalidate the setup.
+  6. Entry execution: Place a stop order at Upper Keltner + 0.1×ATR(14) after divergence is detected and BB expansion is on; if filled on a closing basis, enter on close; otherwise next-bar stop if not filled intrabar.
+  7. Invalidation before entry: Cancel if price closes below L2 swing low or if BB Bandwidth falls back below its 50th percentile.
+
+- Exit rules:
+  - Strategy-defined exit (primary): Exit the entire position when price closes below the lower Keltner band (i.e., a correction that pushes price below the channel).
+  - Protective stop (risk-first): Initial stop at min(L2 − 1

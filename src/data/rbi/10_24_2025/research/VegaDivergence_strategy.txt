@@ -1,0 +1,76 @@
+STRATEGY_NAME: Vega Divergence
+
+STRATEGY_DETAILS:
+Overview:
+- Options-based, volatility-led bearish timing on the S&P 500. Buys SPX/ES/SPY puts when 20-day VIX futures strength contradicts 20-day S&P 500 price strength, exiting at the first subsequent breach of the 10-day moving average.
+
+Assumptions (clarified from text):
+- “VIX (20-day) futures diverge” = 20-trading-day change in front-month VIX futures moves materially higher while the S&P 500’s 20-trading-day return is flat-to-up.
+- “First breach of a 10-trading-day moving average” = the first daily close that crosses the S&P 500’s 10-day SMA from the side it was on at entry (i.e., the first cross-through of the 10SMA after entry).
+
+Key components:
+- Underlying: S&P 500 index (SPX), or proxies (ES futures options, SPY options).
+- Volatility driver: Front-month VIX futures continuous series (F1).
+- Divergence engine: 20-day rate-of-change (ROC) and/or z-scores to quantify VIX-futures up vs. SPX up/flat.
+- Exit anchor: 10-day simple moving average (SMA10) of SPX.
+- Leverage cap: Max 2x delta-adjusted notional exposure.
+
+Required indicators/data:
+- SPX daily close; SMA10(SPX).
+- VIX front-month futures daily settle (continuous front-month).
+- 20-day ROC: r_SPX_20 = ln(C_t/C_{t-20}); r_VIXF_20 = ln(F1_t/F1_{t-20}).
+- Optional normalization: 252-day z-scores of r_SPX_20 and r_VIXF_20.
+- Option chain for 25–35 delta puts, 30–60 DTE.
+
+Entry rules (evaluate at daily close):
+- Primary divergence trigger:
+  - r_SPX_20 >= 0 (SPX flat-to-up over 20 days), AND
+  - r_VIXF_20 >= +15% (front VIX futures up at least ~15% over 20 days), OR z(r_VIXF_20) >= +1.0 if using z-scores.
+- Optional confirmation (choose one if you want stricter entries):
+  - r_SPX_20 >= +1% AND r_VIXF_20 >= +15%, or
+  - 20-day correlation between daily SPX and VIXF returns turns positive for 3+ of the last 5 sessions.
+- On trigger: Buy puts on SPX/ES/SPY at next session open (or same-close if executable in your testing framework).
+
+Option selection and sizing:
+- Contract: 30–60 DTE put, 25–35 delta (balance gamma/theta).
+- Quantity: Constrain both premium risk and leverage.
+  - Premium-at-risk per new trade: 0.5%–2.0% of account equity (pick a fixed %).
+  - Delta-adjusted notional cap (2x leverage limit): |Net portfolio delta| × SPX level ≤ 2.0 × account equity.
+    - If adding a new trade would exceed 2x, scale down or skip.
+
+Exit rules:
+- Primary exit (10SMA breach):
+  - If SPX close at entry > SMA10(SPX), exit on the first daily close below SMA10(SPX) after entry.
+  - If SPX close at entry < SMA10(SPX), exit on the first daily close above SMA10(SPX) after entry.
+- Secondary risk exits (recommended):
+  - Time stop: Exit when DTE < 10 or after 15 trading days in position, whichever comes first (theta control).
+  - Premium stop: Exit if option value drops 50% from entry.
+  - Profit-taking (optional): Take profits on a 100% gain in option premium or when SPX hits a predefined ATR multiple.
+
+Risk management:
+- Position concentration: Max 1 active put tranche at a time unless leverage and premium limits allow a second tranche; never exceed the 2x delta-notional cap.
+- Volatility regime adjustment:
+  - If spot VIX > 35, reduce new position size by 50% to manage gap risk.
+  - If F1 < F2 (contango) and r_VIXF_20 barely meets threshold, be conservative; if F1 > F2 (backwardation), you can prioritize signals.
+- Event risk: On major macro days (CPI, FOMC), consider halving size or waiting for close to confirm signals.
+
+Implementation notes:
+- Data frequency: Daily; execute at next open or same-close per backtest design (be consistent).
+- Slippage/commissions: Include realistic assumptions; options slippage can be material.
+- Robustness knobs:
+  - r_VIXF_20 threshold (typical 10%–20%).
+  - DTE (30–45 more nimble; 45–60 more forgiving).
+  - SMA length (10 is per spec; test 8–12 for sensitivity).
+
+Pseudocode (concise):
+- Compute r_SPX_20 and r_VIXF_20 each close.
+- If r_SPX_20 >= 0 AND r_VIXF_20 >= 0.15: signal = true.
+- If signal and leverage/premium limits permit:
+  - Buy 25–35Δ puts, 30–60 DTE; size by premium risk and 2x delta-notional cap.
+  - Record SMA10_side = sign(C_entry − SMA10_entry).
+- Each day post-entry:
+  - If sign(C_t − SMA10_t) ≠ SMA10_side: exit all.
+  - Else if DTE < 10 or days_in_trade > 15 or option −50%: exit all.
+  - Optional: If option +100%: take profit.
+
+This converts the high-level instruction into a tradeable, testable framework that respects the divergence trigger, 10-day MA exit, and the 2x leverage constraint.

@@ -1,0 +1,8 @@
+{
+  "success": false,
+  "return_code": 1,
+  "stdout": " [Moon Dev Loader] Attempting to load data from: /Users/md/Dropbox/dev/github/moon-dev-ai-agents-for-trading/src/data/rbi/BTC-USD-15m.csv\n",
+  "stderr": "Traceback (most recent call last):\n  File \"C:\\Users\\adria\\Downloads\\personal-wall-street\\moon-dev-ai-agents\\src\\data\\rbi_v2\\10_24_2025\\backtests_final\\AngularConfluence_BTFinal_v2.py\", line 438, in <module>\n    data = load_data(data_path)\n           ^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\adria\\Downloads\\personal-wall-street\\moon-dev-ai-agents\\src\\data\\rbi_v2\\10_24_2025\\backtests_final\\AngularConfluence_BTFinal_v2.py\", line 371, in load_data\n    path = _resolve_data_path(path, filename_hint=os.path.basename(path) if path else \"BTC-USD-15m.csv\")\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\adria\\Downloads\\personal-wall-street\\moon-dev-ai-agents\\src\\data\\rbi_v2\\10_24_2025\\backtests_final\\AngularConfluence_BTFinal_v2.py\", line 364, in _resolve_data_path\n    raise FileNotFoundError(\nFileNotFoundError: [Moon Dev Loader] Could not locate data file. Tried preferred path and common locations. Set MOON_DEV_DATA_PATH or place 'BTC-USD-15m.csv' in ./data/\n",
+  "execution_time": 1.496322,
+  "timestamp": "2025-10-24T02:03:54.673566"
+}

@@ -1,0 +1,95 @@
+STRATEGY_NAME: VIXDivergence
+
+STRATEGY_DETAILS:
+1) Key strategy components
+- Market regime filter (trend-following): Trade long only when the underlying is in an uptrend to align the RSI divergence with the dominant direction.
+- Bullish RSI-price divergence: Detect higher RSI low against a lower price low to identify pullback exhaustion within an uptrend.
+- Volatility confirmation via VIX: Require VIX to be rising to signal volatility expansion during the pullback, improving the odds of a strong trend continuation.
+- ATR-based exits: Use ATR multiples for initial stop, trailing stop, and/or profit targets to keep exits consistent with current volatility.
+
+2) Entry rules
+A. Timeframe and universe
+- Primary timeframe: Daily bars (recommended). VIX is naturally daily, so align signals to daily closes.
+- Instruments: Equity indices/ETFs and liquid large-cap equities. If trading non-U.S. assets, use the local volatility index (e.g., VSTOXX, VXN) instead of VIX.
+B. Trend filter (all must be true)
+- Price > 200-EMA.
+- 50-EMA > 200-EMA.
+- Optional: ADX(14) > 18–20 to confirm trend strength.
+C. Bullish RSI divergence detection
+- Indicator: RSI(14).
+- Define swing lows using a pivot window (e.g., 3–5 bars on each side).
+- Find two most recent swing lows: L1 (older) and L2 (newer).
+- Conditions:
+  - Price(L2) < Price(L1) by at least 0.5–1.0 ATR(14) or 0.5–1.5%.
+  - RSI(L2) > RSI(L1) by at least 2–5 RSI points.
+  - RSI(L2) within a constructive pullback zone, e.g., 25–45 (tunable 30–50).
+D. VIX increase confirmation (use any two of three)
+- VIX > VIX SMA(20).
+- VIX ROC(5 or 10) > 0.
+- VIX EMA(5) > VIX EMA(20).
+E. Entry trigger
+- After C and D confirm on a daily close, enter long on:
+  - Break of the signal bar high (stop order) OR
+  - Close above the intermediate swing high between L1 and L2 (more conservative).
+- If trigger doesn’t occur within 5–10 bars after the divergence, cancel the setup.
+
+3) Exit rules (ATR-based)
+A. Initial stop
+- ATR(14)-based stop set at the lower of:
+  - Recent swing low (L2) − 1.0 to 1.5×ATR(14)
+  - Or a fixed multiple below entry: Entry − 2.0×ATR(14) (use one consistent method).
+B. Trailing stop (Chandelier-style)
+- Long trailing stop = Highest High since entry − 3.0×ATR(14) (tunable 2.5–4.0).
+- Update daily on new highs and ATR changes; never loosen the stop.
+C. Optional profit target
+- Take partial profits (25–50%) at +2.0×ATR(14) from entry; move stop to breakeven.
+- Let remainder run on the trailing stop.
+D. Time stop
+- If price fails to make a new 20-day high within 20–30 trading days, exit at market to avoid stagnation.
+
+4) Risk management
+- Position sizing (volatility parity):
+  - Risk per trade: 0.5–1.0% of account equity.
+  - Shares = (Risk per trade $) / (Entry price − Initial stop).
+- VIX-adaptive risk scaling:
+  - Scale risk down as VIX rises:
+    - Position risk multiplier = clamp(20 / max(VIX, 12), 0.4, 1.0).
+    - Example: If VIX = 30, use ~0.67x of base risk; if VIX > 40, cap at 0.4x.
+- Portfolio heat:
+  - Max concurrent risk (sum of open R) ≤ 5–8% of equity.
+  - Limit correlated equity exposure; max 2 positions in the same sector at once.
+- Liquidity filter:
+  - Average daily dollar volume ≥ $5–10M; avoid wide spreads.
+- Gap protection:
+  - If an adverse gap opens beyond the stop, exit at market on open; accept slippage.
+- Circuit breaker:
+  - Suspend new entries if VIX > 40 (tunable) or if the index closes below its 200-EMA.
+
+5) Required indicators and parameters
+- RSI(14) for divergence
+- ATR(14) for stops and targets
+- EMAs: 50-EMA, 200-EMA for trend filter
+- ADX(14) optional for trend strength
+- VIX (or equivalent): SMA(20), EMA(5), EMA(20), ROC(5–10)
+- Pivot detection for swing lows: pivot window 3–5 bars
+- Optional: 20-day high/low for secondary triggers and time stops
+
+6) Implementation notes
+- Divergence algorithm:
+  - Identify pivot lows, select last two pivots L1 and L2; verify price LL with RSI HL.
+- Signal timing:
+  - Confirm RSI divergence and VIX conditions at the daily close; place next-day stop order above trigger level.
+- Parameter ranges for optimization (avoid overfitting):
+  - RSI length: 10–20; ATR length: 10–20; Chandelier multiple: 2.5–4.0
+  - Trend filter EMAs: 40–60 and 150–220
+  - VIX ROC: 5–10; VIX SMA: 10–30
+- Backtesting:
+  - Use out-of-sample testing and walk-forward validation.
+  - Include realistic slippage/fees and corporate actions.
+  - Test with/without partial profit-taking.
+
+7) Edge case handling
+- Non-equity assets: Substitute appropriate volatility index (e.g., VIX → VXN for Nasdaq; VSTOXX for Europe). If none available, use instrument’s ATR regime filter as a proxy for rising volatility.
+- Low-volatility regimes (VIX < 12): Expect fewer signals; consider relaxing VIX > SMA(20) to VIX ROC > 0 only.
+
+This design keeps entries aligned with the prevailing uptrend, uses bullish RSI divergence to time pullback reversals, confirms with rising VIX to capture volatility expansion, and exits strictly via ATR multiples to stay volatility-consistent.

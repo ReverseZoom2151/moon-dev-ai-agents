@@ -1,0 +1,70 @@
+STRATEGY_NAME: TwinBandBreakout
+
+STRATEGY_DETAILS:
+- Key components
+  - Confluence trigger: long entries require all three:
+    1) Bullish divergence on a momentum oscillator,
+    2) Price closing above the upper Keltner Channel (KC) band,
+    3) Bollinger Bands (BB) showing volatility expansion.
+  - Trend-following bias: only trade in or into an upswing; optional higher-timeframe EMA/KC slope filter to align with trend.
+  - Volatility-aware risk and exits: stops/trails anchored to KC; regime control via BB bandwidth.
+
+- Required indicators and settings
+  - Keltner Channel (KC)
+    - Basis: EMA(20) [range 20–30]
+    - ATR period: 20 [range 14–30]
+    - Multiplier: 1.5–2.0 (start at 1.8)
+  - Bollinger Bands (BB)
+    - Basis: SMA(20) [range 18–22]
+    - StdDev: 2.0 [range 1.8–2.2]
+    - BBWidth = (BB_Upper − BB_Lower) / BB_Middle
+  - Oscillator for divergence (choose one)
+    - RSI(14) [range 9–21] or MACD (12,26,9) histogram
+  - Optional filters
+    - HTF trend filter: 50-EMA slope > 0 on the trading timeframe or on 2–4× higher timeframe.
+    - Volume filter: current volume > 20-bar average.
+
+- Entry rules (long only)
+  - Divergence window: detect bullish divergence within last 5–30 bars:
+    - Price prints a lower low (or double bottom) while oscillator prints a higher low.
+    - The second oscillator low must occur no more than 10 bars before the breakout.
+    - Confirm oscillator rising: RSI crosses above its 9-SMA or MACD histogram ticks up.
+  - Breakout condition:
+    - Current close > KC_Upper.
+    - Breakout candle body > 0.5 × its full range (avoid doji-style pokes).
+  - Volatility expansion confirmation (any two of the following):
+    - BBWidth > SMA(BBWidth, 20).
+    - BBWidth increasing for ≥ 3 consecutive bars.
+    - BBWidth above the 60th percentile of its last 252 bars.
+  - Optional trend alignment:
+    - Price > KC_Middle and KC_Middle slope up, or 50-EMA slope > 0.
+  - Timing:
+    - Enter on close of the breakout bar that satisfies all conditions.
+    - If a gap opens above KC_Upper, wait for a 1–2 bar hold above KC_Upper with BBWidth still expanding.
+
+- Initial risk management
+  - Position sizing:
+    - Risk per trade: 0.5%–1.5% of equity.
+    - Distance to initial stop (IST) = max(1) KC_Lower to entry, (2) last swing low to entry, (3) 1.5 × ATR(14).
+    - Size = Equity × Risk% / IST.
+  - Initial stop (IST):
+    - Place at min(last swing low, KC_Lower − 0.25 × ATR).
+    - Time-stop: if price does not advance by +0.75 × ATR within 5 bars, exit at market.
+
+- Trade management and exits
+  - Core exit (price correction below the channel):
+    - Primary: Exit on a close below KC_Middle (EMA basis). This captures corrections that break the channel’s mean.
+    - Aggressive variant: Exit if intrabar low < KC_Middle and close back inside KC (for faster reaction).
+  - Fail-safe exit:
+    - If price closes below KC_Lower at any time, exit immediately (protect against regime flips).
+  - Profit-taking and trailing:
+    - Take partial profits (25%–50%) at +1R or when price closes > KC_Upper + 0.5 × ATR; move stop to breakeven after partial.
+    - Trail remainder using:
+      - Trailing stop = max(KC_Middle, entry + 0.5R after partial),
+      - Or Chandelier Exit: highest(close, N=10) − 2.5 × ATR(14), whichever is higher.
+  - Overextension guard:
+    - If BBWidth spikes into top 90th percentile and price’s distance from KC_Middle > 3 × ATR, scale out an additional 25% and tighten trail to KC_Upper.
+
+- Re-entry logic
+  - After an exit on KC_Middle breach, consider re-entry if:
+    - KC_Middle holds on a pullback, oscillator remains above its signal, and price re-closes above KC

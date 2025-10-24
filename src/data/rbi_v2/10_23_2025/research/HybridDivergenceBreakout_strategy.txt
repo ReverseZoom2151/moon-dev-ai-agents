@@ -1,0 +1,84 @@
+STRATEGY_NAME: Hybrid DivergenceBreakout
+
+STRATEGY_DETAILS:
+Overview:
+- Objective: Trend-following long-only strategy that buys when a bullish divergence fuels a Keltner Channel breakout during a volatility expansion (via Bollinger Bands), and exits on a corrective breach below the Keltner channel.
+- Market/Timeframes: Liquid equities, futures, FX. Best on 4H–Daily; works on 30–240m with adjusted parameters.
+
+Key Components:
+- Trend filter: Trade longs only in established uptrends.
+- Divergence engine: Detect bullish divergence between price and an oscillator (default RSI).
+- Volatility gate: Require Bollinger Bands expansion to confirm regime shift/energy.
+- Breakout trigger: Close above upper Keltner Channel.
+- Exit logic: Exit on price correction that closes below the Keltner channel.
+- Risk management: ATR- and swing-based initial stop, trailing with Keltner midline/ATR, capped risk per trade.
+
+Required Indicators and Settings:
+- Keltner Channel (KC):
+  - Basis EMA length: 20 (KC_mid = EMA(close, 20))
+  - ATR length: 20
+  - Multiplier: 1.6 (KC_upper = KC_mid + 1.6*ATR20; KC_lower = KC_mid - 1.6*ATR20)
+- Bollinger Bands (BB):
+  - Period: 20, StdDev: 2
+  - BandWidth = (BB_upper - BB_lower) / BB_mid
+  - Expansion condition: BandWidth > 1.25 × median(BandWidth, 252) AND BandWidth rising for ≥3 of last 5 bars
+- Oscillator for divergence:
+  - Default RSI(14); configurable to MACD histogram or Stoch RSI
+  - Swing low identification: 5-bar fractal (low[2] is the lowest of low[0..4])
+- Trend filter:
+  - Price above 200-EMA and 50-EMA > 200-EMA
+  - Optional: KC_mid slope up over last 5 bars
+
+Entry Rules (Long Only):
+1) Trend filter:
+   - Close > EMA200 AND EMA50 > EMA200
+   - KC_mid slope positive over last 5 bars (optional but recommended)
+2) Bullish divergence confirmation (within the last 5–30 bars):
+   - Identify two consecutive swing lows: L1 (older) and L2 (newer)
+   - Price: L2_price < L1_price by at least 0.5 × ATR20
+   - RSI: RSI(L2) > RSI(L1) by at least 4 points and RSI(L2) > 30
+3) Volatility expansion (BB gate):
+   - BandWidth > 1.25 × its 252-bar median AND BandWidth SMA(5) > SMA(10)
+4) Breakout trigger:
+   - Current bar close > KC_upper + 0.1 × ATR20
+5) Execution:
+   - If conditions 1–4 align at bar close, place a buy stop for next bar at max(current close, high + 0.05 × ATR20)
+   - Optional volume filter: volume > 1.1 × SMA(volume, 20)
+
+Exit Rules:
+- Primary signal exit (strategy-defined): Exit on close < KC_lower (price correction below the channel).
+- Protective/trailing exits:
+  - Initial stop: min(recent swing low − 0.5 × ATR20, entry − 1.5 × ATR20)
+  - Move to breakeven after +1R
+  - Trailing stop after breakeven: max(KC_mid − 0.25 × ATR20, highest(close, 10) − 3 × ATR20) until the primary exit triggers
+- Optional early reduce:
+  - If close falls back inside KC (close < KC_upper) within 3 bars of entry AND RSI crosses below 50, reduce 50%
+
+Risk Management:
+- Position sizing: Risk 0.5%–1.0% of equity per trade
+  - Shares/contracts = (Account_Risk) / (Entry − Initial_Stop)
+- Max exposure:
+  - Max 3 concurrent positions; sector/asset correlation cap to avoid clustering
+- Pyramiding (optional, max 2 adds):
+  - Add when new close > prior swing high and BB BandWidth still above 1.1 × its 252-bar median; each add at 0.5R size with stop harmonized to current trailing rule
+- Time stop:
+  - If trade has not achieved +0.5R within 10 bars (or 2 weeks on daily), exit at market
+- Event risk:
+  - Skip new entries into high-impact macro events (earnings, FOMC, CPI) within next bar/session
+
+Implementation Notes:
+- Divergence detection robustness:
+  - Use swing lows from 5-bar fractal; enforce lookback window to avoid matching lows too far apart
+  - Ignore divergences where RSI(L1) < 15 to reduce knife-catch attempts
+- Regime control:
+  - Disable strategy if BB BandWidth < its 100-bar median for 15 consecutive bars (range-bound regime)
+- Data hygiene:
+  - Use log or percentage returns for percentile thresholds; handle overnight gaps in ATR/vol measures
+- Backtest defaults:
+  - Daily timeframe, 20/20/1.6 KC; 20/2 BB; RSI14; 0.75 bps slippage, realistic tick size
+
+Summary Logic (condensed):
+- IF uptrend (EMA50>EMA200, price>EMA200) AND bullish RSI divergence at swing lows AND BB volatility expanding AND close > KC_upper
+  → Enter long next bar via stop.
+- Manage with ATR/swing initial stop, trail by KC_mid/ATR.
+- Exit fully when price closes below KC_lower (correction below channel).

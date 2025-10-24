@@ -1,0 +1,95 @@
+STRATEGY_NAME: AngularConfluence
+
+STRATEGY_DETAILS:
+Key components
+- Gann Angle Grid: Use a standardized Gann Fan (1x1 primary, 1x2 and 2x1 secondary) anchored to the session’s first significant swing (morning swing low for longs, swing high for shorts). Maintain consistent price/time scaling so the 1x1 represents one price unit per bar (use platform’s Gann scaling or a fixed tick-per-bar mapping).
+- 5-Period SMA (Trend Filter + Intersection Target): Confirms intraday trend direction and provides dynamic profit-taking at intersections with the active Gann angle.
+- Intersection Targeting Engine: Profit targets are the first forward bar where the 5 SMA “touches/crosses” the selected Gann angle line (within tolerance).
+- Volatility + Session Filters: ATR-based volatility threshold, defined trading window (e.g., first 2–3 hours and final 2 hours of RTH).
+- Risk Management: ATR-based stops, confluence-based buffers, R-multiple validation (min 1.5R), time stops, and trailing logic tied to angle/SMA.
+
+Required indicators and settings
+- Gann Fan: 1x1 (primary), 1x2 and 2x1 (secondary). Anchor at:
+  - Longs: Intraday swing low after market open or session open low.
+  - Shorts: Intraday swing high after market open or session open high.
+- 5-period SMA (close).
+- ATR(14) on trading timeframe (1–5 min typical).
+- Optional: Session VWAP as an additional filter; session high/low lines.
+- Execution timeframe: 1–5 minute charts (3-minute default).
+
+Entry rules
+Long setup
+1) Trend filter:
+   - 5 SMA slope > 0 for the last 3 bars.
+   - Price closes above the 5 SMA.
+   - Price above or reclaiming a rising 1x1 Gann angle.
+2) Angle context:
+   - Prefer entries when price is near a rising Gann angle (1x2 or 1x1) AND near/above the 5 SMA, forming a confluence zone.
+   - If price was below the 1x1, wait for a close back above the 1x1 and a successful retest (within 3 bars).
+3) Trigger:
+   - Bullish rejection candle or bullish engulfing at the angle/SMA confluence, OR
+   - Breakout-close above the nearest minor rising angle (e.g., 1x2) followed by a 1-bar hold above the 5 SMA.
+4) Volatility filter:
+   - ATR(14) ≥ minimum threshold (instrument-specific; e.g., ≥ 0.6× its 20-day intraday median).
+5) Reward-to-risk pre-check:
+   - Project the next 5 SMA-to-angle intersection. Estimated reward / initial risk ≥ 1.5.
+
+Short setup (mirror)
+1) 5 SMA slope < 0 for the last 3 bars; price below the 5 SMA; price below or reclaiming a falling 1x1.
+2) Prefer confluence of falling angle (1x2 or 1x1) and 5 SMA overhead.
+3) Trigger: Bearish rejection/engulfing at confluence or breakdown-close below minor falling angle with 1-bar hold below SMA.
+4) ATR filter and R/R pre-check as above.
+
+Profit targets (intersection-based exits)
+- Primary target (T1): Exit when the 5 SMA line first touches/crosses the active Gann angle line in the trade direction.
+  - Longs: First bar where SMA value ≥ rising angle value (within tolerance).
+  - Shorts: First bar where SMA value ≤ falling angle value (within tolerance).
+- Tolerance: Accept intersection if |SMA - Angle| ≤ 0.1×ATR(14) or ≤ 1–2 ticks, whichever is larger.
+- Optional scaling:
+  - If trading both 1x2 and 1x1: Take 50% at first intersection with minor angle (1x2), hold remainder for intersection with 1x1.
+- Time stop: If no intersection or stop hit within N bars (e.g., 20–30 bars on 3-min), exit at market or trail aggressively.
+
+Stop loss and risk management
+- Initial stop (choose the tightest):
+  - Confluence break: For longs, below both 5 SMA and the nearest rising angle by buffer; for shorts, above both by buffer.
+  - ATR buffer: Stop = Trigger Bar Low/High ± 0.5–1.0×ATR(14).
+  - Structural: Beyond the anchor swing (the Gann fan anchor) only if R/R ≥ 1.5 remains.
+- Trailing logic:
+  - Angle trail: Trail behind the active angle by 0.3–0.5×ATR(14).
+  - SMA trail: After T1 hit or +1R unrealized, trail below/above 5 SMA by 0.2–0.3×ATR(14).
+- Position sizing:
+  - Risk per trade: 0.25–1.0% of account.
+  - Size = Account_Risk / Initial_Stop_Distance.
+- Session and event risk:
+  - No new entries within 10 minutes before/after major scheduled news.
+  - Flatten all positions 5–10 minutes before session close.
+
+Angle selection and scaling
+- Use the 1x1 as the primary path. If price is accelerating, 2x1 may dominate; if consolidating, 1x2 may be more relevant for confluence/targets.
+- Ensure consistent scaling so a “1x1” visually and mathematically represents one price unit per bar. If your platform auto-handles scaling, lock the Gann fan to price/time ratio; otherwise, standardize ticks-per-bar to keep angle geometry consistent across sessions.
+
+Execution checklist (long example)
+1) Is 5 SMA sloping up for 3 bars and price above it?
+2) Is price at/above a rising Gann angle (preferably 1x1) or reclaiming it on a retest?
+3) Is there a bullish trigger candle at the SMA/angle confluence?
+4) Is ATR above threshold and projected T1 intersection ≥ 1.5R?
+5) Place entry on confirmation, stop below SMA+angle by buffer, set T1 at first SMA–angle intersection, and enable trail after +1R.
+
+No-trade conditions
+- 5 SMA is flat (slope near zero) and price chopping around angles.
+- The next projected intersection occurs within ≤ 3 bars from entry (insufficient room).
+- Multiple rapid SMA–angle crossings in the last 10 bars (high whipsaw regime).
+- Price far from any angle and SMA (no confluence; poor structure).
+
+Parameter suggestions and tuning
+- SMA length: fixed at 5 (core of the strategy).
+- ATR period: 14; buffer 0.3–1.0×ATR depending on instrument volatility.
+- Timeframe: 3-minute default; also validate on 2- and 5-minute.
+- Angle set: 1x1 mandatory; include 1x2 and 2x1 for secondary targets and structure.
+
+Implementation notes
+- Intersection detection: On each new bar, compute the value of the active angle at bar t and compare to 5 SMA(t). Trigger exit when within tolerance, or on the first cross.
+- If multiple angles are active, use the nearest intersection in the direction of the trade that satisfies minimum R/R.
+- For platforms without programmable angle values, use line alerts: Set alert on the 5 SMA crossing the chosen Gann angle line.
+
+This AngularConfluence approach blends geometric pathing (Gann angles) with a short-term trend filter (5 SMA) and converts their confluence into objective, time-aware profit targets at precise intersection points, while controlling risk with ATR-based buffers and structured trailing.
