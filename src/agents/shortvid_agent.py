@@ -52,7 +52,7 @@ PLAY_AUDIO = False  # Whether to play audio after generation (slower if True)
 DELAY_BETWEEN_REQUESTS = 1  # Seconds to wait between API calls
 
 # Audio Settings
-VOICE_ID = "Q1lWKMtcxmb76WQDCHTX"  # Default voice ID
+VOICE_ID = "EXAVITQu4vr4xnSDxMaL"  # Sarah - Natural female voice (from ElevenLabs account)
 MODEL_ID = "eleven_multilingual_v2"  # Default model
 OUTPUT_FORMAT = "mp3_44100_128"  # High quality audio
 
