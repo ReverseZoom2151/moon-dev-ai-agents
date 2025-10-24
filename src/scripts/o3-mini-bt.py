@@ -102,7 +102,11 @@ if __name__ == '__main__':
     
     # Download data from Yahoo Finance
     data = yf.download(ticker, start=start_date, end=end_date)
-    
+
+    # Flatten MultiIndex columns if present (yfinance sometimes returns MultiIndex)
+    if isinstance(data.columns, pd.MultiIndex):
+        data.columns = data.columns.get_level_values(0)
+
     # Check if data was downloaded successfully
     if data.empty:
         print("No data downloaded. Please check the ticker symbol and date range.")

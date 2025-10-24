@@ -16,6 +16,15 @@ import eth_account
 import pandas as pd
 import requests
 
+# Fix for eth_account API change (encode_typed_data -> encode_structured_data)
+# This compatibility layer allows hyperliquid library to work with newer eth_account versions
+try:
+    from eth_account.messages import encode_typed_data
+except ImportError:
+    from eth_account.messages import encode_structured_data
+    import eth_account.messages
+    eth_account.messages.encode_typed_data = encode_structured_data
+
 # Third-party from imports
 from dotenv import load_dotenv
 from eth_account.signers.local import LocalAccount

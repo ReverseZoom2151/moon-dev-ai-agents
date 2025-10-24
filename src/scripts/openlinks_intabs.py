@@ -1,5 +1,5 @@
 '''
-this script opens all the wallets in a csv file in new tabs. 
+this script opens all the wallets in a csv file in new tabs.
 just place the csv there
 '''
 
@@ -10,12 +10,18 @@ import sys
 import time
 import webbrowser
 
+# Standard library from imports
+from pathlib import Path
+
 # Third-party imports
 import pandas as pd
 import psutil
 
-# Configuration Constants
-FILE_PATH = "/Users/md/Dropbox/dev/github/moon-dev-ai-agents-for-trading/src/data/private_data/bigfollow.csv"
+# Calculate project root
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+
+# Configuration Constants - Now using relative path from project root
+FILE_PATH = str(PROJECT_ROOT / "src" / "data" / "private_data" / "bigfollow.csv")
 OPENS_PER_BATCH = 30
 TARGET_COLUMN = "wallet_address"  # Column containing the wallet addresses
 BASE_URL = "https://gmgn.ai/sol/address/"  # Base URL for GMGN.ai

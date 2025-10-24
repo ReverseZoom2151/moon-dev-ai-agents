@@ -1,8 +1,19 @@
 # Standard library imports
-import curses
 import platform
 import random
+import sys
 import time
+
+# Try to import curses (not available by default on Windows)
+try:
+    import curses
+except ModuleNotFoundError:
+    print("\n❌ ERROR: curses module not found")
+    print("\n💡 The curses library is not available on Windows by default.")
+    print("   To use this script on Windows, install the windows-curses package:")
+    print("\n   pip install windows-curses")
+    print("\n🌙 On Linux/macOS, curses is included with Python")
+    sys.exit(1)
 
 # Third-party from imports
 from termcolor import colored

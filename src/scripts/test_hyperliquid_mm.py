@@ -52,8 +52,8 @@ SYMBOL = 'BTC'  # Trading symbol
 POSITION_SIZE_USD = 12  # Position size in USD (with buffer above $10 minimum)
 LEVERAGE = 5  # Leverage to use
 
-# Moon Dev Banner
-BANNER = f"""{Fore.CYAN}
+# Moon Dev Banner (raw f-string to avoid escape sequence warnings)
+BANNER = rf"""{Fore.CYAN}
    __  ___                    ____
   /  |/  /___  ____  ____    / __ \___  _  __
  / /|_/ / __ \/ __ \/ __ \  / / / / _ \| |/_/
