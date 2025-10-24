@@ -13,7 +13,10 @@ import ccxt
 from typing import Dict, List, Optional
 
 # Local from imports
-from .base_exchange import BaseExchange
+try:
+    from .base_exchange import BaseExchange
+except ImportError:
+    from base_exchange import BaseExchange
 
 
 class BitfinexExchange(BaseExchange):

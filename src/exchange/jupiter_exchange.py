@@ -18,11 +18,25 @@ from typing import Dict, List, Optional
 # Third-party from imports
 from solana.rpc.api import Client
 from solana.rpc.types import TxOpts
-from solana.transaction import VersionedTransaction
+
+# Handle different solana library versions
+try:
+    from solana.transaction import VersionedTransaction
+except (ImportError, ModuleNotFoundError):
+    try:
+        from solders.transaction import VersionedTransaction  # type: ignore
+    except (ImportError, ModuleNotFoundError):
+        # Fallback - define a placeholder if neither works
+        VersionedTransaction = None
+        print("⚠️ Warning: VersionedTransaction not available. Install solana-py or solders.")
+
 from solders.keypair import Keypair  # type: ignore
 
 # Local from imports
-from .base_exchange import BaseExchange
+try:
+    from .base_exchange import BaseExchange
+except ImportError:
+    from base_exchange import BaseExchange
 
 
 class JupiterExchange(BaseExchange):

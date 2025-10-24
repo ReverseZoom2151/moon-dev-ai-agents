@@ -13,6 +13,14 @@ import eth_account
 import pandas as pd
 import requests
 
+# Fix for eth_account API change (encode_typed_data -> encode_structured_data)
+try:
+    from eth_account.messages import encode_typed_data
+except ImportError:
+    from eth_account.messages import encode_structured_data
+    import eth_account.messages
+    eth_account.messages.encode_typed_data = encode_structured_data
+
 # Standard library from imports
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
@@ -23,7 +31,10 @@ from hyperliquid.info import Info
 from hyperliquid.utils import constants
 
 # Local from imports
-from .base_exchange import BaseExchange
+try:
+    from .base_exchange import BaseExchange
+except ImportError:
+    from base_exchange import BaseExchange
 
 
 class HyperLiquidExchange(BaseExchange):
