@@ -10,7 +10,10 @@ from typing import Dict, List, Optional, Tuple
 from termcolor import cprint
 
 # Local from imports
-from .model_factory import model_factory
+try:
+    from .model_factory import model_factory
+except ImportError:
+    from model_factory import model_factory
 
 
 class ModelPriority(Enum):

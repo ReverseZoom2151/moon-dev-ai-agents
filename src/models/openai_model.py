@@ -11,7 +11,10 @@ from openai import OpenAI
 from termcolor import cprint
 
 # Local from imports
-from .base_model import BaseModel, ModelResponse
+try:
+    from .base_model import BaseModel, ModelResponse
+except ImportError:
+    from base_model import BaseModel, ModelResponse
 
 class OpenAIModel(BaseModel):
     """Implementation for OpenAI's models"""

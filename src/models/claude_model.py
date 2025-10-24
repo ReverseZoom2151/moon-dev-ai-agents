@@ -8,7 +8,10 @@ from anthropic import Anthropic
 from termcolor import cprint
 
 # Local from imports
-from .base_model import BaseModel, ModelResponse
+try:
+    from .base_model import BaseModel, ModelResponse
+except ImportError:
+    from base_model import BaseModel, ModelResponse
 
 class ClaudeModel(BaseModel):
     """Implementation for Anthropic's Claude models"""

@@ -28,14 +28,24 @@ from dotenv import load_dotenv
 from termcolor import cprint
 
 # Local from imports
-from .base_model import BaseModel
-from .claude_model import ClaudeModel
-from .deepseek_model import DeepSeekModel
-from .gemini_model import GeminiModel
-from .groq_model import GroqModel
-from .ollama_model import OllamaModel
-from .openai_model import OpenAIModel
-from .xai_model import XAIModel
+try:
+    from .base_model import BaseModel
+    from .claude_model import ClaudeModel
+    from .deepseek_model import DeepSeekModel
+    from .gemini_model import GeminiModel
+    from .groq_model import GroqModel
+    from .ollama_model import OllamaModel
+    from .openai_model import OpenAIModel
+    from .xai_model import XAIModel
+except ImportError:
+    from base_model import BaseModel
+    from claude_model import ClaudeModel
+    from deepseek_model import DeepSeekModel
+    from gemini_model import GeminiModel
+    from groq_model import GroqModel
+    from ollama_model import OllamaModel
+    from openai_model import OpenAIModel
+    from xai_model import XAIModel
 
 class ModelFactory:
     """Factory for creating and managing AI models"""
