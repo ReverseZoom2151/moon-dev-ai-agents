@@ -71,9 +71,9 @@ SWARM_MODELS = {
     "claude": (True, "claude", "claude-sonnet-4-5"),  # Claude 4.5 Sonnet - Latest & Greatest!
     "openai": (True, "openai", "gpt-5"),  # GPT-5 - Most advanced model!
     "gemini": (True, "gemini", "gemini-2.5-flash"),  # Gemini 2.5 Flash - Fast & works with 2048+ tokens!
-    "xai": (True, "xai", "grok-4-fast-reasoning"),  # Grok-4 fast reasoning
-    "deepseek": (True, "deepseek", "deepseek-chat"),  # DeepSeek for reasoning (API)
-    "ollama": (True, "ollama", "DeepSeek-R1:latest"),  # DeepSeek-R1 local model - 90s timeout
+    "xai": (False, "xai", "grok-4-fast-reasoning"),  # Grok-4 - Disabled (no credits)
+    "deepseek": (False, "deepseek", "deepseek-chat"),  # DeepSeek - Disabled (insufficient balance)
+    "ollama": (True, "ollama", "llama3.2:latest"),  # Llama 3.2 local model via Ollama
 }
 
 # Default parameters for model queries
