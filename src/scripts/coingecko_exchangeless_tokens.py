@@ -40,8 +40,9 @@ DO_NOT_ANALYZE = [
     'usdc',            # USDC
 ]
 
-# 📁 File Paths
-DISCOVERED_TOKENS_FILE = Path("src/data/discovered_tokens.csv")
+# 📁 File Paths - Calculate from project root
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+DISCOVERED_TOKENS_FILE = PROJECT_ROOT / "src" / "data" / "discovered_tokens.csv"
 
 class CoinGeckoTokenFinder:
     """Utility class for finding promising Solana tokens 🦎"""
@@ -50,8 +51,16 @@ class CoinGeckoTokenFinder:
         self.api_key = os.getenv("COINGECKO_API_KEY")
         if not self.api_key:
             raise ValueError("⚠️ COINGECKO_API_KEY not found in environment variables!")
-            
-        self.base_url = "https://pro-api.coingecko.com/api/v3"
+
+        # Detect if demo key (starts with CG-) vs pro key
+        # Demo keys must use api.coingecko.com, Pro keys use pro-api.coingecko.com
+        if self.api_key.startswith("CG-"):
+            self.base_url = "https://api.coingecko.com/api/v3"
+            print("🔑 Detected Demo API key - using api.coingecko.com")
+        else:
+            self.base_url = "https://pro-api.coingecko.com/api/v3"
+            print("🔑 Detected Pro API key - using pro-api.coingecko.com")
+
         self.headers = {
             "x-cg-pro-api-key": self.api_key,
             "Content-Type": "application/json"

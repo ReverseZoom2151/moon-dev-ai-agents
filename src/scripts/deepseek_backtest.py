@@ -49,6 +49,10 @@ class VWAPVolumeStrategy(Strategy):
 ticker = "AAPL"
 data = yf.download(ticker, start="2020-01-01", end="2023-01-01")
 
+# Flatten MultiIndex columns if present (yfinance sometimes returns MultiIndex)
+if isinstance(data.columns, pd.MultiIndex):
+    data.columns = data.columns.get_level_values(0)
+
 # Rename columns to match backtesting.py's expected format
 data = data.rename(columns={
     'Open': 'Open',

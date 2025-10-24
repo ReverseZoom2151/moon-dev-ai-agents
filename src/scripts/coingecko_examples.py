@@ -24,7 +24,16 @@ load_dotenv()
 
 # Configuration
 COINGECKO_API_KEY = os.getenv("COINGECKO_API_KEY")
-BASE_URL = "https://pro-api.coingecko.com/api/v3"
+
+# Detect if demo key (starts with CG-) vs pro key
+# Demo keys must use api.coingecko.com, Pro keys use pro-api.coingecko.com
+if COINGECKO_API_KEY and COINGECKO_API_KEY.startswith("CG-"):
+    BASE_URL = "https://api.coingecko.com/api/v3"
+    print("🔑 Detected Demo API key - using api.coingecko.com")
+else:
+    BASE_URL = "https://pro-api.coingecko.com/api/v3"
+    print("🔑 Detected Pro API key - using pro-api.coingecko.com")
+
 RESULTS_DIR = Path("src/data/coingecko_results")
 
 # Create results directory

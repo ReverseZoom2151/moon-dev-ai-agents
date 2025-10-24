@@ -1,5 +1,6 @@
 # Standard library imports
 import json
+import os
 import time
 
 # Third-party imports
@@ -17,6 +18,8 @@ app = FastAPI(title="MoonDev's DeepSeek API 🌙")
 OLLAMA_BASE_URL = "http://localhost:11434"
 MAX_RETRIES = 3
 RETRY_DELAY = 5  # seconds
+# Port configuration - can be changed via environment variable
+PORT = int(os.getenv("DEEPSEEK_API_PORT", "8001"))  # Default changed from 8000 to 8001
 
 # Model mapping
 MODEL_MAPPING = {
@@ -138,4 +141,5 @@ if __name__ == "__main__":
     for api_model, ollama_model in MODEL_MAPPING.items():
         print(f"  - {api_model} -> {ollama_model}")
     print(f"⚡ Retry settings: {MAX_RETRIES} attempts with {RETRY_DELAY}s delay")
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    print(f"🔌 Starting server on port: {PORT}")
+    uvicorn.run(app, host="0.0.0.0", port=PORT)

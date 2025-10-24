@@ -4,10 +4,14 @@ import os
 
 # Standard library from imports
 from datetime import datetime
+from pathlib import Path
 
-# Constants
-INPUT_FOLDER = "/Users/md/Dropbox/dev/github/moon-dev-trading-bots/bots"
-OUTPUT_FOLDER = "/Users/md/Dropbox/dev/github/moon-dev-ai-agents-for-trading/src/data/codetotext"
+# Calculate project root
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+
+# Constants - Now using relative paths from project root
+INPUT_FOLDER = str(PROJECT_ROOT / "src")  # Default to scanning src folder
+OUTPUT_FOLDER = str(PROJECT_ROOT / "src" / "data" / "codetotext")
 
 # File extensions to include
 CODE_EXTENSIONS = ['.py', '.ipynb', '.js', '.html', '.css', '.md', '.txt']
