@@ -228,7 +228,10 @@ class WhaleAgent(BaseAgent):
             
             print("\n📊 Adding new data point to history...")
             print(f"History size before: {len(self.oi_history)}")
-            self.oi_history = pd.concat([self.oi_history, new_row], ignore_index=True)
+            if self.oi_history.empty:
+                self.oi_history = new_row
+            else:
+                self.oi_history = pd.concat([self.oi_history, new_row], ignore_index=True)
             print(f"History size after: {len(self.oi_history)}")
             
             # Clean up old data
