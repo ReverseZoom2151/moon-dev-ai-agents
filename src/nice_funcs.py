@@ -14,6 +14,14 @@ import pprint
 import sys
 import time
 
+# Standard library from imports
+from pathlib import Path
+
+# Add project root to Python path for imports (allows running scripts from anywhere)
+PROJECT_ROOT = Path(__file__).parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 # Fix Windows console encoding for emojis (must be done early)
 if sys.platform == 'win32':
     try:
@@ -43,8 +51,32 @@ from solders.keypair import Keypair
 from solders.transaction import VersionedTransaction
 from termcolor import colored, cprint
 
-# Local from imports
-from src.config import *
+# Local from imports - Handle both running from root and from subdirectories
+try:
+    from src.config import *
+except ModuleNotFoundError:
+    # If running from a subdirectory, try importing from parent
+    try:
+        import config as config_module
+        # Import all exported names from config
+        for name in dir(config_module):
+            if not name.startswith('_'):
+                globals()[name] = getattr(config_module, name)
+    except ModuleNotFoundError:
+        # If config still not found, try relative import from parent
+        import sys
+        from pathlib import Path
+        config_path = Path(__file__).parent / 'config.py'
+        if config_path.exists():
+            import importlib.util
+            spec = importlib.util.spec_from_file_location("config", config_path)
+            config_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(config_module)
+            for name in dir(config_module):
+                if not name.startswith('_'):
+                    globals()[name] = getattr(config_module, name)
+        else:
+            print("⚠️ Warning: config.py not found - some features may not work")
 
 # Load environment variables
 load_dotenv()
