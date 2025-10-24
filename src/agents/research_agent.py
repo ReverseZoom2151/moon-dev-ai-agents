@@ -61,19 +61,19 @@ PROJECT_ROOT = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 # Local from imports
-from src.models import model_factory
+from src.models.model_priority import ModelPriority, model_priority_queue
+
 DATA_DIR = PROJECT_ROOT / "src" / "data" / "rbi"
 IDEAS_TXT = DATA_DIR / "ideas.txt"
 IDEAS_CSV = DATA_DIR / "strategy_ideas.csv"
 
-# Model configurations
-MODELS = [
-    # {"type": "ollama", "name": "DeepSeek-R1:latest"},
-    # {"type": "ollama", "name": "llama3.2:latest"},
-    # {"type": "ollama", "name": "gemma:2b"}
-    {"type": "deepseek", "name": "deepseek-chat"},
-    {"type": "deepseek", "name": "deepseek-reasoner"}
-]
+# Model configurations - NOW USING MODEL_PRIORITY SYSTEM
+# Old hardcoded configs (kept for reference):
+# MODELS = [
+#     {"type": "deepseek", "name": "deepseek-chat"},
+#     {"type": "deepseek", "name": "deepseek-reasoner"}
+# ]
+# Now using LOW priority for idea generation (fast, cheap models)
 
 # Fun emojis for animation
 EMOJIS = ["🚀", "💫", "✨", "🌟", "💎", "🔮", "🌙", "⭐", "🌠", "💰", "📈", "🧠"]
@@ -205,23 +205,23 @@ def is_duplicate(idea, existing_ideas):
     
     return False
 
-def generate_idea(model_config):
-    """Generate a trading strategy idea using the specified model"""
+def generate_idea():
+    """Generate a trading strategy idea using model_priority system with automatic fallback"""
     try:
         # Fun animated header
         print("\n" + "=" * min(60, TERM_WIDTH))
         cprint(f" 🧙‍♂️ MOON DEV'S IDEA GENERATOR 🧙‍♂️ ", "white", "on_magenta")
         print("=" * min(60, TERM_WIDTH))
-        
-        cprint(f"\n🧠 Using {model_config['type']} - {model_config['name']}...", "cyan")
+
+        cprint(f"\n🧠 Using model_priority system (LOW priority - fast, cheap models)...", "cyan")
         time.sleep(0.5)  # Pause for readability
-        
+
         # Simple loading animation
         print()
         emoji = random.choice(EMOJIS)
-        cprint(f"🔮 Asking {model_config['name']} for trading ideas...", "yellow", "on_blue")
+        cprint(f"🔮 Asking AI for trading ideas with automatic fallback...", "yellow", "on_blue")
         time.sleep(0.5)  # Pause for readability
-        
+
         # Show generation progress with black text on white background
         progress_messages = [
             "🔍 Scanning market patterns...",
@@ -232,31 +232,32 @@ def generate_idea(model_config):
             "🌟 Polishing trading concept...",
             "🚀 Finalizing strategy idea..."
         ]
-        
+
         # Display progress messages with animation
         for msg in progress_messages:
             clear_line()
             cprint(f" {msg} ", "black", "on_white")
             time.sleep(0.7)  # Show each message briefly
             animate_loading(1, f"{msg}", emoji)
-        
-        # Get model from factory
-        model = model_factory.get_model(model_config["type"], model_config["name"])
-        if not model:
-            cprint(f"❌ Could not initialize {model_config['type']} model!", "white", "on_red")
-            return None
-        
+
         # Show generation in progress message
         cprint(f"\n⏳ GENERATING TRADING STRATEGY IDEA...", "black", "on_white")
         time.sleep(0.5)  # Pause for readability
-        
-        # Generate response
-        response = model.generate_response(
+
+        # Use model_priority_queue with LOW priority for idea generation
+        # This will automatically try: Groq → Gemini Flash Lite → GPT-5 Nano
+        response = model_priority_queue.generate_with_priority(
             system_prompt=IDEA_GENERATION_PROMPT,
             user_content="Generate one unique trading strategy idea.",
-            temperature=0.8  # Higher temperature for more creativity
+            priority=ModelPriority.LOW,
+            temperature=0.8,  # Higher temperature for more creativity
+            max_tokens=500
         )
-        
+
+        if not response:
+            cprint(f"❌ All models in priority queue failed!", "white", "on_red")
+            return None
+
         # Handle different response types
         if isinstance(response, str):
             idea = response
@@ -264,21 +265,21 @@ def generate_idea(model_config):
             idea = response.content
         else:
             idea = str(response)
-        
+
         # Clean up the idea
         idea = clean_idea(idea)
-        
+
         # Display the idea with animation - only once
         print()
         cprint("💡 TRADING STRATEGY IDEA GENERATED!", "white", "on_green")
         time.sleep(0.5)  # Pause for readability
-        
+
         # Clear any previous output to avoid duplication
         clear_line()
-        
+
         # Animate the idea text - only once
         animate_text(idea, "yellow", "on_blue")
-        
+
         # Add some fun emojis
         print()
         for _ in range(2):
@@ -286,9 +287,9 @@ def generate_idea(model_config):
             emoji = random.choice(EMOJIS)
             print(" " * position + emoji)
             time.sleep(0.3)
-        
+
         return idea
-        
+
     except Exception as e:
         cprint(f"❌ Error generating idea: {str(e)}", "white", "on_red")
         return None
@@ -349,10 +350,9 @@ def clean_idea(idea):
     
     return idea
 
-def log_idea(idea, model_config):
+def log_idea(idea, model_name="model_priority_LOW"):
     """Log a new idea to both CSV and ideas.txt"""
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    model_name = f"{model_config['type']}-{model_config['name']}"
     
     # Animated saving sequence
     cprint("\n💾 SAVING IDEA TO DATABASE...", "white", "on_blue")
@@ -431,13 +431,10 @@ def run_idea_generation_loop(interval=10):
             existing_ideas = load_existing_ideas()
             cprint(f"📚 Loaded {len(existing_ideas)} existing ideas for duplicate checking", "white", "on_blue")
             time.sleep(1)  # Pause for readability
-            
-            # Select a random model
-            model_config = random.choice(MODELS)
-            
-            # Generate idea
-            idea = generate_idea(model_config)
-            
+
+            # Generate idea using model_priority system
+            idea = generate_idea()
+
             if idea:
                 # Check if it's a duplicate
                 if is_duplicate(idea, existing_ideas):
@@ -445,7 +442,7 @@ def run_idea_generation_loop(interval=10):
                     cprint(f"Skipping: {idea}", "yellow")
                 else:
                     # Log the new idea
-                    log_idea(idea, model_config)
+                    log_idea(idea)
             
             # Fun waiting animation - exactly 10 seconds
             cprint(f"\n⏱️ COOLDOWN PERIOD ACTIVATED", "white", "on_blue")
@@ -502,12 +499,9 @@ def test_run(num_ideas=1, interval=10):
         
         ideas_generated = 0
         while ideas_generated < num_ideas:
-            # Select a random model
-            model_config = random.choice(MODELS)
-            
-            # Generate idea
-            idea = generate_idea(model_config)
-            
+            # Generate idea using model_priority system
+            idea = generate_idea()
+
             if idea:
                 # Check if it's a duplicate
                 if is_duplicate(idea, existing_ideas):
@@ -515,7 +509,7 @@ def test_run(num_ideas=1, interval=10):
                     cprint(f"Skipping: {idea}", "yellow")
                 else:
                     # Log the new idea
-                    log_idea(idea, model_config)
+                    log_idea(idea)
                     ideas_generated += 1
                     existing_ideas.add(idea.lower())
             
