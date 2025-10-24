@@ -274,13 +274,13 @@ def run_one_strategy(research_dir: Path, file_path: Path, conda_env: str) -> Non
 def main():
     import sys
 
-# Fix Windows console encoding for emojis
-if sys.platform == 'win32':
-    try:
-        sys.stdout.reconfigure(encoding='utf-8')
-        sys.stderr.reconfigure(encoding='utf-8')
-    except (AttributeError, OSError):
-        pass
+    # Fix Windows console encoding for emojis
+    if sys.platform == 'win32':
+        try:
+            sys.stdout.reconfigure(encoding='utf-8')
+            sys.stderr.reconfigure(encoding='utf-8')
+        except (AttributeError, OSError):
+            pass
 
     # Resolve research directory
     research_dir = DEFAULT_RESEARCH_DIR
