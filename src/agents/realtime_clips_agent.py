@@ -760,7 +760,7 @@ def autonomous_mode(agent):
     cprint(f"📁 Recording folder: {agent.obs_folder}", "cyan")
     cprint(f"💾 Clips saved to: {agent.base_clips_folder}", "cyan")
     cprint(f"📅 Today's folder: {agent.clips_folder.name}", "cyan")
-    cprint(f"🤖 AI Model: {agent.model.model_name}", "cyan")
+    cprint(f"🤖 AI: Using model_priority (LOW priority - fast models)", "cyan")
     cprint("\n💡 Press Ctrl+C to stop\n", "yellow")
 
     check_count = 0
@@ -873,7 +873,7 @@ def main():
         cprint("  /quit                             - Exit", "yellow")
         cprint(f"\nRecording folder: {agent.obs_folder}", "cyan")
         cprint(f"Clips saved to: {agent.clips_folder}", "cyan")
-        cprint(f"AI Model: {agent.model.model_name}\n", "cyan")
+        cprint(f"AI: Using model_priority (LOW priority - fast models)\n", "cyan")
 
         interactive_loop(agent)
 
