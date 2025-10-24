@@ -340,6 +340,7 @@ from datetime import datetime
 from io import BytesIO
 from itertools import cycle
 from pathlib import Path
+from typing import List
 
 # Third-party from imports
 from termcolor import cprint
