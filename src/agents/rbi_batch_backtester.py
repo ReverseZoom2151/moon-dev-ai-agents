@@ -29,6 +29,7 @@ from datetime import datetime
 # Local from imports
 from src.agents import rbi_agent
 from src.agents.backtest_runner import run_backtest_in_conda, save_results
+from src.models.model_priority import ModelPriority
 
 
 # ==== CONFIG ====
@@ -89,38 +90,16 @@ def generate_backtest_code(strategy_text: str) -> str:
     print("🤖🌙 MOON DEV: Generating backtest code via BACKTEST prompt... 🚀")
     content = f"Create a backtest for this strategy:\n\n{strategy_text}"
 
-    # Try primary config, then fallbacks if unavailable
-    candidate_configs = [
-        rbi_agent.BACKTEST_CONFIG,
-        {"type": "openai", "name": "o1-mini"},
-        {"type": "openai", "name": "gpt-4o"},
-        {"type": "claude", "name": "claude-3-haiku"},
-        {"type": "deepseek", "name": "deepseek-chat"},
-        {"type": "ollama", "name": "llama3.2"},
-        {"type": "ollama", "name": "deepseek-r1"},
-    ]
-
-    raw = None
-    last_error = None
-    for cfg in candidate_configs:
-        print(f"🛰️🌙 MOON DEV: Attempting model {cfg['type']} :: {cfg['name']} for codegen ✨")
-        try:
-            raw = rbi_agent.chat_with_model(
-                rbi_agent.BACKTEST_PROMPT,
-                content,
-                cfg,
-            )
-            if raw:
-                break
-        except Exception as e:
-            last_error = str(e)
-            print(f"⚠️🌙 MOON DEV: Model attempt failed: {last_error}")
+    # Use model_priority with HIGH priority for backtest code generation
+    raw = rbi_agent.chat_with_model(
+        rbi_agent.BACKTEST_PROMPT,
+        content,
+        ModelPriority.HIGH,
+        "Backtest"
+    )
 
     if not raw:
-        msg = "Backtest generation returned empty response from all model candidates"
-        if last_error:
-            msg += f" | last error: {last_error}"
-        raise RuntimeError(msg)
+        raise RuntimeError("Backtest generation returned empty response")
 
     code = rbi_agent.clean_model_output(raw, "code")
     print("✅🌙 MOON DEV: Initial backtest code generated (cleaned from markdown) ✨")
@@ -131,29 +110,13 @@ def package_fix_code(code: str) -> str:
     print("📦🌙 MOON DEV: Running package-check to remove forbidden backtesting.lib usage... 🧹")
     content = f"Check and fix indicator packages in this code:\n\n{code}"
 
-    candidate_configs = [
-        rbi_agent.PACKAGE_CONFIG,
-        {"type": "openai", "name": "o1-mini"},
-        {"type": "openai", "name": "gpt-4o"},
-        {"type": "claude", "name": "claude-3-haiku"},
-        {"type": "deepseek", "name": "deepseek-chat"},
-        {"type": "ollama", "name": "llama3.2"},
-        {"type": "ollama", "name": "deepseek-r1"},
-    ]
-
-    raw = None
-    for cfg in candidate_configs:
-        print(f"🛰️🌙 MOON DEV: Package-fix model attempt {cfg['type']} :: {cfg['name']}")
-        try:
-            raw = rbi_agent.chat_with_model(
-                rbi_agent.PACKAGE_PROMPT,
-                content,
-                cfg,
-            )
-            if raw:
-                break
-        except Exception:
-            pass
+    # Use model_priority with HIGH priority for package fixes
+    raw = rbi_agent.chat_with_model(
+        rbi_agent.PACKAGE_PROMPT,
+        content,
+        ModelPriority.HIGH,
+        "Package"
+    )
 
     if not raw:
         return code
@@ -167,30 +130,14 @@ def debug_fix_code(code: str, strategy_text: str | None = None) -> str:
     context = f"Here's the backtest code to debug:\n\n{code}"
     if strategy_text:
         context += f"\n\nOriginal strategy for reference:\n{strategy_text}"
-    
-    candidate_configs = [
-        rbi_agent.DEBUG_CONFIG,
-        {"type": "openai", "name": "o1-mini"},
-        {"type": "openai", "name": "gpt-4o"},
-        {"type": "claude", "name": "claude-3-haiku"},
-        {"type": "deepseek", "name": "deepseek-chat"},
-        {"type": "ollama", "name": "deepseek-r1"},
-        {"type": "ollama", "name": "llama3.2"},
-    ]
 
-    raw = None
-    for cfg in candidate_configs:
-        print(f"🛰️🌙 MOON DEV: Debug model attempt {cfg['type']} :: {cfg['name']}")
-        try:
-            raw = rbi_agent.chat_with_model(
-                rbi_agent.DEBUG_PROMPT,
-                context,
-                cfg,
-            )
-            if raw:
-                break
-        except Exception:
-            pass
+    # Use model_priority with HIGH priority for debugging
+    raw = rbi_agent.chat_with_model(
+        rbi_agent.DEBUG_PROMPT,
+        context,
+        ModelPriority.HIGH,
+        "Debug"
+    )
 
     if not raw:
         return code
