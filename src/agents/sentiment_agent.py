@@ -35,6 +35,14 @@ import pathlib
 import sys
 import time
 
+# Fix Windows console encoding for emojis
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+        sys.stderr.reconfigure(encoding='utf-8')
+    except (AttributeError, OSError):
+        pass
+
 # Third-party imports
 import httpx
 import numpy as np
