@@ -16,10 +16,15 @@ from __future__ import annotations
 # Standard library imports
 import json
 import os
+import sys
+from pathlib import Path
+
+# Add project root to Python path for imports
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
 
 # Standard library from imports
 from datetime import datetime
-from pathlib import Path
 
 # Local from imports
 from src.agents import rbi_agent
