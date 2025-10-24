@@ -23,6 +23,10 @@ from rich import print as rprint
 from rich.console import Console
 from termcolor import colored
 
+# Add project root to Python path for imports
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
+
 # Local from imports
 from src.nice_funcs import (
     token_creation_info,
@@ -30,11 +34,6 @@ from src.nice_funcs import (
     token_price,
     token_security_info
 )
-
-# Add src directory to Python path
-src_path = str(Path(__file__).parent.parent)
-if src_path not in sys.path:
-    sys.path.append(src_path)
 
 # Load environment variables
 load_dotenv()

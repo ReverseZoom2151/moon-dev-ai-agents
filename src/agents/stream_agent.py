@@ -26,13 +26,12 @@ from pathlib import Path
 from dotenv import load_dotenv
 from termcolor import cprint
 
+# Add project root to Python path for imports
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
+
 # Local from imports
 from src.models import model_factory
-
-# Add project root to Python path for imports
-project_root = str(Path(__file__).parent.parent.parent)
-if project_root not in sys.path:
-    sys.path.append(project_root)
 
 # Load environment variables from the project root
 env_path = Path(project_root) / '.env'

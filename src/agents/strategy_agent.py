@@ -13,6 +13,13 @@ import time
 # Third-party imports
 from termcolor import cprint
 
+# Standard library from imports
+from pathlib import Path
+
+# Add project root to Python path for imports
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
+
 # Local from imports
 from src.config import *
 from src.models.model_priority import ModelPriority, model_priority_queue
