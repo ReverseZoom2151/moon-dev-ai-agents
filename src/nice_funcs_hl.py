@@ -26,7 +26,7 @@ import requests
 import talib
 
 # Standard library from imports
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 # Constants
 BATCH_SIZE = 5000  # MAX IS 5000 FOR HYPERLIQUID
@@ -78,20 +78,20 @@ def _get_ohlcv(symbol, interval, start_time, end_time, batch_size=BATCH_SIZE):
                 if snapshot_data:
                     # Handle timestamp offset
                     if timestamp_offset is None:
-                        latest_api_timestamp = datetime.utcfromtimestamp(snapshot_data[-1]['t'] / 1000)
-                        system_current_date = datetime.utcnow()
+                        latest_api_timestamp = datetime.fromtimestamp(snapshot_data[-1]['t'] / 1000, tz=timezone.utc)
+                        system_current_date = datetime.now(timezone.utc)
                         expected_latest_timestamp = system_current_date
                         timestamp_offset = latest_api_timestamp - expected_latest_timestamp
                         print(f"⏱️ Calculated timestamp offset: {timestamp_offset}")
 
                     # Adjust timestamps
                     for candle in snapshot_data:
-                        dt = datetime.utcfromtimestamp(candle['t'] / 1000)
+                        dt = datetime.fromtimestamp(candle['t'] / 1000, tz=timezone.utc)
                         adjusted_dt = adjust_timestamp(dt)
                         candle['t'] = int(adjusted_dt.timestamp() * 1000)
 
-                    first_time = datetime.utcfromtimestamp(snapshot_data[0]['t'] / 1000)
-                    last_time = datetime.utcfromtimestamp(snapshot_data[-1]['t'] / 1000)
+                    first_time = datetime.fromtimestamp(snapshot_data[0]['t'] / 1000, tz=timezone.utc)
+                    last_time = datetime.fromtimestamp(snapshot_data[-1]['t'] / 1000, tz=timezone.utc)
                     print(f'✨ Received {len(snapshot_data)} candles')
                     print(f'📈 First: {first_time}')
                     print(f'📉 Last: {last_time}')
@@ -110,7 +110,7 @@ def _process_data_to_df(snapshot_data):
         columns = ['timestamp', 'open', 'high', 'low', 'close', 'volume']
         data = []
         for snapshot in snapshot_data:
-            timestamp = datetime.utcfromtimestamp(snapshot['t'] / 1000)
+            timestamp = datetime.fromtimestamp(snapshot['t'] / 1000, tz=timezone.utc)
             # Convert all numeric values to float
             data.append([
                 timestamp,
@@ -190,9 +190,9 @@ def get_data(symbol, timeframe='15m', bars=100, add_indicators=True):
 
     # Ensure we don't exceed max rows
     bars = min(bars, MAX_ROWS)
-    
+
     # Calculate time window
-    end_time = datetime.utcnow()
+    end_time = datetime.now(timezone.utc)
     # Add extra time to ensure we get enough bars
     start_time = end_time - timedelta(days=60)
 

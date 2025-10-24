@@ -3,6 +3,16 @@
 Simple Moving Average Crossover Strategy
 """
 
+# Standard library imports
+import sys
+
+# Standard library from imports
+from pathlib import Path
+
+# Add project root to Python path for imports
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
+
 # Third-party imports
 import pandas as pd
 
@@ -12,7 +22,12 @@ from termcolor import cprint
 # Local from imports
 from src import nice_funcs as n
 from src.config import MONITORED_TOKENS
-from .base_strategy import BaseStrategy
+
+# Relative import for base_strategy
+try:
+    from .base_strategy import BaseStrategy
+except ImportError:
+    from base_strategy import BaseStrategy
 
 class SimpleMAStrategy(BaseStrategy):
     def __init__(self):
