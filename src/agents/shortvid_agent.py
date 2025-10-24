@@ -19,7 +19,7 @@ import time
 import traceback
 
 # Third-party imports
-import elevenlabs
+from elevenlabs.client import ElevenLabs
 
 # Standard library from imports
 from pathlib import Path
@@ -30,6 +30,14 @@ from dotenv import load_dotenv
 # Add project root to Python path for imports
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
+
+# Fix Windows console encoding for emojis
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+        sys.stderr.reconfigure(encoding='utf-8')
+    except (AttributeError, OSError):
+        pass
 
 # Add project root to Python path for imports
 PROJECT_ROOT = Path(__file__).parent.parent.parent
@@ -63,11 +71,11 @@ class VideoAgent:
         """Initialize the Video Agent"""
         load_dotenv()
         
-        # Set ElevenLabs API key
+        # Initialize ElevenLabs client (version 2.x)
         api_key = os.getenv("ELEVENLABS_API_KEY")
         if not api_key:
             raise ValueError("🚨 ELEVENLABS_API_KEY not found in environment variables!")
-        elevenlabs.set_api_key(api_key)
+        self.elevenlabs_client = ElevenLabs(api_key=api_key)
         
         # Create output directories if they don't exist
         self.audio_dir = AUDIO_DIR
@@ -245,12 +253,16 @@ class VideoAgent:
                         print(f"🔄 Skipping duplicate video: {video_name}.mp4")
                         continue
                         
-                    # Generate audio using simpler API
-                    audio = elevenlabs.generate(
+                    # Generate audio using ElevenLabs client (version 2.x)
+                    audio_stream = self.elevenlabs_client.text_to_speech.convert(
+                        voice_id=VOICE_ID,
                         text=line,
-                        voice=VOICE_ID,
-                        model=MODEL_ID
+                        model_id=MODEL_ID,
+                        output_format=OUTPUT_FORMAT
                     )
+                    
+                    # Collect audio bytes from stream
+                    audio = b''.join(audio_stream)
                     
                     # Create filename from text
                     timestamp = time.strftime("%Y%m%d_%H%M%S")
@@ -271,10 +283,14 @@ class VideoAgent:
                     final_video = self._combine_audio_video(audio_filepath, video_file, line)
                     print(f"🎞️ Created final video: {final_video.name}")
                     
-                    # Play audio if enabled
+                    # Play audio if enabled (requires playsound library)
                     if PLAY_AUDIO:
                         print("🔊 Playing audio...")
-                        elevenlabs.play(audio)
+                        try:
+                            from playsound import playsound
+                            playsound(str(audio_filepath))
+                        except Exception as play_error:
+                            print(f"⚠️ Could not play audio: {play_error}")
                     
                     # Delay between requests
                     if i < len(text_lines):
