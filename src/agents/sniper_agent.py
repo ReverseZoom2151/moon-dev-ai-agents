@@ -34,10 +34,9 @@ from rich import print as rprint
 from rich.console import Console
 from termcolor import colored
 
-# Add src directory to Python path
-src_path = str(Path(__file__).parent.parent)
-if src_path not in sys.path:
-    sys.path.append(src_path)
+# Add project root to Python path for imports
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
 
 # Suppress INFO logs
 logging.getLogger().setLevel(logging.WARNING)

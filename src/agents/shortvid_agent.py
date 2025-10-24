@@ -14,6 +14,7 @@ import math
 import os
 import random
 import subprocess
+import sys
 import time
 import traceback
 
@@ -25,6 +26,14 @@ from pathlib import Path
 
 # Third-party from imports
 from dotenv import load_dotenv
+
+# Add project root to Python path for imports
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
+
+# Add project root to Python path for imports
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
 
 # Text Input Settings
 USE_TEXT_FILE = True  # Whether to use input text file by default
