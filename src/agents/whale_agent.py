@@ -415,7 +415,7 @@ class WhaleAgent(BaseAgent):
 
             if not response:
                 print("❌ All models failed - skipping this analysis")
-                continue
+                return None
 
             response_text = response.content
             print(f"✅ Used model: {provider}:{model}")

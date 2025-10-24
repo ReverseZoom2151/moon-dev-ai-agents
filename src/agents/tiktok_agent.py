@@ -107,6 +107,15 @@ import time
 import traceback
 import webbrowser
 
+# Platform check - macOS only
+if sys.platform != 'darwin':
+    print("❌ TikTok Agent Error: This agent requires macOS")
+    print("   Reason: Uses macOS-specific libraries (AppKit, Quartz)")
+    print("   Platform detected: " + sys.platform)
+    print()
+    print("💡 This agent can only run on macOS due to Apple-specific screen automation.")
+    sys.exit(1)
+
 # Third-party imports
 import AppKit
 import pandas as pd

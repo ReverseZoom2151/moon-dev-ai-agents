@@ -14,6 +14,14 @@ This agent takes text input and generates tweets based on the content.
 MODEL_OVERRIDE = "deepseek-chat"  # Set to "0" to disable override
 DEEPSEEK_BASE_URL = "https://api.deepseek.com"  # Base URL for DeepSeek API
 
+# Standard library imports
+import sys
+from pathlib import Path
+
+# Add project root to Python path for imports
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
+
 # Text Processing Settings
 MAX_CHUNK_SIZE = 10000  # Maximum characters per chunk
 TWEETS_PER_CHUNK = 3   # Number of tweets to generate per chunk
@@ -21,7 +29,7 @@ USE_TEXT_FILE = True   # Whether to use og_tweet_text.txt by default
 # if the above is true, then the below is the file to use
 OG_TWEET_FILE = PROJECT_ROOT / "src" / "data" / "tweets/og_tweet_text.txt"
 
-# Standard library imports
+# More standard library imports
 import math
 import os
 import sys
@@ -42,7 +50,6 @@ import pandas as pd
 
 # Standard library from imports
 from datetime import datetime
-from pathlib import Path
 
 # Third-party from imports
 from dotenv import load_dotenv
