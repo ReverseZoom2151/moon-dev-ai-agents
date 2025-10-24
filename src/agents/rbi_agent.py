@@ -335,6 +335,7 @@ import openai
 import requests
 
 # Standard library from imports
+from dataclasses import dataclass, field
 from datetime import datetime
 from io import BytesIO
 from itertools import cycle
