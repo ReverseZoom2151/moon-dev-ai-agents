@@ -47,25 +47,21 @@ import sys
 import textwrap
 import threading
 import time
+from datetime import datetime
+from pathlib import Path
 
 # Third-party imports
 import pandas as pd
 
-# Standard library from imports
-from datetime import datetime
-from pathlib import Path
-
 # Third-party from imports
 from termcolor import colored, cprint
 
-# Import model factory from RBI agent
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Add project root to Python path for imports
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
 
 # Local from imports
 from src.models import model_factory
-
-# Define paths
-PROJECT_ROOT = Path(__file__).parent.parent.parent  # Points to project root
 DATA_DIR = PROJECT_ROOT / "src" / "data" / "rbi"
 IDEAS_TXT = DATA_DIR / "ideas.txt"
 IDEAS_CSV = DATA_DIR / "strategy_ideas.csv"
