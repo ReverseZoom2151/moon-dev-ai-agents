@@ -31,10 +31,10 @@ PROJECT_ROOT = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 # Local from imports
-from src.models import model_factory
+from src.models.model_priority import ModelPriority, model_priority_queue
 
 # Load environment variables from the project root
-env_path = Path(project_root) / '.env'
+env_path = PROJECT_ROOT / '.env'
 if not env_path.exists():
     raise ValueError(f"🚨 .env file not found at {env_path}")
 
@@ -101,9 +101,6 @@ class StreamAgent:
         
         # Initialize local Whisper model
         self.whisper_model = whisper.load_model("base")
-        
-        # Initialize model for title generation
-        self.model = model_factory.get_model("openai", "gpt-4o")
         
         self.is_recording = False
         self.current_transcript = []
