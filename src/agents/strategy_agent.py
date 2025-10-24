@@ -9,6 +9,7 @@ import inspect
 import json
 import os
 import time
+import sys
 
 # Third-party imports
 from termcolor import cprint
@@ -85,12 +86,12 @@ class StrategyAgent:
             try:
                 # Import strategies directly
                 from src.strategies.custom.example_strategy import ExampleStrategy
-                from src.strategies.custom.private_my_strategy import MyStrategy
+                # from src.strategies.custom.private_my_strategy import MyStrategy
                 
                 # Initialize strategies
                 self.enabled_strategies.extend([
-                    ExampleStrategy(),
-                    MyStrategy()
+                    ExampleStrategy()
+                    # MyStrategy()
                 ])
                 
                 print(f"✅ Loaded {len(self.enabled_strategies)} strategies!")
