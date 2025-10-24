@@ -37,7 +37,7 @@ def main():
     print(colored("==========================================", "magenta"))
     print(colored("  Welcome to the Terminal Snake Game!", "green", attrs=["bold"]))
     print(colored("  Enjoy retro colors and fun beep sounds.", "cyan"))
-    print(colored("  (PS: There are a couple of bugs in the code for testing!)", "yellow"))
+    print(colored("  All bugs fixed! 🐛✅ Ready to play!", "yellow"))
     print(colored("==========================================", "magenta"))
     print(colored("Press Enter to begin...", "yellow"))
     input()  # Wait for user input before starting
@@ -55,7 +55,7 @@ def game_loop(stdscr):
     curses.start_color()
     curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)  # Snake body color
     curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)    # Food color
-    # (BUG INTENTIONAL:) We will later call curses.color_pair(3) for the snake's head, but we never initialize pair 3.
+    curses.init_pair(3, curses.COLOR_YELLOW, curses.COLOR_BLACK) # Snake head color (BUG FIXED!)
 
     sh, sw = stdscr.getmaxyx()  # Screen height and width
 
@@ -95,9 +95,8 @@ def game_loop(stdscr):
         snake.insert(0, head)
 
         # --- Collision with boundaries ---
-        # (BUG INTENTIONAL:) This boundary check uses sh and sw directly,
-        # which means the snake dies if it touches row 0 or column 0 or exactly sh or sw.
-        if head[0] in [0, sh] or head[1] in [0, sw]:
+        # (BUG FIXED!) Proper boundary check: dies if at or beyond screen edges
+        if head[0] <= 0 or head[0] >= sh or head[1] <= 0 or head[1] >= sw:
             play_sound()
             msg = "Game Over! Score: " + str(score)
             stdscr.addstr(sh // 2, sw // 2 - len(msg) // 2, msg)
@@ -118,8 +117,11 @@ def game_loop(stdscr):
         if head == food:
             score += 1
             play_sound()
-            # (BUG INTENTIONAL:) New food is placed randomly without checking if it spawns on the snake's body.
-            food = [random.randint(1, sh - 2), random.randint(1, sw - 2)]
+            # (BUG FIXED!) Place food in a position that's not occupied by the snake
+            while True:
+                food = [random.randint(1, sh - 2), random.randint(1, sw - 2)]
+                if food not in snake:
+                    break
             stdscr.addch(food[0], food[1], curses.ACS_PI, curses.color_pair(2))
         else:
             # Remove the snake's tail (clear the last segment)
@@ -127,7 +129,7 @@ def game_loop(stdscr):
             stdscr.addch(tail[0], tail[1], ' ')
 
         # --- Draw the snake's head ---
-        # (BUG INTENTIONAL:) Using color_pair(3) even though it was never initialized.
+        # Using color_pair(3) for yellow snake head (BUG FIXED!)
         stdscr.addch(snake[0][0], snake[0][1], curses.ACS_CKBOARD, curses.color_pair(3))
 
         stdscr.refresh()
