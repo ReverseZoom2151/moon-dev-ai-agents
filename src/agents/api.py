@@ -181,9 +181,9 @@ class MoonDevAPI:
                 df = pd.read_csv(temp_file)
                 print(f"✨ Successfully loaded {len(df)} rows from oi.csv")
                 
-                # Move temp file to final location
+                # Move temp file to final location (replace handles Windows + Unix)
                 final_file = self.base_dir / "oi.csv"
-                temp_file.rename(final_file)
+                temp_file.replace(final_file)
                 
                 return df
                 
