@@ -30,8 +30,9 @@ SEARCH_CATEGORY = "q-fin"  # Options: "q-fin", "cs", "econ", etc.
 # Number of papers to download
 MAX_PAPERS_TO_DOWNLOAD = 50  # Change this to download more or fewer papers
 
-# Where to save the papers
-DOWNLOAD_DIRECTORY = os.path.join("/Users/md/Dropbox/dev/github/moon-dev-ai-agents-for-trading/src/data", "Arxiv")
+# Where to save the papers (relative to project root)
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+DOWNLOAD_DIRECTORY = os.path.join(PROJECT_ROOT, "src", "data", "Arxiv")
 
 # Sort order for results
 SORT_BY = "relevance"  # Options: "relevance", "lastUpdatedDate", "submittedDate"
