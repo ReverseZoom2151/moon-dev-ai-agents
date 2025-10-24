@@ -76,20 +76,15 @@ class RiskAgent(BaseAgent):
         """Initialize Moon Dev's Risk Agent 🛡️"""
         super().__init__('risk', use_model_priority=True)  # Enable model priority with fallback
         
-        # Set AI parameters - use config values unless overridden
-        self.ai_model = AI_MODEL if AI_MODEL else config.AI_MODEL
+        # Set AI parameters for model_priority (temperature and max_tokens)
+        # Model selection is handled by model_priority system
         self.ai_temperature = AI_TEMPERATURE if AI_TEMPERATURE > 0 else config.AI_TEMPERATURE
         self.ai_max_tokens = AI_MAX_TOKENS if AI_MAX_TOKENS > 0 else config.AI_MAX_TOKENS
-        
-        print(f"🤖 Using AI Model: {self.ai_model}")
-        if AI_MODEL or AI_TEMPERATURE > 0 or AI_MAX_TOKENS > 0:
-            print("⚠️ Note: Using some override settings instead of config.py defaults")
-            if AI_MODEL:
-                print(f"  - Model: {AI_MODEL}")
-            if AI_TEMPERATURE > 0:
-                print(f"  - Temperature: {AI_TEMPERATURE}")
-            if AI_MAX_TOKENS > 0:
-                print(f"  - Max Tokens: {AI_MAX_TOKENS}")
+
+        print(f"🤖 Using model_priority system with CRITICAL priority for risk decisions")
+        print(f"   Priority order: GPT-5 → Claude Sonnet 4.5 → Gemini 2.5 Pro")
+        print(f"   Temperature: {self.ai_temperature}")
+        print(f"   Max Tokens: {self.ai_max_tokens}")
                 
         load_dotenv()
 
@@ -195,8 +190,10 @@ class RiskAgent(BaseAgent):
                 'balance': current_value
             }
             print(f"📝 Adding new balance record: {new_row}")
-            
-            df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+
+            # Fix FutureWarning: use pd.concat with proper handling of empty DataFrames
+            new_df = pd.DataFrame([new_row])
+            df = pd.concat([df, new_df], ignore_index=True) if not df.empty else new_df
             
             # Save updated log
             df.to_csv(balance_file, index=False)
